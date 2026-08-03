@@ -9,7 +9,9 @@ protocol AppBoxContainerBridging {
 @MainActor
 struct AppBoxContainerBridge: AppBoxContainerBridging {
     func hostApp(for item: AppBoxCatalogItem, in apps: [LCAppModel]) -> LCAppModel? {
-        apps.first { $0.bundleIdentifier == item.bundleIdentifier }
+        guard case .ipa = item.source,
+              let bundleIdentifier = item.bundleIdentifier else { return nil }
+        return apps.first { $0.bundleIdentifier == bundleIdentifier }
     }
 
     func isInstalled(_ item: AppBoxCatalogItem, in apps: [LCAppModel]) -> Bool {

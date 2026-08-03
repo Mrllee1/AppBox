@@ -47,7 +47,7 @@ struct AppBoxShareView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .shadow(color: Color.black.opacity(0.10), radius: 7, y: 3)
 
-                    Text("AppBox")
+                    Text(AppBoxBrand.name(for: language))
                         .font(.system(size: 23, weight: .semibold))
                         .foregroundColor(palette.primaryText)
 
@@ -69,7 +69,12 @@ struct AppBoxShareView: View {
                                 .stroke(palette.border, lineWidth: 1)
                         }
 
-                    Text(copy.text("扫码查看 AppBox", "Scan to view AppBox"))
+                    Text(
+                        copy.text(
+                            "扫码查看\(AppBoxBrand.chineseName)",
+                            "Scan to view \(AppBoxBrand.englishName)"
+                        )
+                    )
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(palette.secondaryText)
                 }
@@ -151,7 +156,7 @@ private enum AppBoxSharePosterRenderer {
 
             let paragraph = NSMutableParagraphStyle()
             paragraph.alignment = .center
-            ("AppBox" as NSString).draw(
+            (AppBoxBrand.name(for: language) as NSString).draw(
                 in: CGRect(x: 80, y: 430, width: 920, height: 90),
                 withAttributes: [
                     .font: UIFont.systemFont(ofSize: 64, weight: .bold),
@@ -171,7 +176,9 @@ private enum AppBoxSharePosterRenderer {
             )
 
             qrImage.draw(in: CGRect(x: 300, y: 690, width: 480, height: 480))
-            let footer = language == .simplifiedChinese ? "扫码查看 AppBox" : "Scan to view AppBox"
+            let footer = language == .simplifiedChinese
+                ? "扫码查看\(AppBoxBrand.chineseName)"
+                : "Scan to view \(AppBoxBrand.englishName)"
             (footer as NSString).draw(
                 in: CGRect(x: 80, y: 1210, width: 920, height: 60),
                 withAttributes: [

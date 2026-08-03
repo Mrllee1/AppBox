@@ -60,12 +60,20 @@ struct AppBoxSettingsView: View {
                             Text(copy.text("更多", "More").uppercased())
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(palette.secondaryText)
-                            settingsActionRow(.share, copy.text("分享 AppBox", "Share AppBox")) {
+                            settingsActionRow(
+                                .share,
+                                copy.text("分享\(AppBoxBrand.chineseName)", "Share \(AppBoxBrand.englishName)")
+                            ) {
                                 withAnimation(.easeOut(duration: 0.18)) { showShare = true }
                             }
                         }
 
-                        Text(copy.text("AppBox 版本 1.0.0", "AppBox Version 1.0.0"))
+                        Text(
+                            copy.text(
+                                "\(AppBoxBrand.chineseName)版本 1.0.0",
+                                "\(AppBoxBrand.englishName) Version 1.0.0"
+                            )
+                        )
                             .font(.system(size: 12, weight: .regular))
                             .foregroundColor(palette.secondaryText)
                             .frame(maxWidth: .infinity)

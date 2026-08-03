@@ -14,6 +14,15 @@ enum AppBoxLanguage: String, CaseIterable, Identifiable {
     }
 }
 
+enum AppBoxBrand {
+    static let chineseName = "天涯盒子"
+    static let englishName = "Tianya Box"
+
+    static func name(for language: AppBoxLanguage) -> String {
+        language == .simplifiedChinese ? chineseName : englishName
+    }
+}
+
 enum AppBoxAppearance: String, CaseIterable, Identifiable {
     case system
     case light
@@ -97,16 +106,35 @@ enum AppBoxIcon: String {
     case news = "IconaMoonNews"
 }
 
+enum AppBoxAppSource: Hashable {
+    case ipa(downloadURL: URL?)
+    case web(entryURL: URL)
+
+    var ipaDownloadURL: URL? {
+        guard case .ipa(let downloadURL) = self else { return nil }
+        return downloadURL
+    }
+
+    var webEntryURL: URL? {
+        guard case .web(let entryURL) = self else { return nil }
+        return entryURL
+    }
+
+    var isWeb: Bool {
+        webEntryURL != nil
+    }
+}
+
 struct AppBoxCatalogItem: Identifiable, Hashable {
     let id: String
-    let bundleIdentifier: String
+    let bundleIdentifier: String?
     let chineseName: String
     let englishName: String
     let series: AppBoxSeries
     let section: AppBoxSection
     let icon: AppBoxIcon
     let iconStyle: AppBoxIconStyle
-    let downloadURL: URL?
+    let source: AppBoxAppSource
 
     func name(for language: AppBoxLanguage) -> String {
         language == .simplifiedChinese ? chineseName : englishName
@@ -126,12 +154,35 @@ struct AppBoxInstallRequest: Identifiable, Equatable {
     let sourceURL: URL?
 
     static func catalog(item: AppBoxCatalogItem) -> AppBoxInstallRequest {
-        AppBoxInstallRequest(id: "catalog.\(item.id)", itemID: item.id, sourceURL: item.downloadURL)
+        AppBoxInstallRequest(id: "catalog.\(item.id)", itemID: item.id, sourceURL: item.source.ipaDownloadURL)
     }
 
     static func external(url: URL?) -> AppBoxInstallRequest {
         AppBoxInstallRequest(id: "external.\(url?.absoluteString ?? "picker")", itemID: nil, sourceURL: url)
     }
+}
+
+enum AppBoxLaunchPhase: Equatable {
+    case preparing
+    case verifying
+    case launching
+    case ready
+
+    var progress: Double {
+        switch self {
+        case .preparing: return 0.14
+        case .verifying: return 0.48
+        case .launching: return 0.82
+        case .ready: return 1
+        }
+    }
+}
+
+struct AppBoxLaunchState: Identifiable, Equatable {
+    let item: AppBoxCatalogItem
+    var phase: AppBoxLaunchPhase
+
+    var id: String { item.id }
 }
 
 enum AppBoxNotice: Equatable {

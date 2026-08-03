@@ -81,7 +81,18 @@ struct AppBoxRootView: View {
                 }
                 .zIndex(100)
             }
+
+            if let launchState = store.launchState {
+                AppBoxLaunchTransitionView(
+                    state: launchState,
+                    language: language,
+                    skin: skin
+                )
+                .transition(.scale(scale: 0.97).combined(with: .opacity))
+                .zIndex(120)
+            }
         }
+        .animation(.easeOut(duration: 0.20), value: store.launchState != nil)
         .preferredColorScheme(appearance.preferredColorScheme)
         .fullScreenCover(isPresented: $showSettings) {
             AppBoxSettingsView(language: $language, appearance: $appearance, skin: $skin)
@@ -89,6 +100,9 @@ struct AppBoxRootView: View {
         }
         .fullScreenCover(isPresented: $showPassword) {
             AppBoxPasswordView(language: language, skin: skin, mode: .unlock)
+        }
+        .fullScreenCover(item: $store.activeWebApp) { item in
+            AppBoxWebAppView(item: item, language: language, skin: skin)
         }
         .sheet(item: $store.pendingInstallRequest, onDismiss: {
             store.finishInstallRequest()
@@ -117,7 +131,7 @@ struct AppBoxRootView: View {
                 accessibilityLabel: copy.text("设置", "Settings"),
                 palette: palette
             ) { showSettings = true }
-            Text(copy.text("应用中心", "App Center"))
+            Text(AppBoxBrand.name(for: language))
                 .font(.system(size: 21, weight: .semibold))
                 .foregroundColor(palette.primaryText)
             Spacer(minLength: 8)
@@ -186,8 +200,9 @@ struct AppBoxRootView: View {
                             item: item,
                             copy: copy,
                             palette: palette,
+                            canRemove: store.canRemove(item),
                             open: { Task { await store.launch(item, hostApps: sharedModel.apps) } },
-                            remove: { store.removeSimulatedInstall(item) }
+                            remove: { Task { await store.remove(item) } }
                         )
                     }
                 }

@@ -45,10 +45,16 @@
         return liveProcessBundle.bundleIdentifier;
     }
     
-    // in LC2, attempt to guess LC1's LiveProcess extension
-    NSString *bundleID = [NSString stringWithFormat:@"com.kdt.livecontainer.%@.LiveProcess", LCSharedUtils.teamIdentifier];
+    // In LC2, resolve the extension from the current host identifier first.
+    NSString *bundleID = [NSString stringWithFormat:@"%@.LiveProcess", NSBundle.mainBundle.bundleIdentifier];
     if([NSExtension extensionWithIdentifier:bundleID error:nil]) {
         return bundleID;
+    }
+
+    // Keep compatibility with older LC1 installations.
+    NSString *legacyBundleID = [NSString stringWithFormat:@"com.kdt.livecontainer.%@.LiveProcess", LCSharedUtils.teamIdentifier];
+    if([NSExtension extensionWithIdentifier:legacyBundleID error:nil]) {
+        return legacyBundleID;
     }
     
     return nil;

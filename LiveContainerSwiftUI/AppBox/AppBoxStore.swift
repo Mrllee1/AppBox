@@ -2,30 +2,42 @@ import Foundation
 
 @MainActor
 final class AppBoxStore: ObservableObject {
-    @Published private(set) var simulatedInstalledIDs: Set<String>
+    @Published private(set) var localInstalledIDs: Set<String>
     @Published private(set) var installingIDs: Set<String> = []
     @Published var pendingInstallRequest: AppBoxInstallRequest?
+    @Published var activeWebApp: AppBoxCatalogItem?
+    @Published private(set) var launchState: AppBoxLaunchState?
     @Published var notice: AppBoxNotice?
 
-    private let defaults: UserDefaults
-    private let installedIDsKey = "appbox.simulator.installedIDs"
     private let bridge: any AppBoxContainerBridging
+    private let localInstallStore: any AppBoxLocalInstallPersisting
+    private let webDataManager: any AppBoxWebDataManaging
 
     init(
         defaults: UserDefaults = .standard,
-        bridge: (any AppBoxContainerBridging)? = nil
+        bridge: (any AppBoxContainerBridging)? = nil,
+        localInstallStore: (any AppBoxLocalInstallPersisting)? = nil,
+        webDataManager: (any AppBoxWebDataManaging)? = nil
     ) {
-        self.defaults = defaults
         self.bridge = bridge ?? AppBoxContainerBridge()
-#if targetEnvironment(simulator)
-        simulatedInstalledIDs = Set(defaults.stringArray(forKey: installedIDsKey) ?? [])
-#else
-        simulatedInstalledIDs = []
-#endif
+        let resolvedLocalStore = localInstallStore ?? AppBoxLocalInstallStore(defaults: defaults)
+        self.localInstallStore = resolvedLocalStore
+        self.webDataManager = webDataManager ?? AppBoxWebDataStore.shared
+        localInstalledIDs = resolvedLocalStore.installedIDs
     }
 
     func isInstalled(_ item: AppBoxCatalogItem, hostApps: [LCAppModel]) -> Bool {
-        bridge.isInstalled(item, in: hostApps) || simulatedInstalledIDs.contains(item.id)
+        switch item.source {
+        case .web:
+            return localInstalledIDs.contains(item.id)
+        case .ipa:
+            if bridge.isInstalled(item, in: hostApps) { return true }
+#if targetEnvironment(simulator)
+            return localInstalledIDs.contains(item.id)
+#else
+            return false
+#endif
+        }
     }
 
     func installedItems(hostApps: [LCAppModel]) -> [AppBoxCatalogItem] {
@@ -38,47 +50,100 @@ final class AppBoxStore: ObservableObject {
               !installingIDs.contains(item.id) else { return }
         installingIDs.insert(item.id)
 
+        switch item.source {
+        case .web:
+            defer { installingIDs.remove(item.id) }
+            if localInstallStore.install(item.id) {
+                localInstalledIDs = localInstallStore.installedIDs
+            }
+            notice = .installed(item.id)
+
+        case .ipa(let downloadURL):
 #if targetEnvironment(simulator)
-        defer { installingIDs.remove(item.id) }
-        try? await Task.sleep(nanoseconds: 850_000_000)
-        guard !Task.isCancelled else { return }
-        if simulatedInstalledIDs.insert(item.id).inserted {
-            persistSimulatedInstalledIDs()
-        }
-        notice = .installed(item.id)
+            defer { installingIDs.remove(item.id) }
+            try? await Task.sleep(nanoseconds: 850_000_000)
+            guard !Task.isCancelled else { return }
+            if localInstallStore.install(item.id) {
+                localInstalledIDs = localInstallStore.installedIDs
+            }
+            notice = .installed(item.id)
 #else
-        guard item.downloadURL != nil else {
-            installingIDs.remove(item.id)
-            notice = .missingDownloadURL
-            return
-        }
-        pendingInstallRequest = .catalog(item: item)
+            guard downloadURL != nil else {
+                installingIDs.remove(item.id)
+                notice = .missingDownloadURL
+                return
+            }
+            pendingInstallRequest = .catalog(item: item)
 #endif
+        }
     }
 
     func launch(_ item: AppBoxCatalogItem, hostApps: [LCAppModel]) async {
+        guard launchState == nil else { return }
+        guard isInstalled(item, hostApps: hostApps) else {
+            notice = .notInstalled
+            return
+        }
+
+        notice = nil
+        launchState = AppBoxLaunchState(item: item, phase: .preparing)
+
         do {
-            if try await bridge.launch(item, in: hostApps) { return }
-#if targetEnvironment(simulator)
-            guard simulatedInstalledIDs.contains(item.id) else {
-                notice = .notInstalled
+            try await advanceLaunch(to: .verifying, after: 300_000_000)
+            try await advanceLaunch(to: .launching, after: 400_000_000)
+            try await advanceLaunch(to: .ready, after: 420_000_000)
+            try await Task.sleep(nanoseconds: 220_000_000)
+            try Task.checkCancellation()
+            launchState = nil
+
+            if case .web = item.source {
+                activeWebApp = item
                 return
             }
+
+            if try await bridge.launch(item, in: hostApps) { return }
+#if targetEnvironment(simulator)
             notice = .launched(item.id)
 #else
             notice = .notInstalled
 #endif
+        } catch is CancellationError {
+            launchState = nil
         } catch {
+            launchState = nil
             notice = .launchFailed(error.localizedDescription)
         }
     }
 
-    func removeSimulatedInstall(_ item: AppBoxCatalogItem) {
+    private func advanceLaunch(to phase: AppBoxLaunchPhase, after delay: UInt64) async throws {
+        try await Task.sleep(nanoseconds: delay)
+        try Task.checkCancellation()
+        guard launchState != nil else { throw CancellationError() }
+        launchState?.phase = phase
+    }
+
+    func canRemove(_ item: AppBoxCatalogItem) -> Bool {
+        if item.source.isWeb { return true }
 #if targetEnvironment(simulator)
-        if simulatedInstalledIDs.remove(item.id) != nil {
-            persistSimulatedInstalledIDs()
-        }
+        return true
+#else
+        return false
 #endif
+    }
+
+    func remove(_ item: AppBoxCatalogItem) async {
+        guard canRemove(item), localInstalledIDs.contains(item.id) else { return }
+
+        do {
+            if item.source.isWeb {
+                try await webDataManager.removeData(for: item)
+            }
+            if localInstallStore.remove(item.id) {
+                localInstalledIDs = localInstallStore.installedIDs
+            }
+        } catch {
+            notice = .launchFailed(error.localizedDescription)
+        }
     }
 
     func requestExternalInstall(url: URL? = nil) {
@@ -90,11 +155,5 @@ final class AppBoxStore: ObservableObject {
     func finishInstallRequest() {
         installingIDs.removeAll()
         pendingInstallRequest = nil
-    }
-
-    private func persistSimulatedInstalledIDs() {
-        let value = simulatedInstalledIDs.sorted()
-        guard defaults.stringArray(forKey: installedIDsKey) != value else { return }
-        defaults.set(value, forKey: installedIDsKey)
     }
 }

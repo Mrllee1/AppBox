@@ -209,6 +209,7 @@ struct AppBoxInstalledTile: View {
     let item: AppBoxCatalogItem
     let copy: AppBoxCopy
     let palette: AppBoxPalette
+    let canRemove: Bool
     let open: () -> Void
     let remove: () -> Void
 
@@ -226,12 +227,12 @@ struct AppBoxInstalledTile: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-#if targetEnvironment(simulator)
-            Button(role: .destructive, action: remove) {
-                AppBoxGlyph(icon: .trash)
-                Text(copy.text("移除", "Remove"))
+            if canRemove {
+                Button(role: .destructive, action: remove) {
+                    AppBoxGlyph(icon: .trash)
+                    Text(copy.text("卸载", "Uninstall"))
+                }
             }
-#endif
         }
     }
 }
