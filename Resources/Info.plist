@@ -5,7 +5,7 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDisplayName</key>
-	<string>LiveContainer</string>
+	<string>AppBox</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -30,26 +30,27 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>LiveContainer</string>
+	<string>AppBox</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.8.3</string>
+	<string>1.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.kdt.livecontainer.urlscheme</string>
+			<string>com.appbox.urlscheme</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>livecontainer</string>
+				<string>appbox</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.8.3</string>
+	<string>1</string>
 	<key>GCSupportedGameControllers</key>
 	<array>
 		<dict>

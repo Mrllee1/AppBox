@@ -36,66 +36,7 @@ struct LCTabView: View {
 
     
     var body: some View {
-        Group {
-            if #available(iOS 19.0, *), SharedModel.isLiquidGlassSearchEnabled {
-                TabView(selection: $sharedModel.selectedTab) {
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        Tab("lc.tabView.sources".loc, systemImage: "books.vertical", value: LCTabIdentifier.sources) {
-                            sourcesView
-                        }
-                    }
-                    Tab("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill", value: LCTabIdentifier.apps) {
-                        appListView
-                    }
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        Tab("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver", value: LCTabIdentifier.tweaks) {
-                            LCTweaksView()
-                        }
-                    }
-                    Tab("lc.tabView.settings".loc, systemImage: "gearshape.fill", value: LCTabIdentifier.settings) {
-                        LCSettingsView()
-                    }
-                    Tab("Search".loc, systemImage: "magnifyingglass", value: LCTabIdentifier.search, role: .search) {
-                        if previousSelectedTab == .sources {
-                            sourcesView
-                                .searchable(text: $searchContextSource.query)
-                        } else {
-                            appListView
-                                .searchable(text: $searchContextAppList.query)
-                        }
-
-                    }
-                }
-            } else {
-                TabView(selection: $sharedModel.selectedTab) {
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        sourcesView
-                            .tabItem {
-                                Label("lc.tabView.sources".loc, systemImage: "books.vertical")
-                            }
-                            .tag(LCTabIdentifier.sources)
-                    }
-                    appListView
-                        .tabItem {
-                            Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
-                        }
-                        .tag(LCTabIdentifier.apps)
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        LCTweaksView()
-                            .tabItem{
-                                Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
-                            }
-                            .tag(LCTabIdentifier.tweaks)
-                    }
-                    
-                    LCSettingsView()
-                        .tabItem {
-                            Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
-                        }
-                        .tag(LCTabIdentifier.settings)
-                }
-            }
-        }
+        AppBoxRootView()
         .downloadAlert(helper: downloadHelper)
         .environmentObject(downloadHelper)
         .alert("lc.common.error".loc, isPresented: $errorShow){
@@ -136,10 +77,12 @@ struct LCTabView: View {
         .task {
             closeDuplicatedWindow()
             checkLastLaunchError()
+#if !targetEnvironment(simulator)
             checkTeamId()
             checkAndSaveBundleId()
             checkGetTaskAllow()
             checkPrivateContainerBookmark()
+#endif
         }
         .onReceive(pub) { out in
             if let scene1 = sceneDelegate.window?.windowScene, let scene2 = out.object as? UIWindowScene, scene1 == scene2 {
@@ -147,14 +90,6 @@ struct LCTabView: View {
                     DataManager.shared.model.mainWindowOpened = false
                 }
             }
-        }
-        .onChange(of: sharedModel.selectedTab) { newValue in
-            if newValue != LCTabIdentifier.search {
-                previousSelectedTab = newValue
-            }
-        }
-        .onOpenURL { url in
-            dispatchURL(url: url)
         }
     }
     
