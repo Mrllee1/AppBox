@@ -134,6 +134,15 @@ struct AppBoxWebAppView: View {
 
                 webToolbar
             }
+
+            GeometryReader { proxy in
+                AppBoxSandboxFloatingControl(
+                    language: language,
+                    availableSize: proxy.size,
+                    safeAreaInsets: proxy.safeAreaInsets,
+                    returnToSandbox: { dismiss() }
+                )
+            }
         }
         .onDisappear { model.stop() }
     }
