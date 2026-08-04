@@ -5,8 +5,10 @@ struct AppBoxRootView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var store = AppBoxStore()
+    @StateObject private var lockController = AppBoxLockController()
     @AppStorage("appbox.language") private var language: AppBoxLanguage = .simplifiedChinese
     @AppStorage("appbox.appearance") private var appearance: AppBoxAppearance = .system
     @AppStorage("appbox.skin") private var skin: AppBoxSkin = .sky
@@ -22,6 +24,61 @@ struct AppBoxRootView: View {
     private var installedItems: [AppBoxCatalogItem] { store.installedItems(hostApps: sharedModel.apps) }
 
     var body: some View {
+        Group {
+            if lockController.isLocked {
+                AppBoxLockScreen(
+                    language: language,
+                    skin: skin,
+                    onUnlock: { lockController.requestUnlock(while: scenePhase) }
+                )
+                .transition(.opacity)
+            } else {
+                unlockedContent
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: lockController.isLocked)
+        .preferredColorScheme(appearance.preferredColorScheme)
+        .fullScreenCover(isPresented: $showSettings, onDismiss: {
+            lockController.synchronizeProtectionState()
+        }) {
+            AppBoxSettingsView(language: $language, appearance: $appearance, skin: $skin)
+                .environmentObject(store)
+        }
+        .fullScreenCover(isPresented: $showPassword, onDismiss: {
+            lockController.synchronizeProtectionState()
+        }) {
+            AppBoxPasswordView(language: language, skin: skin, mode: .unlock)
+        }
+        .fullScreenCover(item: $store.activeWebApp) { item in
+            AppBoxWebAppView(item: item, language: language, skin: skin)
+        }
+        .sheet(item: $store.pendingInstallRequest, onDismiss: {
+            store.finishInstallRequest()
+        }) { request in
+            AppBoxContainerInstallerView(sourceURL: request.sourceURL)
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase != .active {
+                dismissSensitiveContent()
+            }
+            lockController.handleScenePhase(phase)
+        }
+        .onOpenURL { url in
+            guard let sourceURL = installSource(from: url) else { return }
+            store.requestExternalInstall(url: sourceURL)
+        }
+        .onChange(of: store.notice) { notice in
+            guard let notice else { return }
+            Task {
+                try? await Task.sleep(nanoseconds: 1_700_000_000)
+                if store.notice == notice {
+                    withAnimation { store.notice = nil }
+                }
+            }
+        }
+    }
+
+    private var unlockedContent: some View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
 
@@ -122,35 +179,14 @@ struct AppBoxRootView: View {
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.20), value: store.launchState != nil)
-        .preferredColorScheme(appearance.preferredColorScheme)
-        .fullScreenCover(isPresented: $showSettings) {
-            AppBoxSettingsView(language: $language, appearance: $appearance, skin: $skin)
-                .environmentObject(store)
-        }
-        .fullScreenCover(isPresented: $showPassword) {
-            AppBoxPasswordView(language: language, skin: skin, mode: .unlock)
-        }
-        .fullScreenCover(item: $store.activeWebApp) { item in
-            AppBoxWebAppView(item: item, language: language, skin: skin)
-        }
-        .sheet(item: $store.pendingInstallRequest, onDismiss: {
-            store.finishInstallRequest()
-        }) { request in
-            AppBoxContainerInstallerView(sourceURL: request.sourceURL)
-        }
-        .onOpenURL { url in
-            guard let sourceURL = installSource(from: url) else { return }
-            store.requestExternalInstall(url: sourceURL)
-        }
-        .onChange(of: store.notice) { notice in
-            guard let notice else { return }
-            Task {
-                try? await Task.sleep(nanoseconds: 1_700_000_000)
-                if store.notice == notice {
-                    withAnimation { store.notice = nil }
-                }
-            }
-        }
+    }
+
+    private func dismissSensitiveContent() {
+        showSettings = false
+        showShare = false
+        showPassword = false
+        store.activeWebApp = nil
+        store.finishInstallRequest()
     }
 
     private var seriesTabs: some View {

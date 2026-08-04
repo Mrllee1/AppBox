@@ -154,7 +154,7 @@
 	<key>NSContactsUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
+	<string>用于通过面容 ID 解锁天涯盒子的隐私空间。</string>
 	<key>NSFallDetectionUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>
 	<key>NSGKFriendListUsageDescription</key>

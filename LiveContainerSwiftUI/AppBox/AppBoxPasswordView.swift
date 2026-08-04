@@ -26,19 +26,23 @@ struct AppBoxPasswordView: View {
     @State private var revealPIN = false
     @State private var stage: AppBoxPINStage
     @State private var feedback = ""
+    @State private var hasVerifiedExistingPIN = false
 
     private let service: AppBoxPINProviding
+    private let onSuccess: (() -> Void)?
 
     init(
         language: AppBoxLanguage,
         skin: AppBoxSkin,
         mode: AppBoxPasswordMode,
-        service: AppBoxPINProviding = AppBoxPINService()
+        service: AppBoxPINProviding = AppBoxPINService(),
+        onSuccess: (() -> Void)? = nil
     ) {
         self.language = language
         self.skin = skin
         self.mode = mode
         self.service = service
+        self.onSuccess = onSuccess
         _stage = State(initialValue: service.hasPIN ? .verify : .create)
     }
 
@@ -120,7 +124,7 @@ struct AppBoxPasswordView: View {
                 .contentShape(Rectangle())
                 .onTapGesture { isInputFocused = true }
 
-                if service.hasPIN && mode == .manage && stage == .verify {
+                if service.hasPIN && mode == .manage && hasVerifiedExistingPIN && stage == .create {
                     Button(role: .destructive) {
                         removePIN()
                     } label: {
@@ -167,6 +171,7 @@ struct AppBoxPasswordView: View {
             if service.verify(value) {
                 feedback = ""
                 if mode == .manage {
+                    hasVerifiedExistingPIN = true
                     stage = .create
                     pin = ""
                 } else {
@@ -207,6 +212,7 @@ struct AppBoxPasswordView: View {
     private func removePIN() {
         do {
             try service.remove()
+            hasVerifiedExistingPIN = false
             stage = .create
             pin = ""
             feedback = copy.text("密码已移除", "PIN removed")
@@ -216,6 +222,7 @@ struct AppBoxPasswordView: View {
     }
 
     private func dismissAfterSuccess() {
+        onSuccess?()
         Task {
             try? await Task.sleep(nanoseconds: 650_000_000)
             dismiss()

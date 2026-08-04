@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import LocalAuthentication
 import Security
 
 protocol AppBoxPINProviding {
@@ -7,6 +8,60 @@ protocol AppBoxPINProviding {
     func verify(_ pin: String) -> Bool
     func save(_ pin: String) throws
     func remove() throws
+}
+
+enum AppBoxBiometryKind: Equatable {
+    case faceID
+    case touchID
+    case opticID
+    case unavailable
+}
+
+protocol AppBoxBiometricAuthenticating {
+    var biometryKind: AppBoxBiometryKind { get }
+    func authenticate(reason: String) async throws
+}
+
+final class AppBoxBiometricService: AppBoxBiometricAuthenticating {
+    var biometryKind: AppBoxBiometryKind {
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            return .unavailable
+        }
+
+        switch context.biometryType {
+        case .faceID:
+            return .faceID
+        case .touchID:
+            return .touchID
+        case .opticID:
+            return .opticID
+        case .none:
+            return .unavailable
+        @unknown default:
+            return .unavailable
+        }
+    }
+
+    func authenticate(reason: String) async throws {
+        let context = LAContext()
+
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            throw error ?? AppBoxSecurityError.biometryUnavailable
+        }
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
+                if success {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: error ?? AppBoxSecurityError.authenticationFailed)
+                }
+            }
+        }
+    }
 }
 
 final class AppBoxPINService: AppBoxPINProviding {
@@ -75,10 +130,14 @@ final class AppBoxPINService: AppBoxPINProviding {
 
 enum AppBoxSecurityError: LocalizedError {
     case keychain(OSStatus)
+    case biometryUnavailable
+    case authenticationFailed
 
     var errorDescription: String? {
         switch self {
         case .keychain(let status): return "Keychain error: \(status)"
+        case .biometryUnavailable: return "Biometric authentication is unavailable"
+        case .authenticationFailed: return "Biometric authentication failed"
         }
     }
 }
