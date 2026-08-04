@@ -79,6 +79,8 @@ enum AppBoxIcon: String {
     case closeCircle = "xmark.circle.fill"
     case check = "checkmark"
     case checkCircle = "checkmark.circle.fill"
+    case stop = "stop.fill"
+    case warning = "exclamationmark"
     case arrowRight = "chevron.right"
     case apps = "square.grid.2x2"
     case edit = "square.and.pencil"
@@ -125,6 +127,27 @@ enum AppBoxAppSource: Hashable {
     }
 }
 
+enum AppBoxInstallState: Equatable {
+    case downloading(progress: Double)
+    case processing
+    case completed
+    case failed(message: String)
+
+    var isActive: Bool {
+        switch self {
+        case .downloading, .processing:
+            return true
+        case .completed, .failed:
+            return false
+        }
+    }
+
+    var isCancellable: Bool {
+        if case .downloading = self { return true }
+        return false
+    }
+}
+
 struct AppBoxCatalogItem: Identifiable, Hashable {
     let id: String
     let bundleIdentifier: String?
@@ -150,15 +173,10 @@ struct AppBoxCatalogGroup: Identifiable {
 
 struct AppBoxInstallRequest: Identifiable, Equatable {
     let id: String
-    let itemID: String?
     let sourceURL: URL?
 
-    static func catalog(item: AppBoxCatalogItem) -> AppBoxInstallRequest {
-        AppBoxInstallRequest(id: "catalog.\(item.id)", itemID: item.id, sourceURL: item.source.ipaDownloadURL)
-    }
-
     static func external(url: URL?) -> AppBoxInstallRequest {
-        AppBoxInstallRequest(id: "external.\(url?.absoluteString ?? "picker")", itemID: nil, sourceURL: url)
+        AppBoxInstallRequest(id: "external.\(url?.absoluteString ?? "picker")", sourceURL: url)
     }
 }
 
@@ -187,6 +205,7 @@ struct AppBoxLaunchState: Identifiable, Equatable {
 
 enum AppBoxNotice: Equatable {
     case installed(String)
+    case installFailed(String)
     case launched(String)
     case missingDownloadURL
     case notInstalled

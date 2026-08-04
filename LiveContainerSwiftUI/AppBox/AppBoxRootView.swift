@@ -208,14 +208,22 @@ struct AppBoxRootView: View {
                         copy: copy,
                         palette: palette,
                         isInstalled: store.isInstalled(item, hostApps: sharedModel.apps),
-                        isInstalling: store.installingIDs.contains(item.id)
+                        installState: store.installStates[item.id]
                     ) {
-                        Task {
-                            if store.isInstalled(item, hostApps: sharedModel.apps) {
-                                await store.launch(item, hostApps: sharedModel.apps)
+                        if let state = store.installStates[item.id] {
+                            if state.isCancellable {
+                                store.cancelInstall(item)
+                            } else if state.isActive || state == .completed {
+                                return
                             } else {
-                                await store.install(item, hostApps: sharedModel.apps)
+                                store.startInstall(item, sharedModel: sharedModel)
                             }
+                        } else if store.isInstalled(item, hostApps: sharedModel.apps) {
+                            Task {
+                                await store.launch(item, hostApps: sharedModel.apps)
+                            }
+                        } else {
+                            store.startInstall(item, sharedModel: sharedModel)
                         }
                     }
                 }
@@ -248,6 +256,8 @@ struct AppBoxRootView: View {
         case .installed(let id):
             let name = AppBoxCatalog.item(id: id)?.name(for: language) ?? ""
             return copy.text("\(name) 已安装", "\(name) installed")
+        case .installFailed(let message):
+            return copy.text("安装失败：\(message)", "Installation failed: \(message)")
         case .launched(let id):
             let name = AppBoxCatalog.item(id: id)?.name(for: language) ?? ""
             return copy.text("正在启动 \(name)", "Opening \(name)")

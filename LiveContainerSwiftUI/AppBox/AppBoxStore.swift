@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 final class AppBoxStore: ObservableObject {
     @Published private(set) var localInstalledIDs: Set<String>
-    @Published private(set) var installingIDs: Set<String> = []
+    @Published private(set) var installStates: [String: AppBoxInstallState] = [:]
     @Published var pendingInstallRequest: AppBoxInstallRequest?
     @Published var activeWebApp: AppBoxCatalogItem?
     @Published private(set) var launchState: AppBoxLaunchState?
@@ -12,6 +12,8 @@ final class AppBoxStore: ObservableObject {
     private let bridge: any AppBoxContainerBridging
     private let localInstallStore: any AppBoxLocalInstallPersisting
     private let webDataManager: any AppBoxWebDataManaging
+    private var installTasks: [String: Task<Void, Never>] = [:]
+    private var installTokens: [String: UUID] = [:]
 
     init(
         defaults: UserDefaults = .standard,
@@ -44,37 +46,103 @@ final class AppBoxStore: ObservableObject {
         AppBoxCatalog.items.filter { isInstalled($0, hostApps: hostApps) }
     }
 
-    func install(_ item: AppBoxCatalogItem, hostApps: [LCAppModel]) async {
-        guard pendingInstallRequest == nil,
-              !isInstalled(item, hostApps: hostApps),
-              !installingIDs.contains(item.id) else { return }
-        installingIDs.insert(item.id)
+    func startInstall(_ item: AppBoxCatalogItem, sharedModel: SharedModel) {
+        guard !isInstalled(item, hostApps: sharedModel.apps),
+              installStates[item.id]?.isActive != true else { return }
 
+        let token = UUID()
+        installTokens[item.id] = token
+        notice = nil
         switch item.source {
         case .web:
-            defer { installingIDs.remove(item.id) }
             if localInstallStore.install(item.id) {
                 localInstalledIDs = localInstallStore.installedIDs
             }
-            notice = .installed(item.id)
+            completeInstall(item, token: token)
 
         case .ipa(let downloadURL):
-#if targetEnvironment(simulator)
-            defer { installingIDs.remove(item.id) }
-            try? await Task.sleep(nanoseconds: 850_000_000)
-            guard !Task.isCancelled else { return }
-            if localInstallStore.install(item.id) {
-                localInstalledIDs = localInstallStore.installedIDs
-            }
-            notice = .installed(item.id)
-#else
             guard downloadURL != nil else {
-                installingIDs.remove(item.id)
+                installTokens[item.id] = nil
+                installStates[item.id] = .failed(message: "No download URL configured")
                 notice = .missingDownloadURL
                 return
             }
-            pendingInstallRequest = .catalog(item: item)
+            installStates[item.id] = .downloading(progress: 0)
+            installTasks[item.id] = Task { [weak self, weak sharedModel] in
+                guard let self, let sharedModel else { return }
+                await self.performIPAInstall(item, sharedModel: sharedModel, token: token)
+            }
+        }
+    }
+
+    func cancelInstall(_ item: AppBoxCatalogItem) {
+        guard installStates[item.id]?.isCancellable == true else { return }
+        installTokens[item.id] = nil
+        installTasks[item.id]?.cancel()
+        installTasks[item.id] = nil
+        bridge.cancelInstall(for: item)
+        installStates[item.id] = nil
+    }
+
+    private func performIPAInstall(
+        _ item: AppBoxCatalogItem,
+        sharedModel: SharedModel,
+        token: UUID
+    ) async {
+        do {
+#if targetEnvironment(simulator)
+            for step in 1...10 {
+                try await Task.sleep(nanoseconds: 300_000_000)
+                try Task.checkCancellation()
+                updateInstallState(.downloading(progress: Double(step) / 10), for: item.id, token: token)
+            }
+            updateInstallState(.processing, for: item.id, token: token)
+            try await Task.sleep(nanoseconds: 500_000_000)
+            try Task.checkCancellation()
+            if localInstallStore.install(item.id) {
+                localInstalledIDs = localInstallStore.installedIDs
+            }
+#else
+            let installedApp = try await bridge.install(item) { [weak self] state in
+                self?.updateInstallState(state, for: item.id, token: token)
+            }
+            try Task.checkCancellation()
+            guard installTokens[item.id] == token else { return }
+            if !sharedModel.apps.contains(where: { $0.bundleIdentifier == installedApp.bundleIdentifier }) {
+                sharedModel.apps.append(installedApp)
+            }
 #endif
+            completeInstall(item, token: token)
+        } catch is CancellationError {
+            guard installTokens[item.id] == token else { return }
+            installStates[item.id] = nil
+            installTokens[item.id] = nil
+            installTasks[item.id] = nil
+        } catch {
+            guard installTokens[item.id] == token else { return }
+            installStates[item.id] = .failed(message: error.localizedDescription)
+            installTokens[item.id] = nil
+            installTasks[item.id] = nil
+            notice = .installFailed(error.localizedDescription)
+        }
+    }
+
+    private func updateInstallState(_ state: AppBoxInstallState, for itemID: String, token: UUID) {
+        guard installTokens[itemID] == token else { return }
+        installStates[itemID] = state
+    }
+
+    private func completeInstall(_ item: AppBoxCatalogItem, token: UUID) {
+        guard installTokens[item.id] == token else { return }
+        installStates[item.id] = .completed
+        notice = .installed(item.id)
+        installTasks[item.id] = nil
+
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 650_000_000)
+            guard let self, self.installTokens[item.id] == token else { return }
+            self.installStates[item.id] = nil
+            self.installTokens[item.id] = nil
         }
     }
 
@@ -153,7 +221,6 @@ final class AppBoxStore: ObservableObject {
     }
 
     func finishInstallRequest() {
-        installingIDs.removeAll()
         pendingInstallRequest = nil
     }
 }

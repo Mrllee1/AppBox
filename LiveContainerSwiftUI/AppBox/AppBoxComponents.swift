@@ -160,14 +160,19 @@ struct AppBoxAppCell: View {
     let copy: AppBoxCopy
     let palette: AppBoxPalette
     let isInstalled: Bool
-    let isInstalling: Bool
+    let installState: AppBoxInstallState?
     let action: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: 6) {
-            AppBoxIconView(item: item)
+            Button(action: action) {
+                AppBoxInstallIcon(item: item, state: installState, palette: palette)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(isActionDisabled)
             Text(item.name(for: copy.language))
                 .font(.caption2)
                 .foregroundColor(palette.primaryText)
@@ -176,30 +181,143 @@ struct AppBoxAppCell: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
             Button(action: action) {
-                Group {
-                    if isInstalling {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .scaleEffect(0.72)
-                    } else {
-                        Text(isInstalled ? copy.text("启动", "Open") : copy.text("安装", "Install"))
-                            .font(.caption.weight(.semibold))
-                    }
-                }
+                Text(actionTitle)
+                    .font(.caption.weight(.semibold))
                 .padding(.horizontal, 10)
                 .frame(minWidth: 56, minHeight: 32)
-                .foregroundColor(palette.accent)
-                .background(isInstalled ? palette.accentSoft : palette.mutedSurface)
+                .foregroundColor(actionColor)
+                .background(actionBackground)
                 .clipShape(Capsule())
                 .frame(minHeight: AppBoxLayout.controlHeight)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(isInstalling)
+            .disabled(isActionDisabled)
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: dynamicTypeSize.isAccessibilitySize ? 124 : 110, alignment: .top)
         .accessibilityElement(children: .combine)
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var actionTitle: String {
+        switch installState {
+        case .downloading:
+            return copy.text("取消", "Cancel")
+        case .processing:
+            return copy.text("安装中", "Installing")
+        case .completed:
+            return copy.text("完成", "Done")
+        case .failed:
+            return copy.text("重试", "Retry")
+        case nil:
+            return isInstalled ? copy.text("启动", "Open") : copy.text("安装", "Install")
+        }
+    }
+
+    private var isActionDisabled: Bool {
+        switch installState {
+        case .processing, .completed:
+            return true
+        case .downloading, .failed, nil:
+            return false
+        }
+    }
+
+    private var actionColor: Color {
+        if case .failed = installState { return palette.destructive }
+        return palette.accent
+    }
+
+    private var actionBackground: Color {
+        if case .failed = installState { return palette.destructive.opacity(0.12) }
+        if isInstalled || installState != nil { return palette.accentSoft }
+        return palette.mutedSurface
+    }
+
+    private var accessibilityValue: String {
+        switch installState {
+        case .downloading(let progress):
+            return copy.text("下载进度 \(Int((progress * 100).rounded()))%", "Download \(Int((progress * 100).rounded())) percent")
+        case .processing:
+            return copy.text("正在安装", "Installing")
+        case .completed:
+            return copy.text("安装完成", "Installed")
+        case .failed(let message):
+            return copy.text("安装失败：\(message)", "Installation failed: \(message)")
+        case nil:
+            return isInstalled ? copy.text("已安装", "Installed") : copy.text("未安装", "Not installed")
+        }
+    }
+}
+
+private struct AppBoxInstallIcon: View {
+    let item: AppBoxCatalogItem
+    let state: AppBoxInstallState?
+    let palette: AppBoxPalette
+
+    var body: some View {
+        ZStack {
+            AppBoxIconView(item: item)
+                .opacity(state?.isActive == true ? 0.58 : 1)
+
+            switch state {
+            case .downloading(let progress):
+                progressControl(progress: progress)
+            case .processing:
+                processingControl
+            case .completed:
+                statusControl(icon: .check, color: Color(uiColor: .systemGreen))
+                    .transition(.scale(scale: 0.72).combined(with: .opacity))
+            case .failed:
+                statusControl(icon: .warning, color: palette.destructive)
+            case nil:
+                EmptyView()
+            }
+        }
+        .frame(width: 52, height: 52)
+        .animation(.easeOut(duration: 0.20), value: state)
+    }
+
+    private func progressControl(progress: Double) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.black.opacity(0.52))
+            Circle()
+                .stroke(Color.white.opacity(0.36), lineWidth: 2.5)
+                .padding(3)
+            Circle()
+                .trim(from: 0, to: min(max(progress, 0.015), 1))
+                .stroke(Color.white, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .padding(3)
+            AppBoxGlyph(icon: .stop)
+                .frame(width: 8, height: 8)
+                .foregroundColor(.white)
+        }
+        .frame(width: 31, height: 31)
+    }
+
+    private var processingControl: some View {
+        ZStack {
+            Circle()
+                .fill(Color.black.opacity(0.52))
+            ProgressView()
+                .progressViewStyle(.circular)
+                .tint(.white)
+                .scaleEffect(0.72)
+        }
+        .frame(width: 31, height: 31)
+    }
+
+    private func statusControl(icon: AppBoxIcon, color: Color) -> some View {
+        ZStack {
+            Circle().fill(color)
+            AppBoxGlyph(icon: icon)
+                .frame(width: 13, height: 13)
+                .foregroundColor(.white)
+        }
+        .frame(width: 30, height: 30)
     }
 }
 
