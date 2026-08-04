@@ -2,6 +2,17 @@ import Foundation
 
 enum AppBoxCatalog {
     static let items: [AppBoxCatalogItem] = [
+        ipa(
+            "tianya-select",
+            "app.nqyqstm6mu.tianya",
+            "天涯精选",
+            "Tianya Select",
+            .tools,
+            .community,
+            .apps,
+            .blue,
+            "https://pub-d768a0879cb24ceaa4a0cfe8b73ee372.r2.dev/ty1.ipa"
+        ),
         ipa("focus", "com.appbox.focus", "专注清单", "Focus List", .tools, .productivity, .checkSquare, .blue),
         ipa("scan", "com.appbox.scan", "轻扫文档", "Quick Scan", .tools, .productivity, .scanner, .indigo),
         ipa("vault", "com.appbox.vault", "隐私文件", "Private Files", .tools, .productivity, .shield, .graphite),
@@ -56,9 +67,19 @@ enum AppBoxCatalog {
         _ section: AppBoxSection,
         _ icon: AppBoxIcon,
         _ iconStyle: AppBoxIconStyle,
-        _ downloadURL: URL? = nil
+        _ downloadURL: String? = nil
     ) -> AppBoxCatalogItem {
-        AppBoxCatalogItem(
+        let resolvedDownloadURL: URL?
+        if let downloadURL {
+            guard let url = URL(string: downloadURL), url.scheme == "https" else {
+                preconditionFailure("Invalid AppBox IPA URL: \(downloadURL)")
+            }
+            resolvedDownloadURL = url
+        } else {
+            resolvedDownloadURL = nil
+        }
+
+        return AppBoxCatalogItem(
             id: id,
             bundleIdentifier: bundleIdentifier,
             chineseName: chineseName,
@@ -67,7 +88,7 @@ enum AppBoxCatalog {
             section: section,
             icon: icon,
             iconStyle: iconStyle,
-            source: .ipa(downloadURL: downloadURL)
+            source: .ipa(downloadURL: resolvedDownloadURL)
         )
     }
 
