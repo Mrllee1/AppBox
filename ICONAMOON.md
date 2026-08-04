@@ -1,4 +1,6 @@
-# IconaMoon assets
+# Legacy IconaMoon assets
+
+These assets are retained only as design-history references. AppBox no longer renders them; production interface glyphs use Apple SF Symbols through `AppBoxIcon` and `AppBoxGlyph`.
 
 Source: [IconaMoon 1.1 | 2400 Icons 8 Styles Community](https://www.figma.com/design/2mlO8DJVo3qcW7xheS9tcl/IconaMoon-1.1-%7C--2400-Icons--8-Styles--Community-?node-id=429-2309)
 

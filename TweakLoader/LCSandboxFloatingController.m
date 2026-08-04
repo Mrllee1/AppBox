@@ -120,7 +120,11 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
     _menuTintView.backgroundColor = [UIColor colorWithWhite:(75.0 / 255.0) alpha:1.0];
     [_menuEffectView.contentView addSubview:_menuTintView];
 
-    UIImage *icon = LCLoadHostImage(@"IconaMoonLocationPinRaw", @"IconaMoonLocationPin");
+    UIImageSymbolConfiguration *symbolConfiguration =
+        [UIImageSymbolConfiguration configurationWithPointSize:22.0
+                                                        weight:UIImageSymbolWeightSemibold];
+    UIImage *icon = [UIImage systemImageNamed:@"shippingbox.fill"
+                            withConfiguration:symbolConfiguration];
     _iconView = [[UIImageView alloc] initWithImage:[icon imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     _iconView.translatesAutoresizingMaskIntoConstraints = NO;
     _iconView.tintColor = UIColor.whiteColor;

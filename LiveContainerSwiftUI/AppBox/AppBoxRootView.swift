@@ -3,6 +3,8 @@ import SwiftUI
 struct AppBoxRootView: View {
     @EnvironmentObject private var sharedModel: SharedModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @StateObject private var store = AppBoxStore()
     @AppStorage("appbox.language") private var language: AppBoxLanguage = .simplifiedChinese
@@ -23,19 +25,7 @@ struct AppBoxRootView: View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                header
-                    .padding(.horizontal, AppBoxLayout.pagePadding)
-                    .padding(.top, 6)
-                AppBoxSearchBar(
-                    text: $query,
-                    placeholder: copy.text("搜索应用", "Search apps"),
-                    palette: palette
-                )
-                .padding(.horizontal, AppBoxLayout.pagePadding)
-                .padding(.top, 8)
-                .padding(.bottom, 20)
-
+            NavigationView {
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: AppBoxLayout.sectionSpacing) {
                         if !installedItems.isEmpty {
@@ -51,7 +41,7 @@ struct AppBoxRootView: View {
                                 AppBoxGlyph(icon: .search)
                                     .frame(width: 28, height: 28)
                                 Text(copy.text("没有找到应用", "No apps found"))
-                                    .font(.system(size: 15, weight: .medium))
+                                    .font(.body.weight(.medium))
                             }
                             .foregroundColor(palette.secondaryText)
                             .frame(maxWidth: .infinity)
@@ -63,21 +53,60 @@ struct AppBoxRootView: View {
                         }
                     }
                     .padding(.horizontal, AppBoxLayout.pagePadding)
+                    .padding(.top, 16)
                     .padding(.bottom, 32)
                 }
-                .animation(.easeInOut(duration: 0.22), value: installedItems.map(\.id))
+                .background(palette.background)
+                .navigationTitle(AppBoxBrand.name(for: language))
+                .navigationBarTitleDisplayMode(.inline)
+                .searchable(
+                    text: $query,
+                    placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: copy.text("搜索应用", "Search apps")
+                )
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        toolbarButton(
+                            icon: .options,
+                            label: copy.text("设置", "Settings")
+                        ) { showSettings = true }
+                    }
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        toolbarButton(
+                            icon: appearance == .dark ? .modeLight : .modeDark,
+                            label: copy.text("切换外观", "Toggle appearance")
+                        ) {
+                            appearance = appearance == .dark ? .light : .dark
+                        }
+                        toolbarButton(
+                            icon: .lock,
+                            label: copy.text("隐私密码", "Privacy PIN")
+                        ) { showPassword = true }
+                        toolbarButton(
+                            icon: .share,
+                            label: copy.text("分享", "Share")
+                        ) {
+                            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                                showShare = true
+                            }
+                        }
+                    }
+                }
+                .tint(palette.accent)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: installedItems.map(\.id))
             }
+            .navigationViewStyle(StackNavigationViewStyle())
 
             if let notice = store.notice {
                 AppBoxNoticeView(text: noticeText(notice), palette: palette)
-                    .padding(.top, 58)
+                    .padding(.top, 8)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(10)
             }
 
             if showShare {
                 AppBoxShareView(language: language, skin: skin) {
-                    withAnimation(.easeOut(duration: 0.18)) { showShare = false }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { showShare = false }
                 }
                 .zIndex(100)
             }
@@ -92,7 +121,7 @@ struct AppBoxRootView: View {
                 .zIndex(120)
             }
         }
-        .animation(.easeOut(duration: 0.20), value: store.launchState != nil)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.20), value: store.launchState != nil)
         .preferredColorScheme(appearance.preferredColorScheme)
         .fullScreenCover(isPresented: $showSettings) {
             AppBoxSettingsView(language: $language, appearance: $appearance, skin: $skin)
@@ -124,66 +153,17 @@ struct AppBoxRootView: View {
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 8) {
-            AppBoxIconButton(
-                icon: .options,
-                accessibilityLabel: copy.text("设置", "Settings"),
-                palette: palette
-            ) { showSettings = true }
-            Text(AppBoxBrand.name(for: language))
-                .font(.system(size: 21, weight: .semibold))
-                .foregroundColor(palette.primaryText)
-            Spacer(minLength: 8)
-            HStack(spacing: 0) {
-                AppBoxIconButton(
-                    icon: appearance == .dark ? .modeLight : .modeDark,
-                    accessibilityLabel: copy.text("切换外观", "Toggle appearance"),
-                    palette: palette
-                ) {
-                    appearance = appearance == .dark ? .light : .dark
-                }
-                AppBoxIconButton(
-                    icon: .lock,
-                    accessibilityLabel: copy.text("隐私密码", "Privacy PIN"),
-                    palette: palette
-                ) { showPassword = true }
-                AppBoxIconButton(
-                    icon: .share,
-                    accessibilityLabel: copy.text("分享", "Share"),
-                    palette: palette
-                ) {
-                    withAnimation(.easeOut(duration: 0.18)) { showShare = true }
-                }
-            }
-            .padding(.horizontal, 2)
-            .appBoxGlassControl(palette, radius: 20, isInteractive: false)
-        }
-        .frame(height: 44)
-    }
-
     private var seriesTabs: some View {
-        HStack(spacing: 4) {
+        Picker(copy.text("应用系列", "App series"), selection: $selectedSeries) {
             ForEach(AppBoxSeries.allCases) { series in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.18)) { selectedSeries = series }
-                } label: {
-                    Text(copy.series(series))
-                        .font(.system(size: 14, weight: selectedSeries == series ? .semibold : .medium))
-                        .foregroundColor(selectedSeries == series ? palette.accent : palette.secondaryText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.78)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 36)
-                        .background(selectedSeries == series ? palette.accentSoft : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selectedSeries == series ? .isSelected : [])
+                Text(copy.series(series))
+                    .lineLimit(1)
+                    .tag(series)
             }
         }
-        .padding(4)
-        .appBoxGlassControl(palette, radius: 12, isInteractive: false)
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .tint(palette.accent)
     }
 
     private var installedSection: some View {
@@ -248,7 +228,19 @@ struct AppBoxRootView: View {
     }
 
     private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(minimum: 44), spacing: 9), count: 5)
+        let columnCount = dynamicTypeSize.isAccessibilitySize ? 3 : 5
+        return Array(repeating: GridItem(.flexible(minimum: 44), spacing: 9), count: columnCount)
+    }
+
+    private func toolbarButton(
+        icon: AppBoxIcon,
+        label: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: icon.rawValue)
+        }
+        .accessibilityLabel(label)
     }
 
     private func noticeText(_ notice: AppBoxNotice) -> String {

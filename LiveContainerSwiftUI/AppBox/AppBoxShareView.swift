@@ -12,56 +12,60 @@ struct AppBoxShareView: View {
     @State private var shareItems: [Any] = []
     @State private var showActivity = false
 
-    private let shareURL = URL(string: "https://github.com/LiveContainer/LiveContainer")!
+    private let shareURL = URL(string: "appbox://")!
     private var copy: AppBoxCopy { AppBoxCopy(language: language) }
     private var palette: AppBoxPalette { AppBoxPalette(skin: skin, colorScheme: colorScheme) }
     private var qrImage: UIImage { AppBoxQRCodeGenerator.image(for: shareURL.absoluteString) }
 
     var body: some View {
         ZStack {
-            Color.black.opacity(colorScheme == .dark ? 0.32 : 0.20)
+            Color.clear
                 .ignoresSafeArea()
                 .contentShape(Rectangle())
                 .onTapGesture { dismiss() }
 
-            VStack(spacing: 14) {
+            VStack(spacing: 0) {
                 HStack {
-                    Spacer()
+                    Image("AppBoxLogo")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                    Text(AppBoxBrand.name(for: language))
+                        .font(.headline)
+                        .foregroundColor(palette.primaryText)
+
+                    Spacer(minLength: 12)
+
                     Button { dismiss() } label: {
                         AppBoxGlyph(icon: .close)
-                            .frame(width: 18, height: 18)
+                            .frame(width: 13, height: 13)
                             .foregroundColor(palette.primaryText)
-                            .frame(width: 40, height: 40)
-                            .appBoxGlassControl(palette, radius: 20)
+                            .frame(width: 32, height: 32)
+                            .background(palette.mutedSurface)
+                            .clipShape(Circle())
+                            .frame(width: AppBoxLayout.controlHeight, height: AppBoxLayout.controlHeight)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(copy.text("关闭", "Close"))
                 }
-                .padding(.trailing, 2)
+                .padding(.bottom, 18)
 
-                VStack(spacing: 16) {
-                    Image("AppBoxLogo")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .shadow(color: Color.black.opacity(0.10), radius: 7, y: 3)
-
-                    Text(AppBoxBrand.name(for: language))
-                        .font(.system(size: 23, weight: .semibold))
-                        .foregroundColor(palette.primaryText)
-
+                VStack(spacing: 14) {
                     Text(copy.text("应用聚合 · 安全隔离\n轻松安装 · 独立空间", "One place for your apps\nPrivate, simple, organized"))
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.subheadline)
                         .multilineTextAlignment(.center)
                         .foregroundColor(palette.secondaryText)
-                        .lineSpacing(4)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Image(uiImage: qrImage)
                         .interpolation(.none)
                         .resizable()
-                        .frame(width: 176, height: 176)
-                        .padding(12)
+                        .frame(width: 160, height: 160)
+                        .padding(10)
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: AppBoxLayout.cardRadius, style: .continuous))
                         .overlay {
@@ -75,19 +79,18 @@ struct AppBoxShareView: View {
                             "Scan to view \(AppBoxBrand.englishName)"
                         )
                     )
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.footnote)
                         .foregroundColor(palette.secondaryText)
                 }
-                .frame(maxWidth: 330)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 24)
-                .appBoxSurface(palette, addsShadow: true)
+                .padding(.bottom, 20)
 
-                HStack(spacing: 48) {
+                Divider()
+
+                HStack(spacing: 36) {
                     shareButton(
                         .cameraImage,
                         copy.text("图片", "Image"),
-                        tint: Color(red: 0.96, green: 0.55, blue: 0.20)
+                        tint: Color(uiColor: .systemOrange)
                     ) {
                         shareItems = [AppBoxSharePosterRenderer.render(language: language, qrImage: qrImage)]
                         showActivity = true
@@ -97,10 +100,21 @@ struct AppBoxShareView: View {
                         showActivity = true
                     }
                 }
+                .padding(.top, 16)
             }
-            .frame(maxWidth: 330)
-            .padding(.horizontal, 28)
-            .transition(.scale(scale: 0.96).combined(with: .opacity))
+            .padding(20)
+            .frame(maxWidth: 340)
+            .background(palette.elevatedSurface)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(palette.border, lineWidth: 0.5)
+            }
+            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.36 : 0.14), radius: 28, y: 12)
+            .padding(.horizontal, 24)
+            .contentShape(Rectangle())
+            .onTapGesture { }
+            .transition(.scale(scale: 0.92, anchor: .center).combined(with: .opacity))
         }
         .sheet(isPresented: $showActivity) {
             AppBoxActivityView(items: shareItems)
@@ -117,15 +131,18 @@ struct AppBoxShareView: View {
             VStack(spacing: 7) {
                 AppBoxGlyph(icon: icon)
                     .frame(width: 20, height: 20)
-                    .foregroundColor(.white)
-                    .frame(width: 52, height: 52)
-                    .appBoxGlassControl(palette, radius: 26, tint: tint)
+                    .foregroundColor(tint)
+                    .frame(width: 48, height: 48)
+                    .background(tint.opacity(0.13))
+                    .clipShape(Circle())
                 Text(title)
-                    .font(.system(size: 11.5, weight: .medium))
-                    .foregroundColor(.white)
+                    .font(.caption)
+                    .foregroundColor(palette.primaryText)
                     .lineLimit(1)
             }
             .frame(width: 76)
+            .frame(minHeight: AppBoxLayout.controlHeight)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

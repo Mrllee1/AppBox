@@ -260,25 +260,25 @@
         @"IgnoreManifestScope": @YES,
         @"IsRemovable": @YES,
         @"Label": self.displayName,
-        @"PayloadDescription": [NSString stringWithFormat:@"Web Clip for launching %@ (%@) in LiveContainer", self.displayName, self.bundlePath.lastPathComponent],
+        @"PayloadDescription": [NSString stringWithFormat:@"Web Clip for launching %@ (%@) in AppBox", self.displayName, self.bundlePath.lastPathComponent],
         @"PayloadDisplayName": self.displayName,
         @"PayloadIdentifier": self.bundleIdentifier,
         @"PayloadType": @"com.apple.webClip.managed",
         @"PayloadUUID": NSUUID.UUID.UUIDString,
         @"PayloadVersion": @(1),
         @"Precomposed": @NO,
-        @"toPayloadOrganization": @"LiveContainer",
+        @"toPayloadOrganization": @"AppBox",
         @"URL": appClipUrl
     };
     return @{
         @"ConsentText": @{
-            @"default": [NSString stringWithFormat:@"This profile installs a web clip which opens %@ (%@) in LiveContainer", self.displayName, self.bundlePath.lastPathComponent]
+            @"default": [NSString stringWithFormat:@"This profile installs a web clip which opens %@ (%@) in AppBox", self.displayName, self.bundlePath.lastPathComponent]
         },
         @"PayloadContent": @[payload],
         @"PayloadDescription": payload[@"PayloadDescription"],
         @"PayloadDisplayName": self.displayName,
         @"PayloadIdentifier": self.bundleIdentifier,
-        @"PayloadOrganization": @"LiveContainer",
+        @"PayloadOrganization": @"AppBox",
         @"PayloadRemovalDisallowed": @(NO),
         @"PayloadType": @"Configuration",
         @"PayloadUUID": @"345097fb-d4f7-4a34-ab90-2e3f1ad62eed",

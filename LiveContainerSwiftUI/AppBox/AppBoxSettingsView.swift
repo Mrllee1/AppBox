@@ -25,65 +25,61 @@ struct AppBoxSettingsView: View {
         ZStack {
             palette.background.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                AppBoxSheetHeader(
-                    title: copy.text("设置", "Settings"),
-                    closeLabel: copy.text("关闭", "Close"),
-                    palette: palette,
-                    dismiss: { dismiss() }
-                )
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 28) {
-                        settingsGroup(
-                            title: copy.text("偏好设置", "Preferences"),
-                            rows: [
-                                (.apps, copy.text("语言", "Language"), language.displayName, .language),
-                                (
-                                    .edit,
-                                    copy.text("主题与外观", "Theme & Appearance"),
-                                    "\(copy.appearance(appearance)) · \(copy.skin(skin))",
-                                    .theme
-                                )
-                            ]
+            NavigationView {
+                List {
+                    Section {
+                        settingsRow(.apps, copy.text("语言", "Language"), detail: language.displayName, target: .language)
+                        settingsRow(
+                            .edit,
+                            copy.text("主题与外观", "Theme & Appearance"),
+                            detail: "\(copy.appearance(appearance)) · \(copy.skin(skin))",
+                            target: .theme
                         )
-
-                        settingsGroup(
-                            title: copy.text("应用管理", "App Management"),
-                            rows: [
-                                (.fileAdd, copy.text("导入 IPA", "Import IPA"), copy.text("文件或链接", "File or link"), .importer),
-                                (.shield, copy.text("隐私密码", "Privacy PIN"), copy.text("4 位数字", "4-digit PIN"), .password)
-                            ]
+                        settingsRow(
+                            .fileAdd,
+                            copy.text("导入 IPA", "Import IPA"),
+                            detail: copy.text("文件或链接", "File or link"),
+                            target: .importer
                         )
-
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(copy.text("更多", "More").uppercased())
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(palette.secondaryText)
-                            settingsActionRow(
-                                .share,
-                                copy.text("分享\(AppBoxBrand.chineseName)", "Share \(AppBoxBrand.englishName)")
-                            ) {
-                                withAnimation(.easeOut(duration: 0.18)) { showShare = true }
-                            }
+                        settingsRow(
+                            .shield,
+                            copy.text("隐私密码", "Privacy PIN"),
+                            detail: copy.text("4 位数字", "4-digit PIN"),
+                            target: .password
+                        )
+                        settingsActionRow(
+                            .share,
+                            copy.text("分享\(AppBoxBrand.chineseName)", "Share \(AppBoxBrand.englishName)")
+                        ) {
+                            withAnimation(.easeOut(duration: 0.18)) { showShare = true }
                         }
-
+                    } footer: {
                         Text(
                             copy.text(
                                 "\(AppBoxBrand.chineseName)版本 1.0.0",
                                 "\(AppBoxBrand.englishName) Version 1.0.0"
                             )
                         )
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundColor(palette.secondaryText)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 8)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 12)
                     }
-                    .padding(.horizontal, AppBoxLayout.pagePadding)
-                    .padding(.top, 12)
-                    .padding(.bottom, 36)
                 }
+                .listStyle(.insetGrouped)
+                .appBoxHideListBackground()
+                .background(palette.background)
+                .navigationTitle(copy.text("设置", "Settings"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button { dismiss() } label: {
+                            Image(systemName: AppBoxIcon.close.rawValue)
+                        }
+                        .accessibilityLabel(copy.text("关闭", "Close"))
+                    }
+                }
+                .tint(palette.accent)
             }
+            .navigationViewStyle(StackNavigationViewStyle())
 
             if showShare {
                 AppBoxShareView(language: language, skin: skin) {
@@ -107,29 +103,6 @@ struct AppBoxSettingsView: View {
         }
     }
 
-    private func settingsGroup(
-        title: String,
-        rows: [(AppBoxIcon, String, String?, AppBoxSettingsDestination)]
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(palette.secondaryText)
-
-            VStack(spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.element.3) { index, row in
-                    settingsRow(row.0, row.1, detail: row.2, target: row.3)
-                    if index < rows.count - 1 {
-                        Rectangle()
-                            .fill(palette.divider)
-                            .frame(height: 1)
-                            .padding(.leading, 40)
-                    }
-                }
-            }
-        }
-    }
-
     private func settingsRow(
         _ icon: AppBoxIcon,
         _ title: String,
@@ -144,7 +117,7 @@ struct AppBoxSettingsView: View {
                     .frame(width: 28, height: 28)
 
                 Text(title)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.body)
                     .foregroundColor(palette.primaryText)
                     .lineLimit(1)
 
@@ -152,7 +125,7 @@ struct AppBoxSettingsView: View {
 
                 if let detail {
                     Text(detail)
-                        .font(.system(size: 13, weight: .regular))
+                        .font(.subheadline)
                         .foregroundColor(palette.secondaryText)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
@@ -162,8 +135,7 @@ struct AppBoxSettingsView: View {
                     .frame(width: 15, height: 15)
                     .foregroundColor(palette.secondaryText.opacity(0.8))
             }
-            .padding(.horizontal, 2)
-            .frame(height: 54)
+            .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -181,15 +153,14 @@ struct AppBoxSettingsView: View {
                     .foregroundColor(palette.accent)
                     .frame(width: 28, height: 28)
                 Text(title)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.body)
                     .foregroundColor(palette.primaryText)
                 Spacer()
                 AppBoxGlyph(icon: .arrowRight)
                     .frame(width: 15, height: 15)
                     .foregroundColor(palette.secondaryText.opacity(0.8))
             }
-            .padding(.horizontal, 2)
-            .frame(height: 54)
+            .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -207,25 +178,16 @@ struct AppBoxLanguageView: View {
     private var palette: AppBoxPalette { AppBoxPalette(skin: skin, colorScheme: colorScheme) }
 
     var body: some View {
-        ZStack {
-            palette.background.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                AppBoxSheetHeader(
-                    title: copy.text("语言", "Language"),
-                    closeLabel: copy.text("关闭", "Close"),
-                    palette: palette,
-                    dismiss: { dismiss() }
-                )
-
-                VStack(spacing: 0) {
-                    ForEach(Array(AppBoxLanguage.allCases.enumerated()), id: \.element.id) { index, option in
+        NavigationView {
+            List {
+                Section {
+                    ForEach(AppBoxLanguage.allCases) { option in
                         Button {
                             language = option
                         } label: {
                             HStack {
                                 Text(option.displayName)
-                                    .font(.system(size: 15, weight: .medium))
+                                    .font(.body)
                                     .foregroundColor(palette.primaryText)
                                 Spacer()
                                 if language == option {
@@ -234,26 +196,29 @@ struct AppBoxLanguageView: View {
                                         .foregroundColor(palette.accent)
                                 }
                             }
-                            .padding(.horizontal, 16)
-                            .frame(height: 56)
+                            .frame(minHeight: 44)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-
-                        if index < AppBoxLanguage.allCases.count - 1 {
-                            Rectangle()
-                                .fill(palette.divider)
-                                .frame(height: 1)
-                                .padding(.leading, 16)
-                        }
                     }
                 }
-                .padding(.horizontal, AppBoxLayout.pagePadding)
-                .padding(.top, 12)
-
-                Spacer()
             }
+            .listStyle(.insetGrouped)
+            .appBoxHideListBackground()
+            .background(palette.background)
+            .navigationTitle(copy.text("语言", "Language"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: AppBoxIcon.close.rawValue)
+                    }
+                    .accessibilityLabel(copy.text("关闭", "Close"))
+                }
+            }
+            .tint(palette.accent)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 
@@ -268,93 +233,76 @@ struct AppBoxThemeView: View {
     private var copy: AppBoxCopy { AppBoxCopy(language: language) }
     private var palette: AppBoxPalette { AppBoxPalette(skin: skin, colorScheme: colorScheme) }
     var body: some View {
-        ZStack {
-            palette.background.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                AppBoxSheetHeader(
-                    title: copy.text("主题与外观", "Theme & Appearance"),
-                    closeLabel: copy.text("关闭", "Close"),
-                    palette: palette,
-                    dismiss: { dismiss() }
-                )
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 24) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(copy.text("外观", "Appearance").uppercased())
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(palette.secondaryText)
-
-                            HStack(spacing: 4) {
-                                ForEach(AppBoxAppearance.allCases) { value in
-                                    Button {
-                                        withAnimation(.easeInOut(duration: 0.18)) { appearance = value }
-                                    } label: {
-                                        Text(copy.appearance(value))
-                                            .font(.system(size: 14, weight: appearance == value ? .semibold : .medium))
-                                            .foregroundColor(appearance == value ? palette.accent : palette.secondaryText)
-                                            .frame(maxWidth: .infinity)
-                                            .frame(height: 36)
-                                            .background(appearance == value ? palette.accentSoft : Color.clear)
-                                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityAddTraits(appearance == value ? .isSelected : [])
-                                }
-                            }
-                            .padding(4)
-                            .appBoxGlassControl(palette, radius: 12, isInteractive: false)
-                        }
-
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(copy.text("主题色", "Accent Color").uppercased())
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(palette.secondaryText)
-
-                            HStack(spacing: 8) {
-                                ForEach(AppBoxSkin.allCases) { value in
-                                    Button {
-                                        withAnimation(.easeInOut(duration: 0.18)) { skin = value }
-                                    } label: {
-                                        VStack(spacing: 10) {
-                                            ZStack {
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .fill(AppBoxPalette(skin: value, colorScheme: .light).accent)
-                                                    .frame(width: 44, height: 44)
-                                                if skin == value {
-                                                    AppBoxGlyph(icon: .check)
-                                                        .frame(width: 17, height: 17)
-                                                        .foregroundColor(.white)
-                                                }
-                                            }
-                                            .overlay {
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .stroke(
-                                                        skin == value ? palette.primaryText.opacity(0.18) : Color.clear,
-                                                        lineWidth: 2
-                                                    )
-                                                    .padding(-4)
-                                            }
-                                            Text(copy.skin(value))
-                                                .font(.system(size: 12, weight: .medium))
-                                                .foregroundColor(skin == value ? palette.primaryText : palette.secondaryText)
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 10)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityAddTraits(skin == value ? .isSelected : [])
-                                }
-                            }
+        NavigationView {
+            List {
+                Section(copy.text("外观", "Appearance")) {
+                    Picker(copy.text("外观", "Appearance"), selection: $appearance) {
+                        ForEach(AppBoxAppearance.allCases) { value in
+                            Text(copy.appearance(value)).tag(value)
                         }
                     }
-                    .padding(.horizontal, AppBoxLayout.pagePadding)
-                    .padding(.top, 12)
-                    .padding(.bottom, 32)
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .padding(.vertical, 4)
+                }
+
+                Section(copy.text("主题色", "Accent Color")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 8) {
+                            ForEach(AppBoxSkin.allCases) { value in
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.18)) { skin = value }
+                                } label: {
+                                    VStack(spacing: 10) {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                .fill(AppBoxPalette(skin: value, colorScheme: .light).accent)
+                                                .frame(width: 44, height: 44)
+                                            if skin == value {
+                                                AppBoxGlyph(icon: .check)
+                                                    .frame(width: 17, height: 17)
+                                                    .foregroundColor(.white)
+                                            }
+                                        }
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                .stroke(
+                                                    skin == value ? palette.primaryText.opacity(0.18) : Color.clear,
+                                                    lineWidth: 2
+                                                )
+                                                .padding(-4)
+                                        }
+                                        Text(copy.skin(value))
+                                            .font(.caption.weight(.medium))
+                                            .foregroundColor(skin == value ? palette.primaryText : palette.secondaryText)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityAddTraits(skin == value ? .isSelected : [])
+                            }
+                        }
+                        .frame(minHeight: 76)
+                    }
                 }
             }
+            .listStyle(.insetGrouped)
+            .appBoxHideListBackground()
+            .background(palette.background)
+            .navigationTitle(copy.text("主题与外观", "Theme & Appearance"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: AppBoxIcon.close.rawValue)
+                    }
+                    .accessibilityLabel(copy.text("关闭", "Close"))
+                }
+            }
+            .tint(palette.accent)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
         .preferredColorScheme(appearance.preferredColorScheme)
     }
 }

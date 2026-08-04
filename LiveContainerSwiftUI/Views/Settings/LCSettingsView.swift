@@ -22,9 +22,9 @@ enum JITEnablerType : Int, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .StikJIT: "StikDebug"
-        case .StikJITLC: "StikDebug (Another LiveContainer)"
+        case .StikJITLC: "StikDebug (Another AppBox)"
         case .StosDebug: "StosDebug"
-        case .StosDebugLC: "StosDebug (Another LiveContainer)"
+        case .StosDebugLC: "StosDebug (Another AppBox)"
         case .SideStore: "SideStore"
         case .JITStreamerEBLegacy: "JitStreamer-EB (Relaunch)"
         case .SideJITServer: "SideJITServer/JITStreamer 2.0"
@@ -277,7 +277,7 @@ struct LCSettingsView: View {
                 Section {
                     HStack {
                         Image("GitHub")
-                        Button("LiveContainer/LiveContainer") {
+                        Button("天涯盒子") {
                             openGitHub()
                         }
                     }
@@ -459,7 +459,7 @@ struct LCSettingsView: View {
     }
     
     func openGitHub() {
-        UIApplication.shared.open(URL(string: "https://github.com/LiveContainer/LiveContainer")!)
+        UIApplication.shared.open(URL(string: "appbox://")!)
     }
     
     func openGitHub2() {

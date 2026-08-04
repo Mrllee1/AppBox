@@ -373,7 +373,7 @@ struct LCJITLessDiagnoseView : View {
     }
     
     func getHelp() {
-        UIApplication.shared.open(URL(string: "https://livecontainer.github.io/docs/faq/jit-less-mode-setup")!)
+        UIApplication.shared.open(URL(string: "https://developer.apple.com/support/code-signing/")!)
     }
     
     func validateCertificate() {

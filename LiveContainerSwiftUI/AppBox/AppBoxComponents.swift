@@ -19,32 +19,24 @@ struct AppBoxPalette {
 
         switch skin {
         case .sky:
-            accentColor = Color(red: 0.15, green: 0.42, blue: 0.90)
+            accentColor = Color(uiColor: .systemBlue)
         case .mint:
-            accentColor = Color(red: 0.06, green: 0.54, blue: 0.42)
+            accentColor = Color(uiColor: .systemMint)
         case .coral:
-            accentColor = Color(red: 0.89, green: 0.31, blue: 0.35)
+            accentColor = Color(uiColor: .systemPink)
         }
 
-        background = isDark
-            ? Color(red: 0.055, green: 0.06, blue: 0.075)
-            : Color(red: 0.965, green: 0.972, blue: 0.982)
-        surface = isDark
-            ? Color(red: 0.10, green: 0.11, blue: 0.14)
-            : Color.white
-        elevatedSurface = isDark
-            ? Color(red: 0.14, green: 0.15, blue: 0.19)
-            : Color.white
-        mutedSurface = isDark
-            ? Color.white.opacity(0.065)
-            : Color(red: 0.94, green: 0.95, blue: 0.97)
-        primaryText = isDark ? Color.white.opacity(0.94) : Color(red: 0.08, green: 0.09, blue: 0.12)
-        secondaryText = isDark ? Color.white.opacity(0.58) : Color.black.opacity(0.48)
+        background = Color(uiColor: .systemGroupedBackground)
+        surface = Color(uiColor: .secondarySystemGroupedBackground)
+        elevatedSurface = Color(uiColor: .systemBackground)
+        mutedSurface = Color(uiColor: .systemGray5)
+        primaryText = Color(uiColor: .label)
+        secondaryText = Color(uiColor: .secondaryLabel)
         accent = accentColor
-        accentSoft = accentColor.opacity(isDark ? 0.20 : 0.10)
-        divider = isDark ? Color.white.opacity(0.09) : Color.black.opacity(0.065)
-        border = isDark ? Color.white.opacity(0.09) : Color.black.opacity(0.055)
-        destructive = Color(red: 0.90, green: 0.22, blue: 0.25)
+        accentSoft = accentColor.opacity(isDark ? 0.22 : 0.12)
+        divider = Color(uiColor: .separator)
+        border = Color(uiColor: .separator).opacity(isDark ? 0.70 : 0.45)
+        destructive = Color(uiColor: .systemRed)
     }
 }
 
@@ -68,14 +60,14 @@ extension AppBoxAppearance {
 extension AppBoxIconStyle {
     var backgroundColor: Color {
         switch self {
-        case .blue: return Color(red: 0.12, green: 0.47, blue: 0.94)
-        case .indigo: return Color(red: 0.34, green: 0.31, blue: 0.82)
-        case .mint: return Color(red: 0.08, green: 0.66, blue: 0.54)
-        case .coral: return Color(red: 0.94, green: 0.36, blue: 0.31)
-        case .gold: return Color(red: 0.78, green: 0.55, blue: 0.10)
-        case .graphite: return Color(red: 0.18, green: 0.20, blue: 0.24)
-        case .teal: return Color(red: 0.04, green: 0.56, blue: 0.66)
-        case .rose: return Color(red: 0.82, green: 0.27, blue: 0.52)
+        case .blue: return Color(uiColor: .systemBlue)
+        case .indigo: return Color(uiColor: .systemIndigo)
+        case .mint: return Color(uiColor: .systemMint)
+        case .coral: return Color(uiColor: .systemRed)
+        case .gold: return Color(uiColor: .systemOrange)
+        case .graphite: return Color(uiColor: .systemGray)
+        case .teal: return Color(uiColor: .systemTeal)
+        case .rose: return Color(uiColor: .systemPink)
         }
     }
 }
@@ -91,9 +83,9 @@ struct AppBoxIconButton: View {
         Button(action: action) {
             AppBoxGlyph(icon: icon)
                 .frame(width: 18, height: 18)
-                .frame(width: 40, height: 40)
+                .frame(width: AppBoxLayout.controlHeight, height: AppBoxLayout.controlHeight)
                 .foregroundColor(palette.primaryText)
-                .appBoxGlassControl(palette, radius: 20, isEnabled: usesGlass)
+                .appBoxGlassControl(palette, radius: AppBoxLayout.controlHeight / 2, isEnabled: usesGlass)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -105,8 +97,8 @@ struct AppBoxGlyph: View {
     let icon: AppBoxIcon
 
     var body: some View {
-        Image(icon.rawValue)
-            .renderingMode(.template)
+        Image(systemName: icon.rawValue)
+            .symbolRenderingMode(.monochrome)
             .resizable()
             .scaledToFit()
             .accessibilityHidden(true)
@@ -156,7 +148,7 @@ struct AppBoxSearchBar: View {
                 .accessibilityLabel("Clear")
             }
         }
-        .font(.system(size: 15, weight: .regular))
+        .font(.body)
         .padding(.horizontal, 15)
         .frame(height: 44)
         .appBoxGlassControl(palette, radius: 14)
@@ -171,14 +163,17 @@ struct AppBoxAppCell: View {
     let isInstalling: Bool
     let action: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         VStack(spacing: 6) {
             AppBoxIconView(item: item)
             Text(item.name(for: copy.language))
-                .font(.system(size: 11.25, weight: .regular))
+                .font(.caption2)
                 .foregroundColor(palette.primaryText)
-                .lineLimit(1)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                 .minimumScaleFactor(0.75)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
             Button(action: action) {
                 Group {
@@ -188,19 +183,22 @@ struct AppBoxAppCell: View {
                             .scaleEffect(0.72)
                     } else {
                         Text(isInstalled ? copy.text("启动", "Open") : copy.text("安装", "Install"))
-                            .font(.system(size: 11.5, weight: .semibold))
+                            .font(.caption.weight(.semibold))
                     }
                 }
-                .frame(width: 52, height: 28)
+                .padding(.horizontal, 10)
+                .frame(minWidth: 56, minHeight: 32)
                 .foregroundColor(palette.accent)
-                .background(isInstalled ? palette.accentSoft : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .background(isInstalled ? palette.accentSoft : palette.mutedSurface)
+                .clipShape(Capsule())
+                .frame(minHeight: AppBoxLayout.controlHeight)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .disabled(isInstalling)
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: 98, alignment: .top)
+        .frame(minHeight: dynamicTypeSize.isAccessibilitySize ? 124 : 110, alignment: .top)
         .accessibilityElement(children: .combine)
     }
 }
@@ -218,7 +216,7 @@ struct AppBoxInstalledTile: View {
             VStack(spacing: 6) {
                 AppBoxIconView(item: item, size: 46)
                 Text(item.name(for: copy.language))
-                    .font(.system(size: 11.25, weight: .regular))
+                    .font(.caption2)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                     .foregroundColor(palette.primaryText)
@@ -247,7 +245,7 @@ struct AppBoxNoticeView: View {
                 .frame(width: 18, height: 18)
                 .foregroundColor(palette.accent)
             Text(text)
-                .font(.system(size: 14, weight: .medium))
+                .font(.subheadline.weight(.medium))
                 .foregroundColor(palette.primaryText)
         }
         .padding(.horizontal, 16)
@@ -279,7 +277,7 @@ struct AppBoxSheetHeader: View {
             )
             Spacer()
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.headline)
                 .foregroundColor(palette.primaryText)
             Spacer()
             Color.clear.frame(width: AppBoxLayout.controlHeight, height: AppBoxLayout.controlHeight)
@@ -297,12 +295,12 @@ struct AppBoxSectionHeading: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.headline)
                 .foregroundColor(palette.primaryText)
             Spacer()
             if let detail {
                 Text(detail)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.caption.weight(.medium))
                     .foregroundColor(palette.secondaryText)
             }
         }

@@ -64,11 +64,11 @@ struct AppBoxPasswordView: View {
                     .foregroundColor(palette.accent)
 
                 Text(title)
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.title2.weight(.semibold))
                     .foregroundColor(palette.primaryText)
                     .padding(.top, 22)
                 Text(subtitle)
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.subheadline)
                     .foregroundColor(feedback.isEmpty ? palette.secondaryText : palette.destructive)
                     .padding(.top, 8)
 
@@ -93,7 +93,7 @@ struct AppBoxPasswordView: View {
                                     if index < pin.count {
                                         let character = pin[pin.index(pin.startIndex, offsetBy: index)]
                                         Text(revealPIN ? String(character) : "•")
-                                            .font(.system(size: 22, weight: .semibold))
+                                            .font(.title2.weight(.semibold))
                                             .foregroundColor(palette.primaryText)
                                     }
                                 }
@@ -125,10 +125,10 @@ struct AppBoxPasswordView: View {
                         removePIN()
                     } label: {
                         Text(copy.text("移除现有密码", "Remove current PIN"))
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundColor(palette.destructive)
                             .padding(.horizontal, 18)
-                            .frame(height: 42)
+                            .frame(minHeight: AppBoxLayout.controlHeight)
                             .background(palette.destructive.opacity(0.10))
                             .clipShape(RoundedRectangle(cornerRadius: AppBoxLayout.cardRadius, style: .continuous))
                     }

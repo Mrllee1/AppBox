@@ -16,7 +16,7 @@ AppBox is a SwiftUI application-center shell built on LiveContainer. The catalog
 
 ## Icons
 
-AppBox UI glyphs use exact SVG exports from the IconaMoon 1.1 Figma Community file. `AppBoxIcon` is the single typed icon registry and `AppBoxGlyph` is the only rendering entry point, so feature views do not depend on SF Symbols. Source nodes and asset names are recorded in `ICONAMOON.md`.
+AppBox UI glyphs use Apple SF Symbols through a typed `AppBoxIcon` registry. `AppBoxGlyph` is the single SwiftUI rendering entry point, while the injected sandbox control uses `UIImage systemImageNamed:` so host and guest interfaces stay visually consistent.
 
 ## Visual system
 
@@ -24,7 +24,7 @@ AppBox UI glyphs use exact SVG exports from the IconaMoon 1.1 Figma Community fi
 
 On iOS 26 and later, functional controls use SwiftUI's native `glassEffect` API. App content remains on neutral opaque surfaces so the hierarchy stays readable. iOS 15 through iOS 25 use an `ultraThinMaterial` fallback through the same `appBoxGlassControl` modifier, including a solid-surface path when Reduce Transparency is enabled.
 
-The share experience is an in-place overlay rather than a full-screen presentation. This preserves the visible app center behind a light dimming layer while keeping the poster, close action, and share actions independent and reusable.
+The share experience is an in-place overlay rather than a full-screen presentation. It keeps the underlying app center visible without a dark dimming layer and presents the poster, close action, and share actions in one focused dialog.
 
 ## Install behavior
 

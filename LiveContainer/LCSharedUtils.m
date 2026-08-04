@@ -316,7 +316,7 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
     
     // something went wrong with app group
     if(!appGroupFolder && sharedDataFoldersToMove.count > 0) {
-        [lcUserDefaults setObject:@"LiveContainer was unable to move the data of shared app back because LiveContainer cannot access app group. Please check JITLess diagnose page in LiveContainer settings for more information." forKey:@"error"];
+        [lcUserDefaults setObject:@"AppBox could not restore shared app data because shared storage is unavailable. Check the JIT-less diagnostics in settings." forKey:@"error"];
         return;
     }
     

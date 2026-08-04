@@ -227,6 +227,10 @@ struct LCTabView: View {
     }
     
     func checkGetTaskAllow() {
+        if AppBoxRuntimePolicy.allowsDistributionSigning {
+            return
+        }
+
         let task = SecTaskCreateFromSelf(nil)
         guard let value = SecTaskCopyValueForEntitlement(task, "get-task-allow" as CFString, nil), (value.takeRetainedValue() as? NSNumber)?.boolValue ?? false else {
             errorInfo = "lc.settings.notDevCert".loc

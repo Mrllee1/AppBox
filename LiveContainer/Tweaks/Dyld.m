@@ -715,7 +715,7 @@ kern_return_t catch_mach_exception_raise_state( mach_port_t exception_port, exce
     } else if (pc == (uint64_t)machOChainedFixupsValidLinkedit) {
         *new = *old;
         *new_stateCnt = old_stateCnt;
-        static char emptyValidLinkeditBuffer[100] = "Create an issue on LiveContainer GitHub if you see this.";
+        static char emptyValidLinkeditBuffer[100] = "Please contact AppBox support if you see this message.";
         void (*ctor)(void* self, char* msg) = (void (*)(void*, char*))findDyldSymbolWithCache(@"__ZN6mach_o5ErrorC1EPKcz", &machoErrorCtor);
         ctor((void *)old->__x[8], emptyValidLinkeditBuffer);
         // not sure if this offset will change again

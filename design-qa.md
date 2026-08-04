@@ -32,10 +32,10 @@ All implementation captures use an iPhone 16e simulator at 393 x 852 points. The
 - Typography: the refined version uses semibold headings, regular item labels, and restrained secondary text to create a clearer hierarchy without clipping.
 - Layout: the reference structure remains recognizable through the header, search, conditional installed section, three series tabs, and five-column app grid. The implementation replaces heavy colored category bands with unframed sections and dividers for a quieter, more professional result.
 - Color and surfaces: the page background is a neutral cool gray, while white or graphite surfaces, hairline borders, and accent-only selected states improve contrast. Native Liquid Glass is limited to controls on iOS 26; iOS 15-25 use a material fallback through the same component API. Sky, Mint, Coral, and dark appearances were checked.
-- Controls: install actions use a stable 30-point control with a soft accent state; installed apps use the solid accent state. Segmented series and appearance controls share the same geometry and selected-state treatment.
-- Assets and icons: AppBox uses a generated full-resolution bitmap app icon. All interface and catalog glyphs are exact SVG exports from the IconaMoon 1.1 Figma Community file's Light 24 x 24 style; semantic template colors were verified in light and dark modes.
+- Controls: install actions use a stable 32-point capsule inside a 44-point hit target, with an accent-soft state for installed apps. Series and appearance choices use the native segmented picker.
+- Assets and icons: AppBox uses a generated full-resolution bitmap app icon. Interface and catalog glyphs use Apple SF Symbols with semantic tint colors verified in light and dark modes.
 - Interaction states: empty installed state, installing, installed, launch, search, language, appearance, skin, in-place share overlay, PIN entry, and IPA file/link import entry were exercised.
-- Accessibility: all primary controls expose labels and selected traits; tap targets are at least 44 points; Chinese and English copy fit the tested viewport.
+- Accessibility: all primary controls expose labels and selected traits; tap targets are at least 44 points; Chinese and English copy fit the tested viewport. Accessibility text sizes automatically switch the catalog from five columns to three.
 - Launch transition: the reference's centered app identity, title, progress bar, security status, and dimmed catalog context are preserved. The implementation uses the selected app's real catalog icon and localized name, and shows equivalent mid-launch progress at 48% versus the reference's 45%.
 
 ## Iterations
@@ -43,7 +43,7 @@ All implementation captures use an iPhone 16e simulator at 393 x 852 points. The
 1. Added a simulator-only team identifier fallback after the unsigned simulator build exposed a missing entitlement value.
 2. Kept signing and entitlement checks active on physical devices while bypassing them only for the simulator target.
 3. Verified persisted install state after terminate/relaunch and ignored unrelated URL schemes instead of opening the importer.
-4. Replaced every AppBox SF Symbol with a typed IconaMoon asset registry and hid decorative glyphs from the accessibility tree.
+4. Centralized Apple SF Symbols in the typed `AppBoxIcon` registry and hid decorative glyphs from the accessibility tree.
 5. Consolidated semantic colors, spacing, surfaces, headings, headers, and control geometry into reusable AppBox presentation components.
 6. Reworked catalog groups into neutral unframed sections, converted series and appearance choices into consistent segmented controls, and clarified install/open states.
 7. Rebuilt settings, share, and PIN screens around the same typography, border, radius, and spacing rules.

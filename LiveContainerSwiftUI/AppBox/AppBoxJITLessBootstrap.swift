@@ -4,6 +4,12 @@ enum AppBoxJITLessBootstrap {
     private static let certificateFileName = "AppBox-JITLess-6TQJ3XWC45.p12"
     private static let configurationFileName = "AppBox-JITLess-6TQJ3XWC45.plist"
 
+    private struct SeedCertificate {
+        let data: Data
+        let password: String
+        let removableURLs: [URL]
+    }
+
     static func configure() {
         importSeedCertificateIfNeeded()
         validateConfigurationIfNeeded()
@@ -19,35 +25,57 @@ enum AppBoxJITLessBootstrap {
             return
         }
 
-        let documentsURL = containerURL.appendingPathComponent("Documents", isDirectory: true)
-        let certificateURL = documentsURL.appendingPathComponent(certificateFileName)
-        let configurationURL = documentsURL.appendingPathComponent(configurationFileName)
-
-        guard let certificateData = try? Data(contentsOf: certificateURL),
-              let configurationData = try? Data(contentsOf: configurationURL),
-              let configuration = try? PropertyListSerialization.propertyList(
-                from: configurationData,
-                format: nil
-              ) as? [String: Any],
-              let password = configuration["password"] as? String,
-              !password.isEmpty,
-              let certificateTeamID = LCUtils.getCertTeamId(
-                withKeyData: certificateData,
-                password: password
-              ),
-              certificateTeamID == expectedTeamID else {
+        guard let seed = loadSeedCertificate(
+            containerURL: containerURL,
+            expectedTeamID: expectedTeamID
+        ) else {
             return
         }
 
         let defaults = LCUtils.appGroupUserDefault
-        defaults.set(certificateData, forKey: "LCCertificateData")
-        defaults.set(password, forKey: "LCCertificatePassword")
+        defaults.set(seed.data, forKey: "LCCertificateData")
+        defaults.set(seed.password, forKey: "LCCertificatePassword")
         defaults.set(Date(), forKey: "LCCertificateUpdateDate")
         defaults.synchronize()
         UserDefaults.standard.set(appGroupID, forKey: "LCAppGroupID")
 
-        try? FileManager.default.removeItem(at: certificateURL)
-        try? FileManager.default.removeItem(at: configurationURL)
+        seed.removableURLs.forEach { try? FileManager.default.removeItem(at: $0) }
+    }
+
+    private static func loadSeedCertificate(
+        containerURL: URL,
+        expectedTeamID: String
+    ) -> SeedCertificate? {
+        let documentsURL = containerURL.appendingPathComponent("Documents", isDirectory: true)
+        let locations: [(url: URL, isRemovable: Bool)] = [
+            (documentsURL, true),
+            (Bundle.main.resourceURL ?? Bundle.main.bundleURL, false)
+        ]
+
+        for location in locations {
+            let certificateURL = location.url.appendingPathComponent(certificateFileName)
+            let configurationURL = location.url.appendingPathComponent(configurationFileName)
+
+            guard let certificateData = try? Data(contentsOf: certificateURL),
+                  let configurationData = try? Data(contentsOf: configurationURL),
+                  let configuration = try? PropertyListSerialization.propertyList(
+                    from: configurationData,
+                    format: nil
+                  ) as? [String: Any],
+                  let password = configuration["password"] as? String,
+                  !password.isEmpty,
+                  LCUtils.getCertTeamId(withKeyData: certificateData, password: password) == expectedTeamID else {
+                continue
+            }
+
+            return SeedCertificate(
+                data: certificateData,
+                password: password,
+                removableURLs: location.isRemovable ? [certificateURL, configurationURL] : []
+            )
+        }
+
+        return nil
     }
 
     private static func validateConfigurationIfNeeded() {

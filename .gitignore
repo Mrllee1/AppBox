@@ -8,3 +8,5 @@ xcuserdata
 Resources/Frameworks/OpenSSL.framework
 apps_nightly.json
 /dist
+Resources/AppBox-JITLess-*.p12
+Resources/AppBox-JITLess-*.plist
