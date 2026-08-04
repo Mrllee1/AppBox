@@ -11,7 +11,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
-        AppBoxJITLessBootstrap.importSeedCertificateIfNeeded()
+        AppBoxJITLessBootstrap.configure()
 
         let fm = FileManager()
         var tempAppDataFolderNames : [String] = []

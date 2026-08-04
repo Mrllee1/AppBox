@@ -188,10 +188,13 @@
 		172CA8BD2D9D74B700CF6989 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppBoxAssistiveTouchIdleRaw.png,
+				AppBoxAssistiveTouchRaw.png,
 				"AppIconGrey60x60@2x.png",
 				"AppIconGrey76x76@2x~ipad.png",
 				Assets.xcassets,
 				DefaultIcon.png,
+				IconaMoonLocationPinRaw.png,
 				Localizable.xcstrings,
 				Settings.bundle,
 			);

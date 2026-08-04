@@ -19,6 +19,22 @@ static NSTimeInterval const LCFloatingIdleDelay = 1.5;
 static NSString *const LCFloatingDockEdgeKey = @"AppBoxAssistiveDockEdge";
 static NSString *const LCFloatingDockRatioKey = @"AppBoxAssistiveDockRatio";
 
+static UIImage *LCLoadHostImage(NSString *resourceName, NSString *assetName) {
+    NSBundle *hostBundle = NSUserDefaults.lcMainBundle;
+    NSString *path = [hostBundle pathForResource:resourceName ofType:@"png"];
+    NSData *data = path ? [NSData dataWithContentsOfFile:path] : nil;
+    UIImage *image = data ? [UIImage imageWithData:data scale:UIScreen.mainScreen.scale] : nil;
+    if (!image) {
+        image = [UIImage imageNamed:assetName
+                           inBundle:hostBundle
+      compatibleWithTraitCollection:nil];
+    }
+    if (!image) {
+        NSLog(@"[AppBox] Missing floating-control resource: %@", resourceName);
+    }
+    return image;
+}
+
 typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
     LCSandboxDockEdgeLeft,
     LCSandboxDockEdgeRight,
@@ -85,13 +101,8 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
 
     self.backgroundColor = UIColor.clearColor;
 
-    NSBundle *hostBundle = NSUserDefaults.lcMainBundle;
-    _idleButtonImage = [UIImage imageNamed:@"AppBoxAssistiveTouchIdle"
-                                  inBundle:hostBundle
-             compatibleWithTraitCollection:nil];
-    _activeButtonImage = [UIImage imageNamed:@"AppBoxAssistiveTouch"
-                                    inBundle:hostBundle
-               compatibleWithTraitCollection:nil];
+    _idleButtonImage = LCLoadHostImage(@"AppBoxAssistiveTouchIdleRaw", @"AppBoxAssistiveTouchIdle");
+    _activeButtonImage = LCLoadHostImage(@"AppBoxAssistiveTouchRaw", @"AppBoxAssistiveTouch") ?: _idleButtonImage;
     _buttonImageView = [[UIImageView alloc] initWithImage:_idleButtonImage];
     _buttonImageView.contentMode = UIViewContentModeScaleAspectFit;
     _buttonImageView.userInteractionEnabled = NO;
@@ -109,9 +120,7 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
     _menuTintView.backgroundColor = [UIColor colorWithWhite:(75.0 / 255.0) alpha:1.0];
     [_menuEffectView.contentView addSubview:_menuTintView];
 
-    UIImage *icon = [UIImage imageNamed:@"IconaMoonLocationPin"
-                               inBundle:hostBundle
-          compatibleWithTraitCollection:nil];
+    UIImage *icon = LCLoadHostImage(@"IconaMoonLocationPinRaw", @"IconaMoonLocationPin");
     _iconView = [[UIImageView alloc] initWithImage:[icon imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     _iconView.translatesAutoresizingMaskIntoConstraints = NO;
     _iconView.tintColor = UIColor.whiteColor;
