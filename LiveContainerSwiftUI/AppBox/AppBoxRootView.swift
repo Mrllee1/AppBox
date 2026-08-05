@@ -47,7 +47,7 @@ struct AppBoxRootView: View {
         .fullScreenCover(isPresented: $showPassword, onDismiss: {
             lockController.synchronizeProtectionState()
         }) {
-            AppBoxPasswordView(language: language, skin: skin, mode: .unlock)
+            AppBoxPasswordView(language: language, skin: skin, mode: .manage)
         }
         .fullScreenCover(item: $store.activeWebApp) { item in
             AppBoxWebAppView(item: item, language: language, skin: skin)

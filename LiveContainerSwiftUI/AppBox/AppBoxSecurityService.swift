@@ -65,8 +65,16 @@ final class AppBoxBiometricService: AppBoxBiometricAuthenticating {
 }
 
 final class AppBoxPINService: AppBoxPINProviding {
-    private let service = "com.appbox.privacy"
-    private let account = "pin.sha256"
+    private let service: String
+    private let account: String
+
+    init(
+        service: String = "com.appbox.privacy",
+        account: String = "pin.sha256"
+    ) {
+        self.service = service
+        self.account = account
+    }
 
     var hasPIN: Bool { storedHash() != nil }
 

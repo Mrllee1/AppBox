@@ -18,6 +18,7 @@ struct AppBoxSettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var destination: AppBoxSettingsDestination?
     @State private var showShare = false
+    @State private var isPINEnabled = AppBoxPINService().hasPIN
 
     private var copy: AppBoxCopy { AppBoxCopy(language: language) }
     private var palette: AppBoxPalette { AppBoxPalette(skin: skin, colorScheme: colorScheme) }
@@ -44,7 +45,9 @@ struct AppBoxSettingsView: View {
                         settingsRow(
                             .shield,
                             copy.text("隐私密码", "Privacy PIN"),
-                            detail: copy.text("4 位数字", "4-digit PIN"),
+                            detail: isPINEnabled
+                                ? copy.text("已开启", "On")
+                                : copy.text("未设置", "Not set"),
                             target: .password
                         )
                         settingsActionRow(
@@ -89,18 +92,27 @@ struct AppBoxSettingsView: View {
             }
         }
         .preferredColorScheme(appearance.preferredColorScheme)
-        .sheet(item: $destination) { destination in
+        .sheet(item: $destination, onDismiss: refreshPINStatus) { destination in
             switch destination {
             case .language:
                 AppBoxLanguageView(language: $language, skin: skin)
             case .theme:
                 AppBoxThemeView(appearance: $appearance, skin: $skin, language: language)
             case .password:
-                AppBoxPasswordView(language: language, skin: skin, mode: .manage)
+                AppBoxPasswordView(
+                    language: language,
+                    skin: skin,
+                    mode: .manage,
+                    onProtectionChange: { isPINEnabled = $0 }
+                )
             case .importer:
                 AppBoxContainerInstallerView(sourceURL: nil)
             }
         }
+    }
+
+    private func refreshPINStatus() {
+        isPINEnabled = AppBoxPINService().hasPIN
     }
 
     private func settingsRow(
