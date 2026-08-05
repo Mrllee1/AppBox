@@ -3,7 +3,7 @@ import Foundation
 struct AppBoxIPAInstallRequest: Equatable {
     let id: String
     let sourceURL: URL
-    let expectedBundleIdentifier: String
+    let expectedBundleIdentifier: String?
 }
 
 @MainActor
@@ -18,6 +18,7 @@ protocol AppBoxIPAInstalling: AnyObject {
 
 enum AppBoxIPAInstallError: LocalizedError {
     case invalidResponse
+    case unreadableSource
     case invalidArchive
     case missingApplication
     case unreadableApplication
@@ -29,6 +30,8 @@ enum AppBoxIPAInstallError: LocalizedError {
         switch self {
         case .invalidResponse:
             return "The download server returned an invalid response."
+        case .unreadableSource:
+            return "The selected file could not be read."
         case .invalidArchive:
             return "The downloaded file is not a valid IPA."
         case .missingApplication:
@@ -63,14 +66,18 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
         try fileManager.createDirectory(at: extractionDirectory, withIntermediateDirectories: true)
         defer { try? fileManager.removeItem(at: workingDirectory) }
 
-        let download = AppBoxIPADownloadOperation { value in
-            progress(.downloading(progress: value))
-        }
-        downloads[request.id] = download
-        defer { downloads[request.id] = nil }
-
         progress(.downloading(progress: 0))
-        try await download.start(from: request.sourceURL, to: archiveURL)
+        if request.sourceURL.isFileURL {
+            try stageLocalArchive(from: request.sourceURL, to: archiveURL)
+            progress(.downloading(progress: 1))
+        } else {
+            let download = AppBoxIPADownloadOperation { value in
+                progress(.downloading(progress: value))
+            }
+            downloads[request.id] = download
+            defer { downloads[request.id] = nil }
+            try await download.start(from: request.sourceURL, to: archiveURL)
+        }
         try Task.checkCancellation()
 
         progress(.processing)
@@ -93,7 +100,8 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
               let importedBundleIdentifier = importedInfo.bundleIdentifier() else {
             throw AppBoxIPAInstallError.unreadableApplication
         }
-        guard importedBundleIdentifier == request.expectedBundleIdentifier else {
+        if let expectedBundleIdentifier = request.expectedBundleIdentifier,
+           importedBundleIdentifier != expectedBundleIdentifier {
             throw AppBoxIPAInstallError.bundleIdentifierMismatch
         }
 
@@ -136,6 +144,25 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
     func cancel(requestID: String) {
         downloads[requestID]?.cancel()
         downloads[requestID] = nil
+    }
+
+    private func stageLocalArchive(from sourceURL: URL, to destinationURL: URL) throws {
+        let didAccess = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if didAccess {
+                sourceURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        guard FileManager.default.isReadableFile(atPath: sourceURL.path) else {
+            throw AppBoxIPAInstallError.unreadableSource
+        }
+
+        do {
+            try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+        } catch {
+            throw AppBoxIPAInstallError.unreadableSource
+        }
     }
 
     private nonisolated func extractArchive(

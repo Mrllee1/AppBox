@@ -85,6 +85,8 @@ enum AppBoxIcon: String {
     case apps = "square.grid.2x2"
     case edit = "square.and.pencil"
     case fileAdd = "doc.badge.plus"
+    case clipboard = "doc.on.clipboard"
+    case folder = "folder"
     case shield = "lock.shield"
     case shieldYes = "checkmark.shield.fill"
     case faceID = "faceid"

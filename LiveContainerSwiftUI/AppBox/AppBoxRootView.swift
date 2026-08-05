@@ -322,31 +322,3 @@ struct AppBoxRootView: View {
         return URL(string: value)
     }
 }
-
-struct AppBoxContainerInstallerView: View {
-    let sourceURL: URL?
-
-    @EnvironmentObject private var sharedModel: SharedModel
-    @StateObject private var searchContext = SearchContext()
-    @State private var didDispatch = false
-
-    var body: some View {
-        LCAppListView(searchContext: searchContext)
-            .onAppear {
-                guard !didDispatch, let sourceURL else { return }
-                didDispatch = true
-                sharedModel.selectedTab = .apps
-                DispatchQueue.main.async {
-                    if sourceURL.isFileURL {
-                        sharedModel.deepLink = sourceURL
-                    } else {
-                        var components = URLComponents()
-                        components.scheme = "appbox"
-                        components.host = "install"
-                        components.queryItems = [URLQueryItem(name: "url", value: sourceURL.absoluteString)]
-                        sharedModel.deepLink = components.url
-                    }
-                }
-            }
-    }
-}
