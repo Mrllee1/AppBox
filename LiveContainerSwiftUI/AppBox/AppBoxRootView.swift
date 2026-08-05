@@ -56,6 +56,7 @@ struct AppBoxRootView: View {
             store.finishInstallRequest()
         }) { request in
             AppBoxContainerInstallerView(sourceURL: request.sourceURL)
+                .appBoxImporterPresentation()
         }
         .onChange(of: scenePhase) { phase in
             if phase != .active {

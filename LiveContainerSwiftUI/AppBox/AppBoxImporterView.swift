@@ -2,6 +2,18 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
+extension View {
+    @ViewBuilder
+    func appBoxImporterPresentation() -> some View {
+        if #available(iOS 16.0, *) {
+            presentationDetents([.large])
+                .presentationDragIndicator(.hidden)
+        } else {
+            self
+        }
+    }
+}
+
 enum AppBoxImportFailure: Equatable {
     case invalidLink
     case unsupportedFile
@@ -90,6 +102,7 @@ final class AppBoxImportViewModel: ObservableObject {
 
     func reset() {
         guard !state.isBusy else { return }
+        linkText = ""
         installedApp = nil
         state = .idle
     }
@@ -249,17 +262,13 @@ struct AppBoxContainerInstallerView: View {
             }
         }
         .tint(palette.accent)
-        .betterFileImporter(
+        .fileImporter(
             isPresented: $isChoosingFile,
-            types: [.ipa, .tipa],
-            multiple: false,
-            callback: { urls in
-                isChoosingFile = false
-                guard let url = urls.first else { return }
-                model.importFile(url, onInstalled: addInstalledApp)
-            },
-            onDismiss: { isChoosingFile = false }
-        )
+            allowedContentTypes: [.ipa, .tipa]
+        ) { result in
+            guard case .success(let url) = result else { return }
+            model.importFile(url, onInstalled: addInstalledApp)
+        }
         .onAppear {
             guard !didStartInitialSource, let sourceURL else { return }
             didStartInitialSource = true
@@ -370,12 +379,20 @@ struct AppBoxContainerInstallerView: View {
                             .frame(width: 18, height: 18)
                             .foregroundColor(palette.secondaryText)
 
-                        TextField("https://example.com/app.ipa", text: $model.linkText)
-                            .textInputAutocapitalization(.never)
-                            .disableAutocorrection(true)
-                            .keyboardType(.URL)
-                            .submitLabel(.go)
-                            .onSubmit { model.importLink(onInstalled: addInstalledApp) }
+                        ZStack(alignment: .leading) {
+                            if model.linkText.isEmpty {
+                                Text(copy.text("粘贴 IPA 下载链接", "Paste IPA download link"))
+                                    .foregroundColor(palette.secondaryText)
+                                    .allowsHitTesting(false)
+                            }
+                            TextField("", text: $model.linkText)
+                                .foregroundColor(palette.primaryText)
+                                .textInputAutocapitalization(.never)
+                                .disableAutocorrection(true)
+                                .keyboardType(.URL)
+                                .submitLabel(.go)
+                                .onSubmit { model.importLink(onInstalled: addInstalledApp) }
+                        }
 
                         if !model.linkText.isEmpty {
                             Button { model.linkText = "" } label: {

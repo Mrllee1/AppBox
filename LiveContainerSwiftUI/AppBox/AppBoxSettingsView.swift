@@ -107,6 +107,7 @@ struct AppBoxSettingsView: View {
                 )
             case .importer:
                 AppBoxContainerInstallerView(sourceURL: nil)
+                    .appBoxImporterPresentation()
             }
         }
     }

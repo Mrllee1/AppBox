@@ -68,7 +68,7 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
 
         progress(.downloading(progress: 0))
         if request.sourceURL.isFileURL {
-            try stageLocalArchive(from: request.sourceURL, to: archiveURL)
+            try await stageLocalArchive(from: request.sourceURL, to: archiveURL)
             progress(.downloading(progress: 1))
         } else {
             let download = AppBoxIPADownloadOperation { value in
@@ -146,7 +146,7 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
         downloads[requestID] = nil
     }
 
-    private func stageLocalArchive(from sourceURL: URL, to destinationURL: URL) throws {
+    private nonisolated func stageLocalArchive(from sourceURL: URL, to destinationURL: URL) async throws {
         let didAccess = sourceURL.startAccessingSecurityScopedResource()
         defer {
             if didAccess {
