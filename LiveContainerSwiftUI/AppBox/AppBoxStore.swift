@@ -14,6 +14,7 @@ final class AppBoxStore: ObservableObject {
     private let webDataManager: any AppBoxWebDataManaging
     private var installTasks: [String: Task<Void, Never>] = [:]
     private var installTokens: [String: UUID] = [:]
+    private var launchAfterInstallIDs: Set<String> = []
 
     init(
         defaults: UserDefaults = .standard,
@@ -46,12 +47,21 @@ final class AppBoxStore: ObservableObject {
         AppBoxCatalog.items.filter { isInstalled($0, hostApps: hostApps) }
     }
 
-    func startInstall(_ item: AppBoxCatalogItem, sharedModel: SharedModel) {
+    func startInstall(
+        _ item: AppBoxCatalogItem,
+        sharedModel: SharedModel,
+        launchAfterInstall: Bool = false
+    ) {
         guard !isInstalled(item, hostApps: sharedModel.apps),
               installStates[item.id]?.isActive != true else { return }
 
         let token = UUID()
         installTokens[item.id] = token
+        if launchAfterInstall {
+            launchAfterInstallIDs.insert(item.id)
+        } else {
+            launchAfterInstallIDs.remove(item.id)
+        }
         notice = nil
         switch item.source {
         case .web:
@@ -59,10 +69,19 @@ final class AppBoxStore: ObservableObject {
                 localInstalledIDs = localInstallStore.installedIDs
             }
             completeInstall(item, token: token)
+            if launchAfterInstall {
+                launchAfterInstallIDs.remove(item.id)
+                Task { [weak self, weak sharedModel] in
+                    guard let self, let sharedModel else { return }
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    await self.launch(item, hostApps: sharedModel.apps)
+                }
+            }
 
         case .ipa(let downloadURL):
             guard downloadURL != nil else {
                 installTokens[item.id] = nil
+                launchAfterInstallIDs.remove(item.id)
                 installStates[item.id] = .failed(message: "No download URL configured")
                 notice = .missingDownloadURL
                 return
@@ -78,6 +97,7 @@ final class AppBoxStore: ObservableObject {
     func cancelInstall(_ item: AppBoxCatalogItem) {
         guard installStates[item.id]?.isCancellable == true else { return }
         installTokens[item.id] = nil
+        launchAfterInstallIDs.remove(item.id)
         installTasks[item.id]?.cancel()
         installTasks[item.id] = nil
         bridge.cancelInstall(for: item)
@@ -113,15 +133,22 @@ final class AppBoxStore: ObservableObject {
             }
 #endif
             completeInstall(item, token: token)
+            if launchAfterInstallIDs.remove(item.id) != nil {
+                try await Task.sleep(nanoseconds: 450_000_000)
+                try Task.checkCancellation()
+                await launch(item, hostApps: sharedModel.apps)
+            }
         } catch is CancellationError {
             guard installTokens[item.id] == token else { return }
             installStates[item.id] = nil
             installTokens[item.id] = nil
+            launchAfterInstallIDs.remove(item.id)
             installTasks[item.id] = nil
         } catch {
             guard installTokens[item.id] == token else { return }
             installStates[item.id] = .failed(message: error.localizedDescription)
             installTokens[item.id] = nil
+            launchAfterInstallIDs.remove(item.id)
             installTasks[item.id] = nil
             notice = .installFailed(error.localizedDescription)
         }
@@ -143,6 +170,38 @@ final class AppBoxStore: ObservableObject {
             guard let self, self.installTokens[item.id] == token else { return }
             self.installStates[item.id] = nil
             self.installTokens[item.id] = nil
+        }
+    }
+
+    func handleExternalIntent(_ intent: AppBoxExternalIntent, sharedModel: SharedModel) async {
+        switch intent {
+        case .install(let sourceURL):
+            requestExternalInstall(url: sourceURL)
+        case .openItem(let id, let launchAfterInstall):
+            guard let item = AppBoxCatalog.item(id: id) else {
+                notice = .notInstalled
+                return
+            }
+            await openOrInstall(item, sharedModel: sharedModel, launchAfterInstall: launchAfterInstall)
+        case .native(let payload):
+            guard let id = AppBoxNativeRouteResolver.itemID(for: payload),
+                  let item = AppBoxCatalog.item(id: id) else {
+                notice = .notInstalled
+                return
+            }
+            await openOrInstall(item, sharedModel: sharedModel, launchAfterInstall: true)
+        }
+    }
+
+    private func openOrInstall(
+        _ item: AppBoxCatalogItem,
+        sharedModel: SharedModel,
+        launchAfterInstall: Bool
+    ) async {
+        if isInstalled(item, hostApps: sharedModel.apps) {
+            await launch(item, hostApps: sharedModel.apps)
+        } else {
+            startInstall(item, sharedModel: sharedModel, launchAfterInstall: launchAfterInstall)
         }
     }
 

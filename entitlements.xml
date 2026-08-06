@@ -6,6 +6,8 @@
 	<string>$(DEVELOPMENT_TEAM).$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>com.apple.developer.team-identifier</key>
 	<string>$(DEVELOPMENT_TEAM)</string>
+	<key>com.apple.developer.family-controls</key>
+	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>$(APP_GROUP_SIDESTORE)</string>

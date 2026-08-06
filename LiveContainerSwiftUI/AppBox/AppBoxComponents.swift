@@ -148,7 +148,7 @@ struct AppBoxSearchBar: View {
                 .accessibilityLabel("Clear")
             }
         }
-        .font(.body)
+        .font(.system(size: 15, weight: .regular))
         .padding(.horizontal, 15)
         .frame(height: 44)
         .appBoxGlassControl(palette, radius: 14)
@@ -363,7 +363,7 @@ struct AppBoxNoticeView: View {
                 .frame(width: 18, height: 18)
                 .foregroundColor(palette.accent)
             Text(text)
-                .font(.subheadline.weight(.medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(palette.primaryText)
         }
         .padding(.horizontal, 16)
@@ -395,13 +395,13 @@ struct AppBoxSheetHeader: View {
             )
             Spacer()
             Text(title)
-                .font(.headline)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(palette.primaryText)
             Spacer()
             Color.clear.frame(width: AppBoxLayout.controlHeight, height: AppBoxLayout.controlHeight)
         }
         .padding(.horizontal, AppBoxLayout.pagePadding - 2)
-        .frame(height: 56)
+        .frame(height: 52)
     }
 }
 
@@ -413,12 +413,12 @@ struct AppBoxSectionHeading: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.headline)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(palette.primaryText)
             Spacer()
             if let detail {
                 Text(detail)
-                    .font(.caption.weight(.medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundColor(palette.secondaryText)
             }
         }
@@ -435,12 +435,12 @@ private struct AppBoxSurfaceModifier: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: AppBoxLayout.cardRadius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: AppBoxLayout.cardRadius, style: .continuous)
-                    .stroke(palette.border, lineWidth: 1)
+                    .stroke(palette.border.opacity(0.35), lineWidth: 0.6)
             }
             .shadow(
-                color: addsShadow ? Color.black.opacity(0.045) : Color.clear,
-                radius: 8,
-                y: 3
+                color: addsShadow ? Color.black.opacity(0.035) : Color.clear,
+                radius: 14,
+                y: 7
             )
     }
 }
@@ -474,11 +474,108 @@ private struct AppBoxGlassControlModifier: ViewModifier {
             content
                 .background(reduceTransparency ? (tint ?? palette.surface) : Color.clear)
                 .background(reduceTransparency ? AnyShapeStyle(Color.clear) : AnyShapeStyle(.ultraThinMaterial))
-                .background(tint?.opacity(0.82) ?? Color.clear)
+                .background(tint?.opacity(0.64) ?? Color(uiColor: .systemBackground).opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: radius, style: .continuous)
-                        .stroke(palette.border, lineWidth: 1)
+                        .stroke(palette.border.opacity(0.12), lineWidth: 0.5)
+                }
+        }
+    }
+}
+
+private struct AppBoxLiquidCardModifier: ViewModifier {
+    let palette: AppBoxPalette
+    let radius: CGFloat
+    let addsShadow: Bool
+
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let fill = Color(uiColor: .secondarySystemGroupedBackground)
+            .opacity(colorScheme == .dark ? 0.84 : 0.98)
+        let highlight = Color.white.opacity(colorScheme == .dark ? 0.055 : 0.58)
+        let hairline = palette.border.opacity(colorScheme == .dark ? 0.20 : 0.08)
+        let contactShadow = Color.black.opacity(colorScheme == .dark ? 0.16 : 0.012)
+        let ambientShadow = Color.black.opacity(colorScheme == .dark ? 0.28 : 0.055)
+
+        return content
+            .background(reduceTransparency ? palette.elevatedSurface : fill)
+            .clipShape(shape)
+            .overlay {
+                shape.stroke(highlight, lineWidth: 0.7)
+            }
+            .overlay {
+                shape.stroke(hairline, lineWidth: 0.5)
+            }
+            .shadow(color: addsShadow ? contactShadow : .clear, radius: 4, y: 1)
+            .shadow(color: addsShadow ? ambientShadow : .clear, radius: 24, y: 10)
+    }
+}
+
+private struct AppBoxTabBarGlassModifier: ViewModifier {
+    let palette: AppBoxPalette
+    let radius: CGFloat
+
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *), !reduceTransparency {
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(Color(uiColor: .systemBackground).opacity(0.14))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
+                }
+                .shadow(color: Color.black.opacity(0.036), radius: 24, y: 10)
+        } else {
+            content
+                .background(reduceTransparency ? palette.elevatedSurface.opacity(0.96) : Color.clear)
+                .background(reduceTransparency ? AnyShapeStyle(Color.clear) : AnyShapeStyle(.ultraThinMaterial))
+                .background(Color(uiColor: .systemBackground).opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .stroke(palette.border.opacity(0.10), lineWidth: 0.5)
+                }
+                .shadow(color: Color.black.opacity(0.034), radius: 24, y: 10)
+        }
+    }
+}
+
+private struct AppBoxTabSelectionLensModifier: ViewModifier {
+    let palette: AppBoxPalette
+    let radius: CGFloat
+
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *), !reduceTransparency {
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(palette.accent.opacity(0.05))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .glassEffect(.regular.tint(palette.accent.opacity(0.06)).interactive(), in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        } else {
+            content
+                .background(reduceTransparency ? palette.accentSoft.opacity(0.75) : Color.clear)
+                .background(reduceTransparency ? AnyShapeStyle(Color.clear) : AnyShapeStyle(.ultraThinMaterial))
+                .background(palette.accent.opacity(0.05))
+                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .stroke(Color.white.opacity(0.26), lineWidth: 0.5)
                 }
         }
     }
@@ -505,6 +602,22 @@ extension View {
                 tint: tint
             )
         )
+    }
+
+    func appBoxLiquidCard(
+        _ palette: AppBoxPalette,
+        radius: CGFloat,
+        addsShadow: Bool = true
+    ) -> some View {
+        modifier(AppBoxLiquidCardModifier(palette: palette, radius: radius, addsShadow: addsShadow))
+    }
+
+    func appBoxTabBarGlass(_ palette: AppBoxPalette, radius: CGFloat) -> some View {
+        modifier(AppBoxTabBarGlassModifier(palette: palette, radius: radius))
+    }
+
+    func appBoxTabSelectionLens(_ palette: AppBoxPalette, radius: CGFloat) -> some View {
+        modifier(AppBoxTabSelectionLensModifier(palette: palette, radius: radius))
     }
 
     @ViewBuilder

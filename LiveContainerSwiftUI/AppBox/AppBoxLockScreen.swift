@@ -1,13 +1,17 @@
-import LocalAuthentication
 import SwiftUI
+
+enum AppBoxSpaceSession: Equatable {
+    case real
+    case decoy
+}
 
 @MainActor
 final class AppBoxLockController: ObservableObject {
     @Published private(set) var isLocked: Bool
+    @Published private(set) var currentSpace: AppBoxSpaceSession?
 
     private let pinService: AppBoxPINProviding
     private let forceLockedForDebug: Bool
-    private var hasPendingUnlock = false
 
     init(pinService: AppBoxPINProviding = AppBoxPINService()) {
         self.pinService = pinService
@@ -17,75 +21,105 @@ final class AppBoxLockController: ObservableObject {
         forceLockedForDebug = false
 #endif
         isLocked = forceLockedForDebug || pinService.hasPIN
+        currentSpace = nil
+    }
+
+    var protectionEnabled: Bool {
+        forceLockedForDebug || pinService.hasPIN
     }
 
     func handleScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .active:
-            if hasPendingUnlock {
-                hasPendingUnlock = false
-                isLocked = false
-            }
-        case .inactive:
-            isLocked = protectionEnabled
-        case .background:
-            hasPendingUnlock = false
-            isLocked = protectionEnabled
+            break
+        case .inactive, .background:
+            lockIfNeeded()
         @unknown default:
-            hasPendingUnlock = false
-            isLocked = protectionEnabled
+            lockIfNeeded()
         }
     }
 
-    func requestUnlock(while phase: ScenePhase) {
-        switch phase {
-        case .active:
-            hasPendingUnlock = false
+    func unlock(_ result: AppBoxUnlockResult) {
+        switch result {
+        case .real:
+            currentSpace = .real
             isLocked = false
-        case .inactive:
-            hasPendingUnlock = true
-        case .background:
-            hasPendingUnlock = false
-        @unknown default:
-            hasPendingUnlock = false
+        case .decoy:
+            currentSpace = .decoy
+            isLocked = false
+        case .failed:
+            break
         }
+    }
+
+    func enterRealSpaceWithoutProtection() {
+        guard !protectionEnabled else {
+            lockIfNeeded()
+            return
+        }
+        currentSpace = .real
+        isLocked = false
+    }
+
+    func requireUnlock() {
+        guard protectionEnabled else {
+            enterRealSpaceWithoutProtection()
+            return
+        }
+        currentSpace = nil
+        isLocked = true
+    }
+
+    func returnToDefaultSpace() {
+        currentSpace = nil
+        isLocked = false
     }
 
     func synchronizeProtectionState() {
-        if !protectionEnabled {
-            hasPendingUnlock = false
+        if protectionEnabled {
+            if currentSpace == nil {
+                isLocked = true
+            }
+        } else {
             isLocked = false
         }
     }
 
-    private var protectionEnabled: Bool {
-        forceLockedForDebug || pinService.hasPIN
+    private func lockIfNeeded() {
+        guard protectionEnabled else {
+            isLocked = false
+            return
+        }
+        currentSpace = nil
+        isLocked = true
     }
 }
 
 struct AppBoxLockScreen: View {
     let language: AppBoxLanguage
     let skin: AppBoxSkin
-    let onUnlock: () -> Void
+    let onUnlock: (AppBoxUnlockResult) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
-    @State private var biometryKind: AppBoxBiometryKind = .unavailable
-    @State private var isAuthenticating = false
-    @State private var showPassword = false
-    @State private var feedback = ""
+    @FocusState private var isInputFocused: Bool
 
-    private let biometricService: AppBoxBiometricAuthenticating
+    @State private var pin = ""
+    @State private var revealPIN = false
+    @State private var feedback = ""
+    @State private var shakeOffset: CGFloat = 0
+
+    private let service: AppBoxPINProviding
 
     init(
         language: AppBoxLanguage,
         skin: AppBoxSkin,
-        biometricService: AppBoxBiometricAuthenticating = AppBoxBiometricService(),
-        onUnlock: @escaping () -> Void
+        service: AppBoxPINProviding = AppBoxPINService(),
+        onUnlock: @escaping (AppBoxUnlockResult) -> Void
     ) {
         self.language = language
         self.skin = skin
-        self.biometricService = biometricService
+        self.service = service
         self.onUnlock = onUnlock
     }
 
@@ -94,142 +128,119 @@ struct AppBoxLockScreen: View {
 
     var body: some View {
         ZStack {
-            palette.background.ignoresSafeArea()
-            palette.accentSoft.opacity(colorScheme == .dark ? 0.26 : 0.48).ignoresSafeArea()
+            AppBoxPrivacyBackground(palette: palette)
 
             VStack(spacing: 0) {
                 Text(copy.text("隐私空间", "Private Space"))
-                    .font(.headline)
+                    .font(.headline.weight(.semibold))
                     .foregroundColor(palette.primaryText)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 56)
+                    .frame(height: 58)
                     .accessibilityAddTraits(.isHeader)
 
-                Spacer()
-                    .frame(height: 112)
+                VStack(spacing: 20) {
+                    AppBoxGlyph(icon: .shield)
+                        .frame(width: 48, height: 48)
+                        .foregroundColor(palette.accent)
+                        .frame(width: 86, height: 86)
+                        .appBoxGlassControl(palette, radius: 28, isInteractive: false)
 
-                Button(action: authenticate) {
-                    VStack(spacing: 22) {
-                        ZStack {
-                            AppBoxGlyph(icon: biometricIcon)
-                                .frame(width: 42, height: 42)
-                                .foregroundColor(palette.accent)
-                        }
-                        .overlay {
-                            if isAuthenticating {
-                                ProgressView()
-                                    .tint(palette.accent)
-                                    .scaleEffect(1.1)
-                            }
-                        }
-
-                        Text(biometricPrompt)
-                            .font(.body.weight(.medium))
+                    VStack(spacing: 8) {
+                        Text(copy.text("请输入密码", "Enter PIN"))
+                            .font(.title2.weight(.semibold))
                             .foregroundColor(palette.primaryText)
-                            .multilineTextAlignment(.center)
+                        Text(feedback.isEmpty ? copy.text("4 位数字密码", "4-digit numeric PIN") : feedback)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(feedback.isEmpty ? palette.secondaryText : palette.destructive)
                     }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(isAuthenticating || biometryKind == .unavailable)
-                .accessibilityLabel(biometricPrompt)
 
-                if !feedback.isEmpty {
-                    Text(feedback)
-                        .font(.footnote)
-                        .foregroundColor(palette.destructive)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 36)
-                        .padding(.top, 14)
+                    pinEntry
+                        .offset(x: shakeOffset)
+                        .padding(.top, 8)
                 }
-
-                Button {
-                    feedback = ""
-                    showPassword = true
-                } label: {
-                    Text(copy.text("密码解锁", "Unlock with PIN"))
-                        .font(.body)
-                        .foregroundColor(palette.secondaryText)
-                        .padding(.horizontal, 20)
-                        .frame(minHeight: 48)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .padding(.top, feedback.isEmpty ? 28 : 14)
+                .padding(.top, 156)
 
                 Spacer()
             }
             .padding(.horizontal, AppBoxLayout.pagePadding)
         }
-        .onAppear {
-            biometryKind = biometricService.biometryKind
-        }
-        .fullScreenCover(isPresented: $showPassword) {
-            AppBoxPasswordView(
-                language: language,
-                skin: skin,
-                mode: .unlock,
-                onSuccess: onUnlock
-            )
-        }
+        .onAppear { isInputFocused = true }
     }
 
-    private var biometricIcon: AppBoxIcon {
-        switch biometryKind {
-        case .faceID: return .faceID
-        case .touchID: return .touchID
-        case .opticID: return .opticID
-        case .unavailable: return .shield
-        }
-    }
-
-    private var biometricPrompt: String {
-        switch biometryKind {
-        case .faceID:
-            return copy.text("点击进行 Face ID 解锁", "Tap to unlock with Face ID")
-        case .touchID:
-            return copy.text("点击进行 Touch ID 解锁", "Tap to unlock with Touch ID")
-        case .opticID:
-            return copy.text("点击进行 Optic ID 解锁", "Tap to unlock with Optic ID")
-        case .unavailable:
-            return copy.text("生物识别不可用", "Biometric unlock unavailable")
-        }
-    }
-
-    private func authenticate() {
-        guard !isAuthenticating, biometryKind != .unavailable else { return }
-        isAuthenticating = true
-        feedback = ""
-
-        Task {
-            do {
-                try await biometricService.authenticate(
-                    reason: copy.text("解锁天涯盒子隐私空间", "Unlock Tianya Box Private Space")
-                )
-                isAuthenticating = false
-                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
-                    onUnlock()
+    private var pinEntry: some View {
+        ZStack {
+            TextField("", text: $pin)
+                .keyboardType(.numberPad)
+                .textContentType(.oneTimeCode)
+                .focused($isInputFocused)
+                .frame(width: 1, height: 1)
+                .opacity(0.01)
+                .onChange(of: pin) { value in
+                    let filtered = String(value.filter(\.isNumber).prefix(4))
+                    if filtered != value { pin = filtered }
+                    if filtered.count == 4 { handlePIN(filtered) }
                 }
-            } catch {
-                isAuthenticating = false
-                handleAuthenticationError(error)
+
+            HStack(spacing: 10) {
+                ForEach(0..<4, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(palette.elevatedSurface.opacity(0.92))
+                        .frame(width: 56, height: 62)
+                        .overlay {
+                            if index < pin.count {
+                                let character = pin[pin.index(pin.startIndex, offsetBy: index)]
+                                Text(revealPIN ? String(character) : "•")
+                                    .font(.title2.weight(.bold))
+                                    .foregroundColor(palette.primaryText)
+                            }
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(index == pin.count ? palette.accent : palette.border.opacity(0.65), lineWidth: index == pin.count ? 1.8 : 1)
+                        }
+                }
+
+                Button {
+                    revealPIN.toggle()
+                } label: {
+                    AppBoxGlyph(icon: revealPIN ? .eye : .eyeOff)
+                        .frame(width: 21, height: 21)
+                        .foregroundColor(palette.secondaryText)
+                        .frame(width: 52, height: 62)
+                        .appBoxGlassControl(palette, radius: 16)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(copy.text("显示密码", "Show PIN"))
             }
         }
+        .contentShape(Rectangle())
+        .onTapGesture { isInputFocused = true }
     }
 
-    private func handleAuthenticationError(_ error: Error) {
-        guard let authenticationError = error as? LAError else {
-            feedback = copy.text("无法使用生物识别，请使用密码解锁", "Biometric unlock failed. Use your PIN")
-            return
-        }
-
-        switch authenticationError.code {
-        case .userCancel, .appCancel, .systemCancel:
+    private func handlePIN(_ value: String) {
+        let result = service.evaluate(value)
+        switch result {
+        case .real, .decoy:
             feedback = ""
-        case .biometryLockout:
-            feedback = copy.text("生物识别已锁定，请使用密码解锁", "Biometrics are locked. Use your PIN")
-        default:
-            feedback = copy.text("未能识别，请重试或使用密码", "Not recognized. Try again or use your PIN")
+            pin = ""
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                onUnlock(result)
+            }
+        case .failed:
+            feedback = copy.text("密码错误，请重试", "Incorrect PIN")
+            pin = ""
+            runFailureAnimation()
+        }
+    }
+
+    private func runFailureAnimation() {
+        guard !reduceMotion else { return }
+        withAnimation(.linear(duration: 0.055)) { shakeOffset = -9 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.055) {
+            withAnimation(.linear(duration: 0.055)) { shakeOffset = 9 }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.11) {
+            withAnimation(.spring(response: 0.20, dampingFraction: 0.62)) { shakeOffset = 0 }
         }
     }
 }

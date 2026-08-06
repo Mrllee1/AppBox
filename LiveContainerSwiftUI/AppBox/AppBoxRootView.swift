@@ -18,6 +18,7 @@ struct AppBoxRootView: View {
     @State private var showSettings = false
     @State private var showShare = false
     @State private var showPassword = false
+    @State private var pendingExternalIntent: AppBoxExternalIntent?
 
     private var copy: AppBoxCopy { AppBoxCopy(language: language) }
     private var palette: AppBoxPalette { AppBoxPalette(skin: skin, colorScheme: colorScheme) }
@@ -29,7 +30,7 @@ struct AppBoxRootView: View {
                 AppBoxLockScreen(
                     language: language,
                     skin: skin,
-                    onUnlock: { lockController.requestUnlock(while: scenePhase) }
+                    onUnlock: handleUnlock
                 )
                 .transition(.opacity)
             } else {
@@ -47,7 +48,12 @@ struct AppBoxRootView: View {
         .fullScreenCover(isPresented: $showPassword, onDismiss: {
             lockController.synchronizeProtectionState()
         }) {
-            AppBoxPasswordView(language: language, skin: skin, mode: .manage)
+            AppBoxPasswordView(
+                language: language,
+                skin: skin,
+                mode: .manage,
+                onProtectionChange: { _ in lockController.synchronizeProtectionState() }
+            )
         }
         .fullScreenCover(item: $store.activeWebApp) { item in
             AppBoxWebAppView(item: item, language: language, skin: skin)
@@ -65,8 +71,7 @@ struct AppBoxRootView: View {
             lockController.handleScenePhase(phase)
         }
         .onOpenURL { url in
-            guard let sourceURL = installSource(from: url) else { return }
-            store.requestExternalInstall(url: sourceURL)
+            handleExternalURL(url)
         }
         .onChange(of: store.notice) { notice in
             guard let notice else { return }
@@ -79,7 +84,52 @@ struct AppBoxRootView: View {
         }
     }
 
+    @ViewBuilder
     private var unlockedContent: some View {
+        switch lockController.currentSpace {
+        case .real:
+            appCenterContent
+        case .decoy:
+            focusSpace(isDecoy: true)
+        case nil:
+            focusSpace(isDecoy: false)
+        }
+    }
+
+    private func focusSpace(isDecoy: Bool) -> some View {
+        AppBoxFocusSpaceView(
+            language: $language,
+            appearance: $appearance,
+            skin: $skin,
+            isDecoy: isDecoy,
+            isPrivacyEnabled: lockController.protectionEnabled,
+            canManagePassword: !isDecoy,
+            openPassword: { showPassword = true },
+            openShare: {
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                    showShare = true
+                }
+            }
+        )
+        .overlay(alignment: .top) {
+            if let notice = store.notice {
+                AppBoxNoticeView(text: noticeText(notice), palette: palette)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(10)
+            }
+        }
+        .overlay {
+            if showShare {
+                AppBoxShareView(language: language, skin: skin) {
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { showShare = false }
+                }
+                .zIndex(100)
+            }
+        }
+    }
+
+    private var appCenterContent: some View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
 
@@ -313,13 +363,38 @@ struct AppBoxRootView: View {
         }
     }
 
-    private func installSource(from url: URL) -> URL? {
-        if url.isFileURL { return url }
-        guard url.host?.lowercased() == "install",
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let value = components.queryItems?.first(where: { $0.name == "url" })?.value else {
-            return nil
+    private func handleUnlock(_ result: AppBoxUnlockResult) {
+        lockController.unlock(result)
+        switch result {
+        case .real:
+            if let intent = pendingExternalIntent {
+                pendingExternalIntent = nil
+                Task { await store.handleExternalIntent(intent, sharedModel: sharedModel) }
+            }
+        case .decoy:
+            pendingExternalIntent = nil
+            dismissSensitiveContent()
+        case .failed:
+            break
         }
-        return URL(string: value)
+    }
+
+    private func handleExternalURL(_ url: URL) {
+        guard let intent = AppBoxDeepLinkParser.parse(url) else { return }
+
+        if lockController.protectionEnabled && lockController.currentSpace != .real {
+            pendingExternalIntent = intent
+            dismissSensitiveContent()
+            lockController.requireUnlock()
+            return
+        }
+
+        if !lockController.protectionEnabled && lockController.currentSpace != .real {
+            lockController.enterRealSpaceWithoutProtection()
+        }
+
+        Task {
+            await store.handleExternalIntent(intent, sharedModel: sharedModel)
+        }
     }
 }

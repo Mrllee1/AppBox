@@ -1787,7 +1787,6 @@
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = YES;
 				INFOPLIST_KEY_GCSupportsGameMode = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "用于通过面容 ID 解锁天涯盒子的隐私空间。";
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1826,7 +1825,6 @@
 				INFOPLIST_KEY_GCSupportsControllerUserInteraction = YES;
 				INFOPLIST_KEY_GCSupportsGameMode = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "用于通过面容 ID 解锁天涯盒子的隐私空间。";
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
