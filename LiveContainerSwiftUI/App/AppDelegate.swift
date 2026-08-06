@@ -3,7 +3,9 @@ import SwiftUI
 import Intents
 
 @objc class AppDelegate: UIResponder, UIApplicationDelegate {
-        
+    private var appBoxAutomationStore: AppBoxFocusAutomationStore?
+    private var appBoxVisibilityService: AppBoxVisibilityService?
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? ) -> Bool {
         application.shortcutItems = nil
         UserDefaults.standard.removeObject(forKey: "LCNeedToAcquireJIT")
@@ -30,6 +32,10 @@ import Intents
             LCUtils.appGroupUserDefault.removeObject(forKey: "symbolOffsetCache")
             LCUtils.appGroupUserDefault.setValue(UIDevice.current.buildVersion, forKey: "LCLastIOSBuildVersion")
         }
+
+        Task { @MainActor in
+            configureAppBoxGeofenceAutomation()
+        }
         
         return true
     }
@@ -46,6 +52,24 @@ import Intents
         default:
             return nil
         }
+    }
+
+    @MainActor
+    private func configureAppBoxGeofenceAutomation() {
+        let automationStore = AppBoxFocusAutomationStore()
+        let visibilityService = AppBoxVisibilityService()
+        appBoxAutomationStore = automationStore
+        appBoxVisibilityService = visibilityService
+
+        let monitor = AppBoxGeofenceMonitor.shared
+        monitor.onRuleTriggered = { [weak self] rule in
+            Task { @MainActor in
+                guard let self else { return }
+                automationStore.markPlaceRuleTriggered(rule)
+                await visibilityService.hideSelection()
+            }
+        }
+        monitor.synchronize(rules: automationStore.placeRules)
     }
 }
 

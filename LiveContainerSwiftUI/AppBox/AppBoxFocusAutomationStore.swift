@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 
 struct AppBoxPlaceRule: Identifiable, Codable, Equatable {
@@ -13,19 +14,66 @@ struct AppBoxPlaceRule: Identifiable, Codable, Equatable {
     var trigger: Trigger
     var isEnabled: Bool
     var createdAt: Date
+    var latitude: Double?
+    var longitude: Double?
+    var radiusMeters: Double
+    var lastTriggeredAt: Date?
 
     init(
         id: String = UUID().uuidString,
         name: String,
         trigger: Trigger,
         isEnabled: Bool = true,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        radiusMeters: Double = 200,
+        lastTriggeredAt: Date? = nil
     ) {
         self.id = id
         self.name = name
         self.trigger = trigger
         self.isEnabled = isEnabled
         self.createdAt = createdAt
+        self.latitude = latitude
+        self.longitude = longitude
+        self.radiusMeters = radiusMeters.clamped(to: 100...1000)
+        self.lastTriggeredAt = lastTriggeredAt
+    }
+
+    var coordinate: CLLocationCoordinate2D? {
+        guard let latitude, let longitude else { return nil }
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
+    var hasLocation: Bool {
+        coordinate != nil
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case trigger
+        case isEnabled
+        case createdAt
+        case latitude
+        case longitude
+        case radiusMeters
+        case lastTriggeredAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        trigger = try container.decode(Trigger.self, forKey: .trigger)
+        isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        latitude = try container.decodeIfPresent(Double.self, forKey: .latitude)
+        longitude = try container.decodeIfPresent(Double.self, forKey: .longitude)
+        radiusMeters = (try container.decodeIfPresent(Double.self, forKey: .radiusMeters) ?? 200)
+            .clamped(to: 100...1000)
+        lastTriggeredAt = try container.decodeIfPresent(Date.self, forKey: .lastTriggeredAt)
     }
 }
 
@@ -111,10 +159,24 @@ final class AppBoxFocusAutomationStore: ObservableObject {
         scheduleRules.filter(\.isEnabled).count
     }
 
-    func addPlaceRule(name: String, trigger: AppBoxPlaceRule.Trigger) {
+    func addPlaceRule(
+        name: String,
+        trigger: AppBoxPlaceRule.Trigger,
+        coordinate: CLLocationCoordinate2D,
+        radiusMeters: Double
+    ) {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let ruleName = trimmedName.isEmpty ? "当前位置" : trimmedName
-        placeRules.insert(AppBoxPlaceRule(name: ruleName, trigger: trigger), at: 0)
+        placeRules.insert(
+            AppBoxPlaceRule(
+                name: ruleName,
+                trigger: trigger,
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                radiusMeters: radiusMeters
+            ),
+            at: 0
+        )
     }
 
     func togglePlaceRule(_ rule: AppBoxPlaceRule) {
@@ -124,6 +186,11 @@ final class AppBoxFocusAutomationStore: ObservableObject {
 
     func removePlaceRule(_ rule: AppBoxPlaceRule) {
         placeRules.removeAll { $0.id == rule.id }
+    }
+
+    func markPlaceRuleTriggered(_ rule: AppBoxPlaceRule, at date: Date = Date()) {
+        guard let index = placeRules.firstIndex(where: { $0.id == rule.id }) else { return }
+        placeRules[index].lastTriggeredAt = date
     }
 
     func addScheduleRule(name: String, startHour: Int, startMinute: Int, endHour: Int, endMinute: Int) {

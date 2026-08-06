@@ -1,3 +1,4 @@
+import CoreLocation
 import FamilyControls
 import SwiftUI
 import UIKit
@@ -27,7 +28,7 @@ struct AppBoxFocusSpaceView: View {
 
     @StateObject private var visibility = AppBoxVisibilityService()
     @StateObject private var automation = AppBoxFocusAutomationStore()
-    @StateObject private var locationPermission = AppBoxLocationPermissionService()
+    @StateObject private var geofenceMonitor = AppBoxGeofenceMonitor.shared
     @State private var selectedTab: AppBoxFocusTab = .apps
     @State private var activeAutomationID: String?
     @State private var isActivityPickerPresented = false
@@ -61,8 +62,16 @@ struct AppBoxFocusSpaceView: View {
         .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: visibility.isHidden)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: activeAutomationID)
         .onAppear {
+            geofenceMonitor.onRuleTriggered = handlePlaceRuleTriggered
+            geofenceMonitor.synchronize(rules: automation.placeRules)
             applyDebugInitialTabIfNeeded()
             enforceScheduleIfNeeded()
+        }
+        .onChange(of: automation.placeRules) { rules in
+            geofenceMonitor.synchronize(rules: rules)
+        }
+        .onChange(of: geofenceMonitor.authorizationStatus) { _ in
+            geofenceMonitor.synchronize(rules: automation.placeRules)
         }
         .onReceive(scheduleTimer) { date in
             scheduleClock = date
@@ -73,8 +82,21 @@ struct AppBoxFocusSpaceView: View {
             AppBoxPlaceEditorSheet(
                 language: language,
                 palette: palette,
-                addAction: { name, trigger in
-                    automation.addPlaceRule(name: name, trigger: trigger)
+                authorizationStatus: geofenceMonitor.authorizationStatus,
+                currentLocation: geofenceMonitor.currentLocation,
+                isRequestingLocation: geofenceMonitor.isRequestingLocation,
+                locationError: geofenceMonitor.lastError,
+                requestLocationAction: {
+                    geofenceMonitor.requestCurrentLocation()
+                },
+                requestAlwaysAuthorizationAction: requestLocationAccess,
+                addAction: { name, trigger, coordinate, radiusMeters in
+                    automation.addPlaceRule(
+                        name: name,
+                        trigger: trigger,
+                        coordinate: coordinate,
+                        radiusMeters: radiusMeters
+                    )
                     isPlaceEditorPresented = false
                 }
             )
@@ -212,20 +234,28 @@ struct AppBoxFocusSpaceView: View {
             if automation.placeRules.isEmpty {
                 AppBoxAutomationEmptyState(
                     icon: .locationArrow,
-                    title: copy.text("离开指定地点时自动停用选定应用。", "Disable selected apps when leaving a place."),
-                    message: copy.text("为确保后台正常工作，可在系统设置中允许定位权限。", "Allow location permission in Settings for background triggers."),
-                    primaryTitle: copy.text("系统设置", "System Settings"),
-                    primaryIcon: .arrowUpRight,
-                    secondaryTitle: copy.text("新建地点", "New Place"),
-                    secondaryIcon: .plus,
+                    title: copy.text("根据地点自动隐藏选定应用。", "Hide selected apps by location."),
+                    message: copy.text("先选择应用，再用当前位置创建地点规则。后台触发需要始终允许定位。", "Choose apps first, then create a place rule from your current location. Background triggers require Always location access."),
+                    primaryTitle: locationPrimaryTitle,
+                    primaryIcon: locationPrimaryIcon,
+                    secondaryTitle: geofenceMonitor.isAlwaysAuthorized ? nil : copy.text("新建地点", "New Place"),
+                    secondaryIcon: geofenceMonitor.isAlwaysAuthorized ? nil : .plus,
                     palette: palette,
-                    primaryAction: requestLocationAccess,
+                    primaryAction: {
+                        if geofenceMonitor.isAlwaysAuthorized {
+                            isPlaceEditorPresented = true
+                        } else {
+                            requestLocationAccess()
+                        }
+                    },
                     secondaryAction: { isPlaceEditorPresented = true }
                 )
             } else {
                 ForEach(automation.placeRules) { rule in
                     AppBoxPlaceRuleCard(
                         rule: rule,
+                        isMonitoring: geofenceMonitor.monitoredRuleIDs.contains(rule.id),
+                        canMonitor: geofenceMonitor.isAlwaysAuthorized,
                         language: language,
                         palette: palette,
                         toggleAction: { automation.togglePlaceRule(rule) },
@@ -236,7 +266,7 @@ struct AppBoxFocusSpaceView: View {
                 AppBoxInlineActionRow(
                     icon: .arrowUpRight,
                     title: copy.text("定位权限", "Location Permission"),
-                    detail: copy.text("前往系统设置调整", "Open app settings"),
+                    detail: locationPermissionDetail,
                     palette: palette,
                     action: requestLocationAccess
                 )
@@ -447,11 +477,51 @@ struct AppBoxFocusSpaceView: View {
     }
 
     private func requestLocationAccess() {
-        if locationPermission.canRequestAuthorization {
-            locationPermission.requestAlwaysAuthorization()
+        if geofenceMonitor.canRequestAuthorization {
+            geofenceMonitor.requestAlwaysAuthorization()
             return
         }
         openAppSettings()
+    }
+
+    private var locationPrimaryTitle: String {
+        switch geofenceMonitor.authorizationStatus {
+        case .authorizedAlways:
+            return copy.text("新建地点", "New Place")
+        case .notDetermined, .authorizedWhenInUse:
+            return copy.text("允许定位", "Allow Location")
+        case .denied, .restricted:
+            return copy.text("系统设置", "System Settings")
+        @unknown default:
+            return copy.text("系统设置", "System Settings")
+        }
+    }
+
+    private var locationPrimaryIcon: AppBoxIcon {
+        geofenceMonitor.authorizationStatus == .authorizedAlways ? .plus : .arrowUpRight
+    }
+
+    private var locationPermissionDetail: String {
+        switch geofenceMonitor.authorizationStatus {
+        case .authorizedAlways:
+            return copy.text("后台地点触发已可用", "Background location triggers enabled")
+        case .authorizedWhenInUse:
+            return copy.text("需要升级为始终允许", "Upgrade to Always access")
+        case .notDetermined:
+            return copy.text("允许后可创建后台地点规则", "Allow access to create background place rules")
+        case .denied, .restricted:
+            return copy.text("前往系统设置调整", "Open app settings")
+        @unknown default:
+            return copy.text("前往系统设置调整", "Open app settings")
+        }
+    }
+
+    private func handlePlaceRuleTriggered(_ rule: AppBoxPlaceRule) {
+        guard visibility.hasSelection else { return }
+        guard automation.placeRules.contains(where: { $0.id == rule.id && $0.isEnabled }) else { return }
+        activeAutomationID = rule.id
+        automation.markPlaceRuleTriggered(rule)
+        Task { await hideVisibility() }
     }
 
     private func enforceScheduleIfNeeded(at date: Date = Date()) {
@@ -1093,6 +1163,8 @@ private struct AppBoxInlineActionRow: View {
 
 private struct AppBoxPlaceRuleCard: View {
     let rule: AppBoxPlaceRule
+    let isMonitoring: Bool
+    let canMonitor: Bool
     let language: AppBoxLanguage
     let palette: AppBoxPalette
     let toggleAction: () -> Void
@@ -1126,6 +1198,33 @@ private struct AppBoxPlaceRuleCard: View {
                     .tint(palette.accent)
             }
 
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    AppBoxRuleBadge(
+                        text: monitorText,
+                        color: monitorColor,
+                        palette: palette
+                    )
+                    AppBoxRuleBadge(
+                        text: copy.text("半径 \(Int(rule.radiusMeters.rounded()))m", "\(Int(rule.radiusMeters.rounded()))m radius"),
+                        color: palette.accent,
+                        palette: palette
+                    )
+                }
+
+                Text(locationText)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(palette.secondaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+
+                if let lastTriggeredAt = rule.lastTriggeredAt {
+                    Text(copy.text("最近触发 \(lastTriggeredAt.formatted(date: .omitted, time: .shortened))", "Last triggered \(lastTriggeredAt.formatted(date: .omitted, time: .shortened))"))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(palette.secondaryText)
+                }
+            }
+
             Button(role: .destructive, action: removeAction) {
                 Text(copy.text("删除地点", "Delete Place"))
                     .font(.system(size: 13, weight: .semibold))
@@ -1146,6 +1245,55 @@ private struct AppBoxPlaceRuleCard: View {
         case .arrive:
             return copy.text("到达时停用选定应用", "Disable apps when arriving")
         }
+    }
+
+    private var locationText: String {
+        guard let coordinate = rule.coordinate else {
+            return copy.text("未设置位置", "Location not set")
+        }
+        return String(format: "%.5f, %.5f", coordinate.latitude, coordinate.longitude)
+    }
+
+    private var monitorText: String {
+        if !rule.isEnabled {
+            return copy.text("已关闭", "Off")
+        }
+        if !rule.hasLocation {
+            return copy.text("无位置", "No location")
+        }
+        if isMonitoring {
+            return copy.text("监听中", "Monitoring")
+        }
+        if canMonitor {
+            return copy.text("等待注册", "Pending")
+        }
+        return copy.text("需定位权限", "Needs location")
+    }
+
+    private var monitorColor: Color {
+        if isMonitoring {
+            return Color(uiColor: .systemGreen)
+        }
+        if !rule.isEnabled {
+            return palette.secondaryText
+        }
+        return Color(uiColor: .systemOrange)
+    }
+}
+
+private struct AppBoxRuleBadge: View {
+    let text: String
+    let color: Color
+    let palette: AppBoxPalette
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(color)
+            .padding(.horizontal, 9)
+            .frame(height: 24)
+            .background(color.opacity(0.12))
+            .clipShape(Capsule())
     }
 }
 
@@ -1230,11 +1378,18 @@ private struct AppBoxScheduleRuleCard: View {
 private struct AppBoxPlaceEditorSheet: View {
     let language: AppBoxLanguage
     let palette: AppBoxPalette
-    let addAction: (String, AppBoxPlaceRule.Trigger) -> Void
+    let authorizationStatus: CLAuthorizationStatus
+    let currentLocation: CLLocation?
+    let isRequestingLocation: Bool
+    let locationError: String?
+    let requestLocationAction: () -> Void
+    let requestAlwaysAuthorizationAction: () -> Void
+    let addAction: (String, AppBoxPlaceRule.Trigger, CLLocationCoordinate2D, Double) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var trigger: AppBoxPlaceRule.Trigger = .leave
+    @State private var radiusMeters = 200.0
 
     private var copy: AppBoxCopy { AppBoxCopy(language: language) }
 
@@ -1263,6 +1418,78 @@ private struct AppBoxPlaceEditorSheet: View {
                         .frame(height: 46)
                         .appBoxGlassControl(palette, radius: 14)
 
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 12) {
+                            AppBoxGlyph(icon: .locationArrow)
+                                .frame(width: 17, height: 17)
+                                .foregroundColor(palette.accent)
+                                .frame(width: 36, height: 36)
+                                .background(palette.accentSoft)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(locationTitle)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(palette.primaryText)
+                                Text(locationDetail)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(palette.secondaryText)
+                                    .lineLimit(2)
+                            }
+
+                            Spacer()
+                        }
+
+                        HStack(spacing: 10) {
+                            Button(action: requestLocationAction) {
+                                Text(isRequestingLocation ? copy.text("定位中", "Locating") : copy.text("获取当前位置", "Use Current Location"))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 36)
+                                    .background(palette.accent)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isRequestingLocation)
+
+                            if authorizationStatus != .authorizedAlways {
+                                Button(action: requestAlwaysAuthorizationAction) {
+                                    Text(copy.text("始终允许", "Always"))
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(palette.accent)
+                                        .frame(width: 82)
+                                        .frame(height: 36)
+                                        .background(palette.accentSoft.opacity(0.82))
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        if let locationError, !locationError.isEmpty {
+                            Text(locationError)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(palette.destructive)
+                        }
+                    }
+                    .padding(12)
+                    .appBoxGlassControl(palette, radius: 16, isInteractive: false)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(copy.text("触发半径", "Radius"))
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(palette.primaryText)
+                            Spacer()
+                            Text("\(Int(radiusMeters.rounded()))m")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(palette.secondaryText)
+                        }
+                        Slider(value: $radiusMeters, in: 100...1000, step: 50)
+                            .tint(palette.accent)
+                    }
+
                     Text(copy.text("触发方式", "Trigger"))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(palette.primaryText)
@@ -1274,7 +1501,7 @@ private struct AppBoxPlaceEditorSheet: View {
                     }
                     .pickerStyle(.segmented)
 
-                    Text(copy.text("保存后会创建地点规则。真正的后台触发需要在系统设置中允许定位权限。", "Saving creates a place rule. Background triggers require location permission in Settings."))
+                    Text(copy.text("保存后会注册系统地点围栏。后台自动触发需要定位权限为“始终允许”。", "Saving registers a system geofence. Background triggers require Always location access."))
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(palette.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1283,22 +1510,59 @@ private struct AppBoxPlaceEditorSheet: View {
                 .appBoxLiquidCard(palette, radius: 20)
 
                 Button {
-                    addAction(name, trigger)
+                    guard let coordinate = currentLocation?.coordinate else { return }
+                    addAction(name, trigger, coordinate, radiusMeters)
                 } label: {
                     Text(copy.text("保存地点", "Save Place"))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(palette.accent)
+                        .background(currentLocation == nil ? palette.secondaryText.opacity(0.40) : palette.accent)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .disabled(currentLocation == nil)
                 .padding(.horizontal, AppBoxLayout.pagePadding)
 
                 Spacer()
             }
             .padding(.top, 12)
+        }
+    }
+
+    private var locationTitle: String {
+        if currentLocation != nil {
+            return copy.text("已获取当前位置", "Current location ready")
+        }
+        if isRequestingLocation {
+            return copy.text("正在定位", "Locating")
+        }
+        return copy.text("选择当前位置", "Choose current location")
+    }
+
+    private var locationDetail: String {
+        if let currentLocation {
+            let coordinate = currentLocation.coordinate
+            return String(
+                format: copy.text("精度 %.0fm • %.5f, %.5f", "%.0fm accuracy • %.5f, %.5f"),
+                max(0, currentLocation.horizontalAccuracy),
+                coordinate.latitude,
+                coordinate.longitude
+            )
+        }
+
+        switch authorizationStatus {
+        case .authorizedAlways:
+            return copy.text("点击获取当前位置。", "Tap to fetch your current location.")
+        case .authorizedWhenInUse:
+            return copy.text("可创建地点；后台触发仍需始终允许。", "You can create a place; background triggers still need Always access.")
+        case .notDetermined:
+            return copy.text("点击后会请求定位权限。", "Tap to request location permission.")
+        case .denied, .restricted:
+            return copy.text("定位权限被拒绝，请前往系统设置开启。", "Location permission is denied. Enable it in Settings.")
+        @unknown default:
+            return copy.text("定位状态不可用。", "Location status unavailable.")
         }
     }
 }
