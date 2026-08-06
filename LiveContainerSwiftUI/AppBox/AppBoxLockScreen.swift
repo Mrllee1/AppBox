@@ -2,6 +2,7 @@ import SwiftUI
 
 enum AppBoxSpaceSession: Equatable {
     case real
+    case focus
     case decoy
 }
 
@@ -12,6 +13,7 @@ final class AppBoxLockController: ObservableObject {
 
     private let pinService: AppBoxPINProviding
     private let forceLockedForDebug: Bool
+    private var unlockTarget: AppBoxSpaceSession = .real
 
     init(pinService: AppBoxPINProviding = AppBoxPINService()) {
         self.pinService = pinService
@@ -42,7 +44,7 @@ final class AppBoxLockController: ObservableObject {
     func unlock(_ result: AppBoxUnlockResult) {
         switch result {
         case .real:
-            currentSpace = .real
+            currentSpace = unlockTarget
             isLocked = false
         case .decoy:
             currentSpace = .decoy
@@ -66,18 +68,20 @@ final class AppBoxLockController: ObservableObject {
             enterRealSpaceWithoutProtection()
             return
         }
+        unlockTarget = .real
         currentSpace = nil
         isLocked = true
     }
 
     func returnToDefaultSpace() {
-        currentSpace = nil
+        currentSpace = .focus
         isLocked = false
     }
 
     func synchronizeProtectionState() {
         if protectionEnabled {
             if currentSpace == nil {
+                unlockTarget = .focus
                 isLocked = true
             }
         } else {
@@ -90,6 +94,7 @@ final class AppBoxLockController: ObservableObject {
             isLocked = false
             return
         }
+        unlockTarget = currentSpace ?? .focus
         currentSpace = nil
         isLocked = true
     }
@@ -227,9 +232,11 @@ struct AppBoxLockScreen: View {
                 onUnlock(result)
             }
         case .failed:
-            feedback = copy.text("密码错误，请重试", "Incorrect PIN")
+            feedback = ""
             pin = ""
-            runFailureAnimation()
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                onUnlock(.decoy)
+            }
         }
     }
 

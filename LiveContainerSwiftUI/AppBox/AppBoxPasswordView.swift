@@ -230,7 +230,7 @@ struct AppBoxPasswordView: View {
                 icon: .shield,
                 title: copy.text("伪装密码", "Decoy PIN"),
                 subtitle: hasDecoy
-                    ? copy.text("输入后进入专注空间", "Opens the clean focus space")
+                    ? copy.text("输入后进入伪装页面", "Opens the decoy page")
                     : copy.text("可选，用于隐私伪装", "Optional privacy decoy"),
                 isEnabled: hasDecoy,
                 palette: palette
@@ -337,7 +337,7 @@ struct AppBoxPasswordView: View {
         if !feedback.isEmpty { return feedback }
         switch stage {
         case .overview:
-            return copy.text("主密码进入真实空间，伪装密码进入专注空间。", "Main PIN opens private space. Decoy PIN opens focus space.")
+            return copy.text("主密码进入真实空间，伪装密码进入无关页面。", "Main PIN opens private space. Decoy PIN opens a neutral page.")
         case .verifyPrimary:
             return copy.text("请输入当前 4 位主密码", "Enter your current 4-digit main PIN")
         case .create:

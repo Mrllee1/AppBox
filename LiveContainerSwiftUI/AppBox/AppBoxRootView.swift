@@ -89,8 +89,10 @@ struct AppBoxRootView: View {
         switch lockController.currentSpace {
         case .real:
             appCenterContent
+        case .focus:
+            focusSpace(isDecoy: false)
         case .decoy:
-            focusSpace(isDecoy: true)
+            AppBoxDecoySpaceView(language: language, skin: skin)
         case nil:
             focusSpace(isDecoy: false)
         }
