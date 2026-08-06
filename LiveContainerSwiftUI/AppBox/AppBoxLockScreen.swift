@@ -11,23 +11,42 @@ final class AppBoxLockController: ObservableObject {
     @Published private(set) var isLocked: Bool
     @Published private(set) var currentSpace: AppBoxSpaceSession?
 
+    private static let appCenterActivatedKey = "appbox.appCenterActivatedFromExternalIntent"
+
     private let pinService: AppBoxPINProviding
     private let forceLockedForDebug: Bool
-    private var unlockTarget: AppBoxSpaceSession = .real
+    private var unlockTarget: AppBoxSpaceSession
 
     init(pinService: AppBoxPINProviding = AppBoxPINService()) {
         self.pinService = pinService
+        unlockTarget = Self.persistedDefaultSpace()
 #if DEBUG
         forceLockedForDebug = ProcessInfo.processInfo.environment["APPBOX_DEBUG_FORCE_LOCKED"] == "1"
 #else
         forceLockedForDebug = false
 #endif
-        isLocked = forceLockedForDebug || pinService.hasPIN
-        currentSpace = nil
+        let shouldLock = forceLockedForDebug || pinService.hasPIN
+        isLocked = shouldLock
+        currentSpace = shouldLock ? nil : Self.persistedDefaultSpace()
     }
 
     var protectionEnabled: Bool {
         forceLockedForDebug || pinService.hasPIN
+    }
+
+    private var defaultSpace: AppBoxSpaceSession {
+        Self.persistedDefaultSpace()
+    }
+
+    private static func persistedDefaultSpace() -> AppBoxSpaceSession {
+        UserDefaults.standard.bool(forKey: appCenterActivatedKey) ? .real : .focus
+    }
+
+    func confirmExternalAppCenterActivation() {
+        UserDefaults.standard.set(true, forKey: Self.appCenterActivatedKey)
+        unlockTarget = .real
+        currentSpace = .real
+        isLocked = false
     }
 
     func handleScenePhase(_ phase: ScenePhase) {
@@ -74,27 +93,33 @@ final class AppBoxLockController: ObservableObject {
     }
 
     func returnToDefaultSpace() {
-        currentSpace = .focus
+        currentSpace = defaultSpace
         isLocked = false
     }
 
     func synchronizeProtectionState() {
         if protectionEnabled {
             if currentSpace == nil {
-                unlockTarget = .focus
+                unlockTarget = defaultSpace
                 isLocked = true
             }
         } else {
             isLocked = false
+            if currentSpace == nil {
+                currentSpace = defaultSpace
+            }
         }
     }
 
     private func lockIfNeeded() {
         guard protectionEnabled else {
             isLocked = false
+            if currentSpace == nil {
+                currentSpace = defaultSpace
+            }
             return
         }
-        unlockTarget = currentSpace ?? .focus
+        unlockTarget = defaultSpace
         currentSpace = nil
         isLocked = true
     }

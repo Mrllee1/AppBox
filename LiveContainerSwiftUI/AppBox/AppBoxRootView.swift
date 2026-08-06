@@ -371,6 +371,7 @@ struct AppBoxRootView: View {
         case .real:
             if let intent = pendingExternalIntent {
                 pendingExternalIntent = nil
+                lockController.confirmExternalAppCenterActivation()
                 Task { await store.handleExternalIntent(intent, sharedModel: sharedModel) }
             }
         case .decoy:
@@ -391,9 +392,7 @@ struct AppBoxRootView: View {
             return
         }
 
-        if !lockController.protectionEnabled && lockController.currentSpace != .real {
-            lockController.enterRealSpaceWithoutProtection()
-        }
+        lockController.confirmExternalAppCenterActivation()
 
         Task {
             await store.handleExternalIntent(intent, sharedModel: sharedModel)
