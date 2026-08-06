@@ -160,39 +160,37 @@ struct AppBoxLockScreen: View {
         ZStack {
             AppBoxPrivacyBackground(palette: palette)
 
-            VStack(spacing: 0) {
-                Text(copy.text("隐私空间", "Private Space"))
-                    .font(.headline.weight(.semibold))
-                    .foregroundColor(palette.primaryText)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 58)
-                    .accessibilityAddTraits(.isHeader)
+            Text(copy.text("隐私空间", "Private Space"))
+                .font(.headline.weight(.semibold))
+                .foregroundColor(palette.primaryText)
+                .frame(maxWidth: .infinity)
+                .frame(height: 58)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .accessibilityAddTraits(.isHeader)
 
-                VStack(spacing: 20) {
-                    AppBoxGlyph(icon: .shield)
-                        .frame(width: 48, height: 48)
-                        .foregroundColor(palette.accent)
-                        .frame(width: 86, height: 86)
-                        .appBoxGlassControl(palette, radius: 28, isInteractive: false)
+            VStack(spacing: 20) {
+                AppBoxGlyph(icon: .shield)
+                    .frame(width: 48, height: 48)
+                    .foregroundColor(palette.accent)
+                    .frame(width: 86, height: 86)
+                    .appBoxGlassControl(palette, radius: 28, isInteractive: false)
 
-                    VStack(spacing: 8) {
-                        Text(copy.text("请输入密码", "Enter PIN"))
-                            .font(.title2.weight(.semibold))
-                            .foregroundColor(palette.primaryText)
-                        Text(feedback.isEmpty ? copy.text("4 位数字密码", "4-digit numeric PIN") : feedback)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(feedback.isEmpty ? palette.secondaryText : palette.destructive)
-                    }
-
-                    pinEntry
-                        .offset(x: shakeOffset)
-                        .padding(.top, 8)
+                VStack(spacing: 8) {
+                    Text(copy.text("请输入密码", "Enter PIN"))
+                        .font(.title2.weight(.semibold))
+                        .foregroundColor(palette.primaryText)
+                    Text(feedback.isEmpty ? copy.text("4 位数字密码", "4-digit numeric PIN") : feedback)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(feedback.isEmpty ? palette.secondaryText : palette.destructive)
                 }
-                .padding(.top, 156)
 
-                Spacer()
+                pinEntry
+                    .offset(x: shakeOffset)
+                    .padding(.top, 8)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .padding(.horizontal, AppBoxLayout.pagePadding)
+            .padding(.vertical, 72)
         }
         .onAppear { isInputFocused = true }
     }
