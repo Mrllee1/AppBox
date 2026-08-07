@@ -15,6 +15,7 @@ final class AppBoxLockController: ObservableObject {
 
     private let pinService: AppBoxPINProviding
     private let forceLockedForDebug: Bool
+    private let bypassPINForDebug: Bool
     private var unlockTarget: AppBoxSpaceSession
 
     init(pinService: AppBoxPINProviding = AppBoxPINService()) {
@@ -22,16 +23,18 @@ final class AppBoxLockController: ObservableObject {
         unlockTarget = Self.persistedDefaultSpace()
 #if DEBUG
         forceLockedForDebug = ProcessInfo.processInfo.environment["APPBOX_DEBUG_FORCE_LOCKED"] == "1"
+        bypassPINForDebug = Self.debugBypassPINRequested()
 #else
         forceLockedForDebug = false
+        bypassPINForDebug = false
 #endif
-        let shouldLock = forceLockedForDebug || pinService.hasPIN
+        let shouldLock = !bypassPINForDebug && (forceLockedForDebug || pinService.hasPIN)
         isLocked = shouldLock
         currentSpace = shouldLock ? nil : Self.persistedDefaultSpace()
     }
 
     var protectionEnabled: Bool {
-        forceLockedForDebug || pinService.hasPIN
+        !bypassPINForDebug && (forceLockedForDebug || pinService.hasPIN)
     }
 
     private var defaultSpace: AppBoxSpaceSession {
@@ -41,6 +44,18 @@ final class AppBoxLockController: ObservableObject {
     private static func persistedDefaultSpace() -> AppBoxSpaceSession {
         UserDefaults.standard.bool(forKey: appCenterActivatedKey) ? .real : .focus
     }
+
+#if DEBUG
+    private static func debugBypassPINRequested() -> Bool {
+        let processInfo = ProcessInfo.processInfo
+        if processInfo.environment["APPBOX_DEBUG_BYPASS_PIN"] == "1" {
+            return true
+        }
+        return processInfo.arguments.contains { argument in
+            argument == "--appbox-debug-bypass-pin" || argument.contains("debug_bypass_pin=1")
+        }
+    }
+#endif
 
     func confirmExternalAppCenterActivation() {
         UserDefaults.standard.set(true, forKey: Self.appCenterActivatedKey)

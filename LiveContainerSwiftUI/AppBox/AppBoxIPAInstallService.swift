@@ -124,6 +124,7 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
         }
         finalInfo.relativeBundlePath = relativeBundlePath
         finalInfo.spoofSDKVersion = true
+        finalInfo.doUseLCBundleId = true
 
         let signingResult = await sign(finalInfo)
         if let message = signingResult.message, !signingResult.succeeded {

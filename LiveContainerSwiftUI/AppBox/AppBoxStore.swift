@@ -46,12 +46,15 @@ final class AppBoxStore: ObservableObject {
     }
 
     func refreshCatalog() async {
+        recordRuntimeState("catalog-refresh-start")
         do {
             catalogGroups = try await catalogService.fetchCatalogGroups()
+            recordRuntimeState("catalog-refresh-success|groups=\(catalogGroups.count)|items=\(catalogItems.count)")
         } catch {
             if catalogGroups.isEmpty {
                 catalogGroups = AppBoxCatalog.fallbackGroups
             }
+            recordRuntimeState("catalog-refresh-failed|\(error.localizedDescription)|fallbackItems=\(catalogItems.count)")
         }
     }
 
@@ -88,6 +91,7 @@ final class AppBoxStore: ObservableObject {
     ) {
         guard !isInstalled(item, hostApps: sharedModel.apps),
               installStates[item.id]?.isActive != true else { return }
+        recordRuntimeState("install-start|\(item.id)|launchAfter=\(launchAfterInstall)")
 
         let token = UUID()
         installTokens[item.id] = token
@@ -118,6 +122,7 @@ final class AppBoxStore: ObservableObject {
                 launchAfterInstallIDs.remove(item.id)
                 installStates[item.id] = .failed(message: "No download URL configured")
                 notice = .missingDownloadURL
+                recordRuntimeState("install-missing-url|\(item.id)")
                 return
             }
             installStates[item.id] = .downloading(progress: 0)
@@ -144,6 +149,7 @@ final class AppBoxStore: ObservableObject {
         token: UUID
     ) async {
         do {
+            recordRuntimeState("ipa-install-performing|\(item.id)")
 #if targetEnvironment(simulator)
             for step in 1...10 {
                 try await Task.sleep(nanoseconds: 300_000_000)
@@ -165,6 +171,7 @@ final class AppBoxStore: ObservableObject {
             if !sharedModel.apps.contains(where: { $0.bundleIdentifier == installedApp.bundleIdentifier }) {
                 sharedModel.apps.append(installedApp)
             }
+            recordRuntimeState("ipa-install-success|\(item.id)|bundle=\(installedApp.bundleIdentifier)")
 #endif
             completeInstall(item, token: token)
             if launchAfterInstallIDs.remove(item.id) != nil {
@@ -173,12 +180,14 @@ final class AppBoxStore: ObservableObject {
                 await launch(item, hostApps: sharedModel.apps)
             }
         } catch is CancellationError {
+            recordRuntimeState("install-cancelled|\(item.id)")
             guard installTokens[item.id] == token else { return }
             installStates[item.id] = nil
             installTokens[item.id] = nil
             launchAfterInstallIDs.remove(item.id)
             installTasks[item.id] = nil
         } catch {
+            recordRuntimeState("install-failed|\(item.id)|\(error.localizedDescription)")
             guard installTokens[item.id] == token else { return }
             installStates[item.id] = .failed(message: error.localizedDescription)
             installTokens[item.id] = nil
@@ -208,23 +217,29 @@ final class AppBoxStore: ObservableObject {
     }
 
     func handleExternalIntent(_ intent: AppBoxExternalIntent, sharedModel: SharedModel) async {
+        recordRuntimeState("external-start|\(intent.debugDescription)")
         await refreshCatalogIfNeeded()
 
         switch intent {
         case .install(let sourceURL):
+            recordRuntimeState("external-install|\(sourceURL?.absoluteString ?? "picker")")
             requestExternalInstall(url: sourceURL)
         case .openItem(let id, let launchAfterInstall):
             guard let item = item(id: id) else {
                 notice = .notInstalled
+                recordRuntimeState("external-open-missing|\(id)")
                 return
             }
+            recordRuntimeState("external-open-resolved|\(item.id)")
             await openOrInstall(item, sharedModel: sharedModel, launchAfterInstall: launchAfterInstall)
         case .native(let payload):
             guard let id = AppBoxNativeRouteResolver.itemID(for: payload, items: catalogItems),
                   let item = item(id: id) else {
                 notice = .notInstalled
+                recordRuntimeState("external-native-missing|appID=\(payload.appID ?? "nil")|items=\(catalogItems.count)")
                 return
             }
+            recordRuntimeState("external-native-resolved|\(item.id)|items=\(catalogItems.count)")
             await openOrInstall(item, sharedModel: sharedModel, launchAfterInstall: true)
         }
     }
@@ -235,8 +250,10 @@ final class AppBoxStore: ObservableObject {
         launchAfterInstall: Bool
     ) async {
         if isInstalled(item, hostApps: sharedModel.apps) {
+            recordRuntimeState("open-installed|\(item.id)")
             await launch(item, hostApps: sharedModel.apps)
         } else {
+            recordRuntimeState("open-needs-install|\(item.id)")
             startInstall(item, sharedModel: sharedModel, launchAfterInstall: launchAfterInstall)
         }
     }
@@ -245,11 +262,13 @@ final class AppBoxStore: ObservableObject {
         guard launchState == nil else { return }
         guard isInstalled(item, hostApps: hostApps) else {
             notice = .notInstalled
+            recordRuntimeState("launch-not-installed|\(item.id)")
             return
         }
 
         notice = nil
         launchState = AppBoxLaunchState(item: item, phase: .preparing)
+        recordRuntimeState("launch-start|\(item.id)")
 
         do {
             try await advanceLaunch(to: .verifying, after: 300_000_000)
@@ -261,20 +280,27 @@ final class AppBoxStore: ObservableObject {
 
             if case .web = item.source {
                 activeWebApp = item
+                recordRuntimeState("launch-web|\(item.id)")
                 return
             }
 
-            if try await bridge.launch(item, in: hostApps) { return }
+            if try await bridge.launch(item, in: hostApps) {
+                recordRuntimeState("launch-guest-dispatched|\(item.id)")
+                return
+            }
 #if targetEnvironment(simulator)
             notice = .launched(item.id)
 #else
             notice = .notInstalled
+            recordRuntimeState("launch-guest-missing|\(item.id)")
 #endif
         } catch is CancellationError {
             launchState = nil
+            recordRuntimeState("launch-cancelled|\(item.id)")
         } catch {
             launchState = nil
             notice = .launchFailed(error.localizedDescription)
+            recordRuntimeState("launch-failed|\(item.id)|\(error.localizedDescription)")
         }
     }
 
@@ -317,5 +343,25 @@ final class AppBoxStore: ObservableObject {
 
     func finishInstallRequest() {
         pendingInstallRequest = nil
+    }
+
+    private func recordRuntimeState(_ state: String) {
+        let defaults = UserDefaults.standard
+        defaults.set(state, forKey: "AppBox.lastRuntimeState")
+        defaults.set(Date(), forKey: "AppBox.lastRuntimeStateDate")
+        defaults.synchronize()
+    }
+}
+
+private extension AppBoxExternalIntent {
+    var debugDescription: String {
+        switch self {
+        case .install(let url):
+            return "install:\(url?.absoluteString ?? "picker")"
+        case .openItem(let id, let launchAfterInstall):
+            return "open:\(id):launch=\(launchAfterInstall)"
+        case .native(let payload):
+            return "native:appID=\(payload.appID ?? "nil"):platform=\(payload.platform ?? "nil")"
+        }
     }
 }

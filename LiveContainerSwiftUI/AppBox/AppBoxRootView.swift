@@ -67,14 +67,21 @@ struct AppBoxRootView: View {
         .onChange(of: scenePhase) { phase in
             if phase != .active {
                 dismissSensitiveContent()
+            } else {
+                consumePendingExternalURL()
             }
             lockController.handleScenePhase(phase)
         }
         .onOpenURL { url in
             handleExternalURL(url)
         }
+        .onChange(of: sharedModel.deepLink) { url in
+            consumeSharedDeepLink(url)
+        }
         .task {
             await store.refreshCatalogIfNeeded()
+            consumeSharedDeepLink(sharedModel.deepLink)
+            consumePendingExternalURL()
         }
         .onChange(of: store.notice) { notice in
             guard let notice else { return }
@@ -375,11 +382,13 @@ struct AppBoxRootView: View {
             if let intent = pendingExternalIntent {
                 pendingExternalIntent = nil
                 lockController.confirmExternalAppCenterActivation()
+                recordExternalState("unlock-real-resume")
                 Task { await store.handleExternalIntent(intent, sharedModel: sharedModel) }
             }
         case .decoy:
             pendingExternalIntent = nil
             dismissSensitiveContent()
+            recordExternalState("unlock-decoy-drop")
         case .failed:
             break
         }
@@ -387,18 +396,68 @@ struct AppBoxRootView: View {
 
     private func handleExternalURL(_ url: URL) {
         guard let intent = AppBoxDeepLinkParser.parse(url) else { return }
+        let defaults = UserDefaults.standard
+        defaults.set(url.absoluteString, forKey: "AppBox.lastHandledExternalURL")
+        defaults.set(Date(), forKey: "AppBox.lastHandledExternalURLDate")
+        defaults.set("\(intent.debugDescription)|protected=\(lockController.protectionEnabled)|space=\(lockController.currentSpace.debugDescription)", forKey: "AppBox.lastExternalIntentState")
+        defaults.synchronize()
 
         if lockController.protectionEnabled && lockController.currentSpace != .real {
             pendingExternalIntent = intent
             dismissSensitiveContent()
             lockController.requireUnlock()
+            recordExternalState("waiting-unlock|\(intent.debugDescription)")
             return
         }
 
         lockController.confirmExternalAppCenterActivation()
+        recordExternalState("dispatch|\(intent.debugDescription)")
 
         Task {
             await store.handleExternalIntent(intent, sharedModel: sharedModel)
+        }
+    }
+
+    private func consumeSharedDeepLink(_ url: URL?) {
+        guard let url else { return }
+        sharedModel.deepLink = nil
+        _ = AppBoxIncomingURLRelay.consumePendingURL()
+        handleExternalURL(url)
+    }
+
+    private func consumePendingExternalURL() {
+        guard let url = AppBoxIncomingURLRelay.consumePendingURL() else { return }
+        handleExternalURL(url)
+    }
+
+    private func recordExternalState(_ state: String) {
+        let defaults = UserDefaults.standard
+        defaults.set(state, forKey: "AppBox.lastExternalIntentState")
+        defaults.set(Date(), forKey: "AppBox.lastExternalIntentStateDate")
+        defaults.synchronize()
+    }
+}
+
+private extension Optional where Wrapped == AppBoxSpaceSession {
+    var debugDescription: String {
+        switch self {
+        case .real?: return "real"
+        case .focus?: return "focus"
+        case .decoy?: return "decoy"
+        case nil: return "nil"
+        }
+    }
+}
+
+private extension AppBoxExternalIntent {
+    var debugDescription: String {
+        switch self {
+        case .install(let url):
+            return "install:\(url?.absoluteString ?? "picker")"
+        case .openItem(let id, let launchAfterInstall):
+            return "open:\(id):launch=\(launchAfterInstall)"
+        case .native(let payload):
+            return "native:appID=\(payload.appID ?? "nil"):platform=\(payload.platform ?? "nil")"
         }
     }
 }

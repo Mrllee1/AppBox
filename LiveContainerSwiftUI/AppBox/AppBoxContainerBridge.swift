@@ -53,6 +53,7 @@ struct AppBoxContainerBridge: AppBoxContainerBridging {
 
     func launch(_ item: AppBoxCatalogItem, in apps: [LCAppModel]) async throws -> Bool {
         guard let app = hostApp(for: item, in: apps) else { return false }
+        AppBoxGuestLaunchPreparation.prepareUserDefaults()
         try await app.runApp()
         return true
     }
