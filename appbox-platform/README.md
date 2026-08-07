@@ -26,8 +26,9 @@ npm test
 ```
 
 The test suite starts the API with an isolated data file, verifies health,
-catalog, deeplink resolution, event ingestion, and admin CRUD behavior, then
-builds the API and admin console.
+catalog, deeplink resolution, event ingestion, admin CRUD behavior, remote
+entrypoint configuration, encrypted config preview, and R2 fallback behavior,
+then builds the API and admin console.
 
 ## Production
 
@@ -75,3 +76,19 @@ The image URL body is raw AES-256-CBC/PKCS7 ciphertext, matching the
 them with `APPBOX_ASSET_AES_KEY` and `APPBOX_ASSET_AES_IV`, then renders the
 decrypted image bytes. The API still returns only the image URL in catalog
 payloads; it does not inline image bytes.
+
+## Remote Entrypoint Config
+
+The admin console can save API entrypoint domains and publish a compact,
+AES-256-GCM encrypted `version.json` to GitHub/CDN. The iOS client reads that
+file from raw GitHub and jsDelivr mirrors, decrypts it locally, probes
+`/health`, and then requests the fixed API path `/api/v1/appbox/catalog`.
+
+GitHub and R2 credentials entered in the admin console are encrypted before
+they are written to `APPBOX_DATA_FILE`. Use `APPBOX_CREDENTIAL_AES_KEY` for a
+stable credential encryption key in production.
+
+R2 image upload is optional. When configured, app icon bytes are encrypted
+first, then uploaded to R2 as `.enc` objects, and catalog responses return the
+public encrypted object URL. When R2 is not configured, the API keeps serving
+the same encrypted bytes from the local asset endpoint.

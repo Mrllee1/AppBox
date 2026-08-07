@@ -1,9 +1,9 @@
 import Foundation
 
 enum AppBoxCatalog {
-    static let items: [AppBoxCatalogItem] = [
+    static let fallbackItems: [AppBoxCatalogItem] = [
         ipa(
-            "tianya-select",
+            "tianya_selected",
             "app.nqyqstm6mu.tianya",
             "天涯精选",
             "Tianya Select",
@@ -36,26 +36,69 @@ enum AppBoxCatalog {
         ipa("reader", "com.appbox.reader", "每日阅读", "Daily Reader", .lifestyle, .productivity, .news, .teal)
     ]
 
-    static func groups(series: AppBoxSeries, query: String, language: AppBoxLanguage) -> [AppBoxCatalogGroup] {
-        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let filtered = items.filter { item in
-            let matchesSeries = normalizedQuery.isEmpty ? item.series == series : true
-            let matchesQuery = normalizedQuery.isEmpty ||
-                item.chineseName.localizedCaseInsensitiveContains(normalizedQuery) ||
-                item.englishName.localizedCaseInsensitiveContains(normalizedQuery) ||
-                (item.bundleIdentifier?.localizedCaseInsensitiveContains(normalizedQuery) ?? false) ||
-                (item.source.webEntryURL?.host?.localizedCaseInsensitiveContains(normalizedQuery) ?? false)
-            return matchesSeries && matchesQuery
-        }
+    static var items: [AppBoxCatalogItem] { fallbackItems }
 
-        return AppBoxSection.allCases.compactMap { section in
-            let sectionItems = filtered.filter { $0.section == section }
-            return sectionItems.isEmpty ? nil : AppBoxCatalogGroup(section: section, items: sectionItems)
+    static var fallbackGroups: [AppBoxCatalogGroup] {
+        groups(from: fallbackItems)
+    }
+
+    static func groups(series: AppBoxSeries, query: String, language: AppBoxLanguage) -> [AppBoxCatalogGroup] {
+        filter(groups: fallbackGroups, series: series, query: query)
+    }
+
+    static func groups(from items: [AppBoxCatalogItem]) -> [AppBoxCatalogGroup] {
+        AppBoxSeries.allCases.flatMap { series in
+            AppBoxSection.allCases.compactMap { section in
+                let sectionItems = items.filter { $0.series == series && $0.section == section }
+                guard !sectionItems.isEmpty else { return nil }
+                let names = groupNames(for: section)
+                return AppBoxCatalogGroup(
+                    id: "\(series.rawValue).\(section.rawValue)",
+                    series: series,
+                    section: section,
+                    chineseName: names.chinese,
+                    englishName: names.english,
+                    items: sectionItems
+                )
+            }
+        }
+    }
+
+    static func filter(
+        groups: [AppBoxCatalogGroup],
+        series: AppBoxSeries,
+        query: String
+    ) -> [AppBoxCatalogGroup] {
+        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return groups.compactMap { group in
+            guard !normalizedQuery.isEmpty || group.series == series else { return nil }
+            let filteredItems = group.items.filter { item in
+                let matchesSeries = normalizedQuery.isEmpty ? item.series == series : true
+                let matchesQuery = normalizedQuery.isEmpty ||
+                    item.chineseName.localizedCaseInsensitiveContains(normalizedQuery) ||
+                    item.englishName.localizedCaseInsensitiveContains(normalizedQuery) ||
+                    (item.bundleIdentifier?.localizedCaseInsensitiveContains(normalizedQuery) ?? false) ||
+                    (item.source.webEntryURL?.host?.localizedCaseInsensitiveContains(normalizedQuery) ?? false)
+                return matchesSeries && matchesQuery
+            }
+
+            return filteredItems.isEmpty ? nil : group.replacingItems(filteredItems)
         }
     }
 
     static func item(id: String) -> AppBoxCatalogItem? {
-        items.first { $0.id == id }
+        fallbackItems.first { $0.id == id }
+    }
+
+    private static func groupNames(for section: AppBoxSection) -> (chinese: String, english: String) {
+        switch section {
+        case .productivity: return ("效率工具", "Productivity")
+        case .media: return ("影音娱乐", "Media")
+        case .community: return ("社交通讯", "Community")
+        case .games: return ("休闲游戏", "Games")
+        case .lifestyle: return ("生活服务", "Lifestyle")
+        }
     }
 
     private static func ipa(

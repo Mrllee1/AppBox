@@ -67,6 +67,7 @@ export class AdminService {
     this.assertAppTarget(input);
     const now = new Date().toISOString();
     const id = input.id || `app_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+    const iconAsset = await this.assets.createEncryptedAppIconAsset(id, input.iconUrl);
     const app: AppBoxApp = {
       id,
       name: input.name,
@@ -75,7 +76,8 @@ export class AdminService {
       categoryId: input.categoryId,
       groupId: input.groupId,
       iconUrl: input.iconUrl,
-      iconAssetId: await this.assets.createEncryptedAppIconAsset(id, input.iconUrl),
+      iconAssetId: iconAsset.assetId,
+      iconAssetUrl: iconAsset.assetUrl,
       bundleId: input.bundleId,
       downloadUrl: input.downloadUrl,
       entryUrl: input.entryUrl,
@@ -100,7 +102,7 @@ export class AdminService {
   async updateApp(id: string, rawBody: unknown) {
     const input = AppInputSchema.partial().parse(rawBody);
     this.assertAppTarget(input);
-    const nextIconAssetId = input.iconUrl
+    const nextIconAsset = input.iconUrl
       ? await this.assets.createEncryptedAppIconAsset(id, input.iconUrl)
       : undefined;
     let updated: AppBoxApp | undefined;
@@ -108,7 +110,12 @@ export class AdminService {
       const app = data.apps.find((candidate) => candidate.id === id);
       if (!app) return;
       Object.assign(app, input, {
-        ...(nextIconAssetId ? { iconAssetId: nextIconAssetId } : {}),
+        ...(nextIconAsset
+          ? {
+              iconAssetId: nextIconAsset.assetId,
+              ...(nextIconAsset.assetUrl ? { iconAssetUrl: nextIconAsset.assetUrl } : {})
+            }
+          : {}),
         updatedAt: new Date().toISOString()
       });
       updated = app;

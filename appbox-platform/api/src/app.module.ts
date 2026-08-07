@@ -16,6 +16,9 @@ import { DeeplinkController } from "./deeplink/deeplink.controller";
 import { DeeplinkService } from "./deeplink/deeplink.service";
 import { EventsController } from "./events/events.controller";
 import { EventsService } from "./events/events.service";
+import { CredentialCryptoService } from "./platform-config/credential-crypto.service";
+import { PlatformConfigService } from "./platform-config/platform-config.service";
+import { R2StorageService } from "./platform-config/r2-storage.service";
 
 @Module({
   controllers: [
@@ -33,11 +36,14 @@ import { EventsService } from "./events/events.service";
     AssetsService,
     AuthService,
     ClientCryptoService,
+    CredentialCryptoService,
     FileDataStore,
     AdminService,
     CatalogService,
     DeeplinkService,
-    EventsService
+    EventsService,
+    PlatformConfigService,
+    R2StorageService
   ]
 })
 export class AppModule {}

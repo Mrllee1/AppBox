@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { FileDataStore } from "../common/file-data-store";
 import { AppBoxApp } from "../common/types";
+import { R2StorageService } from "../platform-config/r2-storage.service";
 import { AssetCryptoService } from "./asset-crypto.service";
 
 const fallbackPng = Buffer.from(
@@ -16,7 +17,8 @@ export class AssetsService {
 
   constructor(
     @Inject(FileDataStore) private readonly store: FileDataStore,
-    @Inject(AssetCryptoService) private readonly crypto: AssetCryptoService
+    @Inject(AssetCryptoService) private readonly crypto: AssetCryptoService,
+    @Inject(R2StorageService) private readonly r2: R2StorageService
   ) {}
 
   async getAppIconFile(id: string) {
@@ -37,23 +39,38 @@ export class AssetsService {
   async createEncryptedAppIconAsset(appId: string, iconUrl: string) {
     const asset = await this.fetchAsset(iconUrl);
     const assetId = this.iconAssetId(appId);
+    const encrypted = this.crypto.encryptImageBytes(asset.data);
     await mkdir(this.assetDir, { recursive: true });
-    await writeFile(
-      this.assetPath(assetId),
-      this.crypto.encryptImageBytes(asset.data)
-    );
-    return assetId;
+    await writeFile(this.assetPath(assetId), encrypted);
+    const assetUrl = await this.uploadToR2IfConfigured(assetId, encrypted);
+    return { assetId, assetUrl };
   }
 
   async materializeMissingAppIconAssets() {
     const data = await this.store.read();
     let materialized = 0;
     for (const app of data.apps) {
-      if (app.iconAssetId && (await this.assetExists(app.iconAssetId))) continue;
-      const assetId = await this.createEncryptedAppIconAsset(app.id, app.iconUrl);
+      if (app.iconAssetId && (await this.assetExists(app.iconAssetId))) {
+        if (!app.iconAssetUrl) {
+          const existingAsset = await readFile(this.assetPath(app.iconAssetId));
+          const assetUrl = await this.uploadToR2IfConfigured(app.iconAssetId, existingAsset);
+          if (assetUrl) {
+            await this.store.update((storeData) => {
+              const target = storeData.apps.find((candidate) => candidate.id === app.id);
+              if (target) target.iconAssetUrl = assetUrl;
+            });
+            materialized += 1;
+          }
+        }
+        continue;
+      }
+      const asset = await this.createEncryptedAppIconAsset(app.id, app.iconUrl);
       await this.store.update((storeData) => {
         const target = storeData.apps.find((candidate) => candidate.id === app.id);
-        if (target) target.iconAssetId = assetId;
+        if (target) {
+          target.iconAssetId = asset.assetId;
+          if (asset.assetUrl) target.iconAssetUrl = asset.assetUrl;
+        }
       });
       materialized += 1;
     }
@@ -65,12 +82,15 @@ export class AssetsService {
       return app.iconAssetId;
     }
 
-    const assetId = await this.createEncryptedAppIconAsset(app.id, app.iconUrl);
+    const asset = await this.createEncryptedAppIconAsset(app.id, app.iconUrl);
     await this.store.update((data) => {
       const target = data.apps.find((candidate) => candidate.id === app.id);
-      if (target) target.iconAssetId = assetId;
+      if (target) {
+        target.iconAssetId = asset.assetId;
+        if (asset.assetUrl) target.iconAssetUrl = asset.assetUrl;
+      }
     });
-    return assetId;
+    return asset.assetId;
   }
 
   private async assetExists(assetId: string) {
@@ -88,6 +108,14 @@ export class AssetsService {
 
   private assetPath(assetId: string) {
     return resolve(this.assetDir, `${assetId}.enc`);
+  }
+
+  private async uploadToR2IfConfigured(assetId: string, data: Buffer) {
+    try {
+      return await this.r2.uploadEncryptedObject(`appbox/assets/${assetId}.enc`, data);
+    } catch {
+      return undefined;
+    }
   }
 
   private async fetchAsset(url: string) {

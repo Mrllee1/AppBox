@@ -73,6 +73,9 @@ struct AppBoxRootView: View {
         .onOpenURL { url in
             handleExternalURL(url)
         }
+        .task {
+            await store.refreshCatalogIfNeeded()
+        }
         .onChange(of: store.notice) { notice in
             guard let notice else { return }
             Task {
@@ -145,7 +148,7 @@ struct AppBoxRootView: View {
 
                         seriesTabs
 
-                        let groups = AppBoxCatalog.groups(series: selectedSeries, query: query, language: language)
+                        let groups = store.catalogGroups(series: selectedSeries, query: query, language: language)
                         if groups.isEmpty {
                             VStack(spacing: 10) {
                                 AppBoxGlyph(icon: .search)
@@ -287,7 +290,7 @@ struct AppBoxRootView: View {
     private func catalogSection(_ group: AppBoxCatalogGroup) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             AppBoxSectionHeading(
-                title: copy.section(group.section),
+                title: group.title(for: language, fallback: copy),
                 palette: palette
             )
             LazyVGrid(columns: gridColumns, spacing: 18) {
@@ -343,12 +346,12 @@ struct AppBoxRootView: View {
     private func noticeText(_ notice: AppBoxNotice) -> String {
         switch notice {
         case .installed(let id):
-            let name = AppBoxCatalog.item(id: id)?.name(for: language) ?? ""
+            let name = store.item(id: id)?.name(for: language) ?? ""
             return copy.text("\(name) 已安装", "\(name) installed")
         case .installFailed(let message):
             return copy.text("安装失败：\(message)", "Installation failed: \(message)")
         case .launched(let id):
-            let name = AppBoxCatalog.item(id: id)?.name(for: language) ?? ""
+            let name = store.item(id: id)?.name(for: language) ?? ""
             return copy.text("正在启动 \(name)", "Opening \(name)")
         case .missingDownloadURL:
             return copy.text("当前应用尚未配置下载地址", "No download URL configured")

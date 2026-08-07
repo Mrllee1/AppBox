@@ -26,6 +26,7 @@ export interface AppBoxApp {
   groupId: string;
   iconUrl: string;
   iconAssetId?: string;
+  iconAssetUrl?: string;
   bundleId?: string;
   downloadUrl?: string;
   entryUrl?: string;
@@ -73,8 +74,42 @@ export interface AppBoxEventLog {
   createdAt: string;
 }
 
+export interface AppBoxApiEntrypoint {
+  baseUrl: string;
+  enabled: boolean;
+  weight: number;
+}
+
+export interface AppBoxGitHubConfig {
+  owner: string;
+  repo: string;
+  branch: string;
+  filePath: string;
+  tokenEncrypted?: string;
+  tokenUpdatedAt?: string;
+}
+
+export interface AppBoxR2Config {
+  accountId: string;
+  bucket: string;
+  endpoint?: string;
+  publicBaseUrl?: string;
+  accessKeyIdEncrypted?: string;
+  secretAccessKeyEncrypted?: string;
+  apiTokenEncrypted?: string;
+  updatedAt?: string;
+}
+
+export interface AppBoxPlatformConfig {
+  apiEntrypoints: AppBoxApiEntrypoint[];
+  github: AppBoxGitHubConfig;
+  r2?: AppBoxR2Config;
+  updatedAt: string;
+}
+
 export interface AppBoxStoreData {
   version: number;
+  platformConfig?: AppBoxPlatformConfig;
   categories: AppBoxCategory[];
   groups: AppBoxGroup[];
   apps: AppBoxApp[];
@@ -89,6 +124,7 @@ export interface CatalogAppDTO {
   t: AppBoxAppType;
   icon: string;
   url?: string;
+  b?: string;
 }
 
 export interface CatalogGroupDTO {

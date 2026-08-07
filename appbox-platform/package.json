@@ -18,6 +18,7 @@
     "@ant-design/charts": "^2.6.5",
     "@ant-design/icons": "^6.0.0",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@aws-sdk/client-s3": "^3.1105.0",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-express": "^11.1.6",

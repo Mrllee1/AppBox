@@ -17,6 +17,41 @@ export interface AdminApp {
   recommended: boolean;
 }
 
+export interface PlatformApiEntrypoint {
+  baseUrl: string;
+  enabled: boolean;
+  weight: number;
+}
+
+export interface PlatformConfig {
+  apiEntrypoints: PlatformApiEntrypoint[];
+  github: {
+    owner: string;
+    repo: string;
+    branch: string;
+    filePath: string;
+    token?: string;
+    tokenConfigured?: boolean;
+    tokenMasked?: string;
+  };
+  r2: {
+    accountId: string;
+    bucket: string;
+    endpoint?: string;
+    publicBaseUrl?: string;
+    accessKeyId?: string;
+    accessKeyIdConfigured?: boolean;
+    accessKeyIdMasked?: string;
+    secretAccessKey?: string;
+    secretAccessKeyConfigured?: boolean;
+    secretAccessKeyMasked?: string;
+    apiToken?: string;
+    apiTokenConfigured?: boolean;
+    apiTokenMasked?: string;
+  };
+  updatedAt: string;
+}
+
 export interface AdminSummary {
   apps: number;
   enabled_apps: number;
@@ -81,6 +116,28 @@ export const api = {
   mappings: () => request<{ success: true; data: unknown[] }>("/admin/mappings"),
   categories: () => request<{ success: true; data: Array<{ id: string; name: string }> }>("/admin/categories"),
   groups: () => request<{ success: true; data: Array<{ id: string; name: string; categoryId: string }> }>("/admin/groups"),
+  platformConfig: () => request<{ success: true; data: PlatformConfig; cdnUrls: string[] }>("/admin/platform-config"),
+  updatePlatformConfig: (body: PlatformConfig) =>
+    request<{ success: true; data: PlatformConfig; cdnUrls: string[] }>("/admin/platform-config", {
+      method: "PUT",
+      body: JSON.stringify(body)
+    }),
+  previewPlatformConfig: () =>
+    request<{ success: true; data: { plain: unknown; encrypted: string; cdnUrls: string[] } }>(
+      "/admin/platform-config/preview"
+    ),
+  testPlatformEntrypoints: () =>
+    request<{ success: true; data: Array<Record<string, unknown>> }>("/admin/platform-config/test-entrypoints", {
+      method: "POST"
+    }),
+  testR2: () =>
+    request<Record<string, unknown>>("/admin/platform-config/test-r2", {
+      method: "POST"
+    }),
+  publishPlatformConfig: () =>
+    request<Record<string, unknown>>("/admin/platform-config/publish", {
+      method: "POST"
+    }),
   createApp: (body: Partial<AdminApp>) =>
     request<{ success: true; data: AdminApp }>("/admin/apps", {
       method: "POST",

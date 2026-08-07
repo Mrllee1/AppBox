@@ -4,6 +4,7 @@ import Foundation
 final class AppBoxStore: ObservableObject {
     @Published private(set) var localInstalledIDs: Set<String>
     @Published private(set) var installStates: [String: AppBoxInstallState] = [:]
+    @Published private(set) var catalogGroups: [AppBoxCatalogGroup]
     @Published var pendingInstallRequest: AppBoxInstallRequest?
     @Published var activeWebApp: AppBoxCatalogItem?
     @Published private(set) var launchState: AppBoxLaunchState?
@@ -12,6 +13,8 @@ final class AppBoxStore: ObservableObject {
     private let bridge: any AppBoxContainerBridging
     private let localInstallStore: any AppBoxLocalInstallPersisting
     private let webDataManager: any AppBoxWebDataManaging
+    private let catalogService: any AppBoxCatalogFetching
+    private var didAttemptCatalogRefresh = false
     private var installTasks: [String: Task<Void, Never>] = [:]
     private var installTokens: [String: UUID] = [:]
     private var launchAfterInstallIDs: Set<String> = []
@@ -20,13 +23,44 @@ final class AppBoxStore: ObservableObject {
         defaults: UserDefaults = .standard,
         bridge: (any AppBoxContainerBridging)? = nil,
         localInstallStore: (any AppBoxLocalInstallPersisting)? = nil,
-        webDataManager: (any AppBoxWebDataManaging)? = nil
+        webDataManager: (any AppBoxWebDataManaging)? = nil,
+        catalogService: (any AppBoxCatalogFetching)? = nil
     ) {
         self.bridge = bridge ?? AppBoxContainerBridge()
         let resolvedLocalStore = localInstallStore ?? AppBoxLocalInstallStore(defaults: defaults)
         self.localInstallStore = resolvedLocalStore
         self.webDataManager = webDataManager ?? AppBoxWebDataStore.shared
+        self.catalogService = catalogService ?? AppBoxRemoteCatalogService()
+        self.catalogGroups = AppBoxCatalog.fallbackGroups
         localInstalledIDs = resolvedLocalStore.installedIDs
+    }
+
+    private var catalogItems: [AppBoxCatalogItem] {
+        catalogGroups.flatMap(\.items)
+    }
+
+    func refreshCatalogIfNeeded() async {
+        guard !didAttemptCatalogRefresh else { return }
+        didAttemptCatalogRefresh = true
+        await refreshCatalog()
+    }
+
+    func refreshCatalog() async {
+        do {
+            catalogGroups = try await catalogService.fetchCatalogGroups()
+        } catch {
+            if catalogGroups.isEmpty {
+                catalogGroups = AppBoxCatalog.fallbackGroups
+            }
+        }
+    }
+
+    func catalogGroups(series: AppBoxSeries, query: String, language: AppBoxLanguage) -> [AppBoxCatalogGroup] {
+        AppBoxCatalog.filter(groups: catalogGroups, series: series, query: query)
+    }
+
+    func item(id: String) -> AppBoxCatalogItem? {
+        catalogItems.first { $0.id == id } ?? AppBoxCatalog.item(id: id)
     }
 
     func isInstalled(_ item: AppBoxCatalogItem, hostApps: [LCAppModel]) -> Bool {
@@ -44,7 +78,7 @@ final class AppBoxStore: ObservableObject {
     }
 
     func installedItems(hostApps: [LCAppModel]) -> [AppBoxCatalogItem] {
-        AppBoxCatalog.items.filter { isInstalled($0, hostApps: hostApps) }
+        catalogItems.filter { isInstalled($0, hostApps: hostApps) }
     }
 
     func startInstall(
@@ -174,18 +208,20 @@ final class AppBoxStore: ObservableObject {
     }
 
     func handleExternalIntent(_ intent: AppBoxExternalIntent, sharedModel: SharedModel) async {
+        await refreshCatalogIfNeeded()
+
         switch intent {
         case .install(let sourceURL):
             requestExternalInstall(url: sourceURL)
         case .openItem(let id, let launchAfterInstall):
-            guard let item = AppBoxCatalog.item(id: id) else {
+            guard let item = item(id: id) else {
                 notice = .notInstalled
                 return
             }
             await openOrInstall(item, sharedModel: sharedModel, launchAfterInstall: launchAfterInstall)
         case .native(let payload):
-            guard let id = AppBoxNativeRouteResolver.itemID(for: payload),
-                  let item = AppBoxCatalog.item(id: id) else {
+            guard let id = AppBoxNativeRouteResolver.itemID(for: payload, items: catalogItems),
+                  let item = item(id: id) else {
                 notice = .notInstalled
                 return
             }

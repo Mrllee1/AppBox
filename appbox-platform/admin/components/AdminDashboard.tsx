@@ -6,8 +6,10 @@ import {
   App,
   Button,
   ConfigProvider,
+  Divider,
   Form,
   Input,
+  InputNumber,
   Modal,
   Spin,
   Select,
@@ -21,13 +23,15 @@ import {
   ApiOutlined,
   AppstoreOutlined,
   BarChartOutlined,
+  CloudUploadOutlined,
   LinkOutlined,
   LogoutOutlined,
   PlusOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  SettingOutlined
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { AdminApp, AdminSummary, AdminUser, api } from "../lib/api";
+import { AdminApp, AdminSummary, AdminUser, PlatformConfig, api } from "../lib/api";
 
 const { Text } = Typography;
 
@@ -63,12 +67,19 @@ function DashboardContent() {
   const [mappings, setMappings] = useState<unknown[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [groups, setGroups] = useState<Array<{ id: string; name: string; categoryId: string }>>([]);
+  const [platformConfig, setPlatformConfig] = useState<PlatformConfig | null>(null);
+  const [configCdnUrls, setConfigCdnUrls] = useState<string[]>([]);
+  const [configPreview, setConfigPreview] = useState<Record<string, unknown> | null>(null);
+  const [entrypointResults, setEntrypointResults] = useState<Array<Record<string, unknown>>>([]);
+  const [r2Result, setR2Result] = useState<Record<string, unknown> | null>(null);
+  const [platformBusy, setPlatformBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [deeplinkResult, setDeeplinkResult] = useState<Record<string, unknown> | null>(null);
   const [form] = Form.useForm();
   const [deeplinkForm] = Form.useForm();
   const [loginForm] = Form.useForm();
+  const [platformForm] = Form.useForm<PlatformConfig>();
 
   async function bootstrapAuth() {
     const token = window.localStorage.getItem("appbox_admin_token") || "";
@@ -114,6 +125,11 @@ function DashboardContent() {
     setMappings([]);
     setCategories([]);
     setGroups([]);
+    setPlatformConfig(null);
+    setConfigCdnUrls([]);
+    setConfigPreview(null);
+    setEntrypointResults([]);
+    setR2Result(null);
     loginForm.resetFields();
   }
 
@@ -121,18 +137,22 @@ function DashboardContent() {
     if (!user && !window.localStorage.getItem("appbox_admin_token")) return;
     setLoading(true);
     try {
-      const [summaryRes, appsRes, mappingsRes, categoriesRes, groupsRes] = await Promise.all([
+      const [summaryRes, appsRes, mappingsRes, categoriesRes, groupsRes, platformRes] = await Promise.all([
         api.summary(),
         api.apps(),
         api.mappings(),
         api.categories(),
-        api.groups()
+        api.groups(),
+        api.platformConfig()
       ]);
       setSummary(summaryRes);
       setApps(appsRes.data);
       setMappings(mappingsRes.data);
       setCategories(categoriesRes.data);
       setGroups(groupsRes.data);
+      setPlatformConfig(platformRes.data);
+      setConfigCdnUrls(platformRes.cdnUrls);
+      platformForm.setFieldsValue(platformFormValues(platformRes.data));
     } catch (error) {
       if (error instanceof Error && error.message.startsWith("401 ")) {
         logout();
@@ -283,6 +303,74 @@ function DashboardContent() {
     }
   }
 
+  async function savePlatformConfig(values: PlatformConfig) {
+    setPlatformBusy(true);
+    try {
+      const result = await api.updatePlatformConfig(values);
+      setPlatformConfig(result.data);
+      setConfigCdnUrls(result.cdnUrls);
+      platformForm.setFieldsValue(platformFormValues(result.data));
+      message.success("远程配置已保存");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "保存失败");
+    } finally {
+      setPlatformBusy(false);
+    }
+  }
+
+  async function previewPlatformConfig() {
+    setPlatformBusy(true);
+    try {
+      const result = await api.previewPlatformConfig();
+      setConfigPreview(result.data as unknown as Record<string, unknown>);
+      message.success("配置预览已生成");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "预览失败");
+    } finally {
+      setPlatformBusy(false);
+    }
+  }
+
+  async function testEntrypoints() {
+    setPlatformBusy(true);
+    try {
+      const result = await api.testPlatformEntrypoints();
+      setEntrypointResults(result.data);
+      message.success("入口探测完成");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "探测失败");
+    } finally {
+      setPlatformBusy(false);
+    }
+  }
+
+  async function testR2() {
+    setPlatformBusy(true);
+    try {
+      const result = await api.testR2();
+      setR2Result(result);
+      message.success("R2 测试完成");
+    } catch (error) {
+      setR2Result(null);
+      message.error(error instanceof Error ? error.message : "R2 测试失败");
+    } finally {
+      setPlatformBusy(false);
+    }
+  }
+
+  async function publishPlatformConfig() {
+    setPlatformBusy(true);
+    try {
+      const result = await api.publishPlatformConfig();
+      setConfigPreview(result as Record<string, unknown>);
+      message.success("远程配置已发布");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "发布失败");
+    } finally {
+      setPlatformBusy(false);
+    }
+  }
+
   return (
     <main className="shell">
       <section className="hero">
@@ -375,6 +463,125 @@ function DashboardContent() {
         </div>
       </section>
 
+      <section className="panel glass config-panel">
+        <div className="panel-title">
+          <h2>远程配置</h2>
+          <Space>
+            <Tag icon={<SettingOutlined />}>CDN</Tag>
+            {platformConfig?.github?.tokenConfigured ? <Tag color="green">GitHub 已配置</Tag> : <Tag>GitHub 未配置</Tag>}
+            {platformConfig?.r2?.accessKeyIdConfigured ? <Tag color="green">R2 已配置</Tag> : <Tag>R2 未配置</Tag>}
+          </Space>
+        </div>
+        <Form
+          form={platformForm}
+          layout="vertical"
+          onFinish={savePlatformConfig}
+          disabled={platformBusy}
+          initialValues={{
+            apiEntrypoints: [{ baseUrl: "https://666999.lol", enabled: true, weight: 100 }],
+            github: { owner: "yasuo185239-beep", repo: "appbox-config", branch: "main", filePath: "version.json" },
+            r2: {}
+          }}
+        >
+          <div className="config-grid">
+            <div>
+              <Divider orientation="left">入口域名</Divider>
+              <Form.List name="apiEntrypoints">
+                {(fields, { add, remove }) => (
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    {fields.map((field) => (
+                      <Space key={field.key} align="baseline" className="endpoint-row">
+                        <Form.Item
+                          {...field}
+                          name={[field.name, "baseUrl"]}
+                          rules={[{ required: true, type: "url", message: "请输入 HTTPS 入口域名" }]}
+                        >
+                          <Input placeholder="https://666999.lol" />
+                        </Form.Item>
+                        <Form.Item {...field} name={[field.name, "weight"]}>
+                          <InputNumber min={0} style={{ width: 92 }} />
+                        </Form.Item>
+                        <Form.Item {...field} name={[field.name, "enabled"]} valuePropName="checked">
+                          <Switch />
+                        </Form.Item>
+                        <Button onClick={() => remove(field.name)}>移除</Button>
+                      </Space>
+                    ))}
+                    <Button onClick={() => add({ baseUrl: "", enabled: true, weight: 100 })}>添加入口域名</Button>
+                  </Space>
+                )}
+              </Form.List>
+
+              <Divider orientation="left">GitHub 配置仓库</Divider>
+              <div className="form-grid-2">
+                <Form.Item name={["github", "owner"]} label="Owner" rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name={["github", "repo"]} label="Repo" rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name={["github", "branch"]} label="Branch" rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name={["github", "filePath"]} label="文件路径" rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+              </div>
+              <Form.Item name={["github", "token"]} label={`GitHub Token ${platformConfig?.github?.tokenMasked || ""}`}>
+                <Input.Password placeholder="留空则保留当前 token" />
+              </Form.Item>
+            </div>
+
+            <div>
+              <Divider orientation="left">Cloudflare R2</Divider>
+              <div className="form-grid-2">
+                <Form.Item name={["r2", "accountId"]} label="Account ID">
+                  <Input />
+                </Form.Item>
+                <Form.Item name={["r2", "bucket"]} label="Bucket">
+                  <Input />
+                </Form.Item>
+                <Form.Item name={["r2", "endpoint"]} label="Endpoint">
+                  <Input placeholder="https://<account>.r2.cloudflarestorage.com" />
+                </Form.Item>
+                <Form.Item name={["r2", "publicBaseUrl"]} label="公开 CDN 地址">
+                  <Input placeholder="https://cdn.example.com" />
+                </Form.Item>
+              </div>
+              <Form.Item name={["r2", "accessKeyId"]} label={`Access Key ${platformConfig?.r2?.accessKeyIdMasked || ""}`}>
+                <Input.Password placeholder="留空则保留当前 key" />
+              </Form.Item>
+              <Form.Item
+                name={["r2", "secretAccessKey"]}
+                label={`Secret Key ${platformConfig?.r2?.secretAccessKeyMasked || ""}`}
+              >
+                <Input.Password placeholder="留空则保留当前 secret" />
+              </Form.Item>
+              <Form.Item name={["r2", "apiToken"]} label={`CF API Token ${platformConfig?.r2?.apiTokenMasked || ""}`}>
+                <Input.Password placeholder="可选，用于后续 CDN purge" />
+              </Form.Item>
+            </div>
+          </div>
+
+          <Space wrap>
+            <Button type="primary" htmlType="submit" loading={platformBusy}>
+              保存配置
+            </Button>
+            <Button onClick={testEntrypoints} icon={<ApiOutlined />}>测试入口</Button>
+            <Button onClick={testR2} icon={<CloudUploadOutlined />}>测试 R2</Button>
+            <Button onClick={previewPlatformConfig}>预览密文</Button>
+            <Button danger onClick={publishPlatformConfig}>发布到 GitHub/CDN</Button>
+          </Space>
+        </Form>
+
+        <div className="config-result-grid">
+          <ResultBlock title="CDN 配置源" value={configCdnUrls} />
+          <ResultBlock title="入口探测" value={entrypointResults} />
+          <ResultBlock title="R2 测试" value={r2Result} />
+          <ResultBlock title="发布/预览" value={configPreview} />
+        </div>
+      </section>
+
       <Modal
         title="新增 App"
         open={modalOpen}
@@ -455,4 +662,35 @@ function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; 
       <strong>{value}</strong>
     </div>
   );
+}
+
+function ResultBlock({ title, value }: { title: string; value: unknown }) {
+  return (
+    <div className="config-result">
+      <Text type="secondary">{title}</Text>
+      <pre>{value ? JSON.stringify(value, null, 2) : "暂无数据"}</pre>
+    </div>
+  );
+}
+
+function platformFormValues(config: PlatformConfig): PlatformConfig {
+  return {
+    ...config,
+    github: {
+      owner: config.github.owner,
+      repo: config.github.repo,
+      branch: config.github.branch,
+      filePath: config.github.filePath,
+      token: ""
+    },
+    r2: {
+      accountId: config.r2?.accountId || "",
+      bucket: config.r2?.bucket || "",
+      endpoint: config.r2?.endpoint || "",
+      publicBaseUrl: config.r2?.publicBaseUrl || "",
+      accessKeyId: "",
+      secretAccessKey: "",
+      apiToken: ""
+    }
+  };
 }

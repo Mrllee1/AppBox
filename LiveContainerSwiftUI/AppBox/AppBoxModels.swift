@@ -212,11 +212,46 @@ struct AppBoxCatalogItem: Identifiable, Hashable {
     }
 }
 
-struct AppBoxCatalogGroup: Identifiable {
+struct AppBoxCatalogGroup: Identifiable, Hashable {
+    let id: String
+    let series: AppBoxSeries
     let section: AppBoxSection
+    let chineseName: String
+    let englishName: String
     let items: [AppBoxCatalogItem]
 
-    var id: AppBoxSection { section }
+    init(
+        id: String,
+        series: AppBoxSeries,
+        section: AppBoxSection,
+        chineseName: String,
+        englishName: String,
+        items: [AppBoxCatalogItem]
+    ) {
+        self.id = id
+        self.series = series
+        self.section = section
+        self.chineseName = chineseName
+        self.englishName = englishName
+        self.items = items
+    }
+
+    func title(for language: AppBoxLanguage, fallback copy: AppBoxCopy) -> String {
+        let preferredName = language == .simplifiedChinese ? chineseName : englishName
+        if !preferredName.isEmpty { return preferredName }
+        return copy.section(section)
+    }
+
+    func replacingItems(_ items: [AppBoxCatalogItem]) -> AppBoxCatalogGroup {
+        AppBoxCatalogGroup(
+            id: id,
+            series: series,
+            section: section,
+            chineseName: chineseName,
+            englishName: englishName,
+            items: items
+        )
+    }
 }
 
 struct AppBoxInstallRequest: Identifiable, Equatable {

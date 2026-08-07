@@ -4,6 +4,22 @@ const now = new Date("2026-08-07T00:00:00.000Z").toISOString();
 
 export const seedData: AppBoxStoreData = {
   version: 1,
+  platformConfig: {
+    apiEntrypoints: [
+      {
+        baseUrl: "https://666999.lol",
+        enabled: true,
+        weight: 100
+      }
+    ],
+    github: {
+      owner: "yasuo185239-beep",
+      repo: "appbox-config",
+      branch: "main",
+      filePath: "version.json"
+    },
+    updatedAt: now
+  },
   categories: [
     {
       id: "tools",
@@ -47,7 +63,7 @@ export const seedData: AppBoxStoreData = {
       categoryId: "tools",
       groupId: "wallet",
       iconUrl: "https://pub-d768a0879cb24ceaa4a0cfe8b73ee372.r2.dev/icons/tianya-selected.png",
-      bundleId: "com.tianya.selected",
+      bundleId: "app.nqyqstm6mu.tianya",
       downloadUrl: "https://pub-d768a0879cb24ceaa4a0cfe8b73ee372.r2.dev/ty1.ipa",
       version: "1.0.0",
       sort: 10,

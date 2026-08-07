@@ -54,8 +54,9 @@ export class CatalogService {
       id: app.id,
       n: app.name,
       t: app.type,
-      icon: `${this.publicBaseUrl()}/api/v1/appbox/assets/apps/${encodeURIComponent(app.id)}/icon`,
-      url: app.type === "ipa" ? app.downloadUrl : app.entryUrl
+      icon: app.iconAssetUrl || `${this.publicBaseUrl()}/api/v1/appbox/assets/apps/${encodeURIComponent(app.id)}/icon`,
+      url: app.type === "ipa" ? app.downloadUrl : app.entryUrl,
+      ...(app.bundleId ? { b: app.bundleId } : {})
     };
   }
 

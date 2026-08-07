@@ -107,6 +107,19 @@ function decryptJson(envelope) {
   return JSON.parse(decryptEnvelope(envelope).toString("utf8"));
 }
 
+function decryptPackedRemoteConfig(encrypted) {
+  const packed = Buffer.from(encrypted, "base64");
+  const iv = packed.subarray(0, 12);
+  const tag = packed.subarray(packed.length - 16);
+  const cipherText = packed.subarray(12, packed.length - 16);
+  const decipher = createDecipheriv("aes-256-gcm", clientKey, iv);
+  decipher.setAuthTag(tag);
+  return JSON.parse(Buffer.concat([
+    decipher.update(cipherText),
+    decipher.final()
+  ]).toString("utf8"));
+}
+
 function decryptAssetFile(file) {
   const decipher = createDecipheriv("aes-256-cbc", assetKey, assetIV);
   return Buffer.concat([decipher.update(file), decipher.final()]);
@@ -186,7 +199,8 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   );
   const tianyaApp = flatApps.find((app) => app.id === "tianya_selected");
   assert.ok(tianyaApp);
-  assert.deepEqual(Object.keys(tianyaApp).sort(), ["icon", "id", "n", "t", "url"]);
+  assert.deepEqual(Object.keys(tianyaApp).sort(), ["b", "icon", "id", "n", "t", "url"]);
+  assert.equal(tianyaApp.b, "app.nqyqstm6mu.tianya");
   assert.match(tianyaApp.icon, /\/api\/v1\/appbox\/assets\/apps\/tianya_selected\/icon$/);
   assert.equal(tianyaApp.icon.includes("r2.dev"), false);
 
@@ -218,7 +232,7 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   assert.equal(deeplink.ok, 1);
   assert.equal(deeplink.act, "install_or_launch");
   assert.equal(deeplink.app.id, "tianya_selected");
-  assert.deepEqual(Object.keys(deeplink.app).sort(), ["icon", "id", "n", "t", "url"]);
+  assert.deepEqual(Object.keys(deeplink.app).sort(), ["b", "icon", "id", "n", "t", "url"]);
   assert.match(deeplink.app.icon, /\/api\/v1\/appbox\/assets\/apps\/tianya_selected\/icon$/);
 
   const events = decryptJson(await request(baseUrl, "/api/v1/events/batch", {
@@ -290,6 +304,85 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
     headers: authHeaders
   });
   assert.equal(adminEvent.accepted, 1);
+
+  const platformConfig = await request(baseUrl, "/admin/platform-config", {
+    headers: authHeaders
+  });
+  assert.equal(platformConfig.success, true);
+  assert.equal(platformConfig.data.github.owner, "yasuo185239-beep");
+  assert.equal(platformConfig.data.github.repo, "appbox-config");
+  assert.equal(platformConfig.data.github.tokenConfigured, false);
+  assert.ok(platformConfig.cdnUrls.some((url) => url.includes("cdn.jsdelivr.net")));
+
+  const savedPlatformConfig = await request(baseUrl, "/admin/platform-config", {
+    method: "PUT",
+    headers: authHeaders,
+    body: JSON.stringify({
+      apiEntrypoints: [
+        {
+          baseUrl,
+          enabled: true,
+          weight: 100
+        },
+        {
+          baseUrl: `${baseUrl}/`,
+          enabled: true,
+          weight: 50
+        }
+      ],
+      github: {
+        owner: "yasuo185239-beep",
+        repo: "appbox-config",
+        branch: "main",
+        filePath: "version.json"
+      },
+      r2: {
+        accountId: "",
+        bucket: "",
+        endpoint: "",
+        publicBaseUrl: "",
+        accessKeyId: "",
+        secretAccessKey: "",
+        apiToken: ""
+      }
+    })
+  });
+  assert.equal(savedPlatformConfig.success, true);
+  assert.equal(savedPlatformConfig.data.apiEntrypoints.length, 1);
+  assert.equal(savedPlatformConfig.data.apiEntrypoints[0].baseUrl, baseUrl);
+
+  const preview = await request(baseUrl, "/admin/platform-config/preview", {
+    headers: authHeaders
+  });
+  assert.equal(preview.success, true);
+  assert.deepEqual(Object.keys(preview.data.plain).sort(), ["api", "updatedAt", "v"]);
+  assert.deepEqual(preview.data.plain.api, [baseUrl]);
+  assert.deepEqual(decryptPackedRemoteConfig(preview.data.encrypted).api, [baseUrl]);
+
+  const entrypointTest = await request(baseUrl, "/admin/platform-config/test-entrypoints", {
+    method: "POST",
+    headers: authHeaders
+  });
+  assert.equal(entrypointTest.success, true);
+  assert.equal(entrypointTest.data.length, 1);
+  assert.equal(entrypointTest.data[0].ok, true);
+  assert.equal(entrypointTest.data[0].status, 200);
+
+  const r2Test = await request(baseUrl, "/admin/platform-config/test-r2", {
+    method: "POST",
+    headers: authHeaders
+  });
+  assert.equal(r2Test.success, false);
+  assert.equal(r2Test.message, "R2 is not configured");
+
+  await assert.rejects(
+    () =>
+      request(baseUrl, "/admin/platform-config/publish", {
+        method: "POST",
+        headers: authHeaders
+      }),
+    /400 Bad Request/
+  );
 
   const materialized = await request(baseUrl, "/admin/assets/materialize-icons", {
     method: "POST",
