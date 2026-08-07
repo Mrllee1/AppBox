@@ -111,14 +111,26 @@ struct AppBoxIconView: View {
 
     var body: some View {
         ZStack {
+            if let remoteIconURL = item.remoteIconURL {
+                AppBoxEncryptedImageView(url: remoteIconURL, cornerRadius: size * 0.22) {
+                    fallbackIcon
+                }
+            } else {
+                fallbackIcon
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    private var fallbackIcon: some View {
+        ZStack {
             RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
                 .fill(item.iconStyle.backgroundColor)
             AppBoxGlyph(icon: item.icon)
                 .frame(width: size * 0.42, height: size * 0.42)
                 .foregroundColor(.white)
         }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
     }
 }
 

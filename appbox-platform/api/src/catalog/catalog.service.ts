@@ -1,0 +1,65 @@
+import { Inject, Injectable } from "@nestjs/common";
+import {
+  AppBoxApp,
+  CatalogAppDTO,
+  CatalogCategoryDTO,
+  CatalogGroupDTO,
+  CatalogResponseDTO
+} from "../common/types";
+import { FileDataStore } from "../common/file-data-store";
+
+@Injectable()
+export class CatalogService {
+  constructor(@Inject(FileDataStore) private readonly store: FileDataStore) {}
+
+  async getCatalog(): Promise<CatalogResponseDTO> {
+    const data = await this.store.read();
+    const enabledApps = data.apps
+      .filter((app) => app.enabled)
+      .sort((a, b) => a.sort - b.sort);
+
+    const categories: CatalogCategoryDTO[] = data.categories
+      .filter((category) => category.enabled)
+      .sort((a, b) => a.sort - b.sort)
+      .map((category) => {
+        const groups: CatalogGroupDTO[] = data.groups
+          .filter((group) => group.enabled && group.categoryId === category.id)
+          .sort((a, b) => a.sort - b.sort)
+          .map((group) => ({
+            id: group.id,
+            n: group.name,
+            a: enabledApps
+              .filter((app) => app.categoryId === category.id && app.groupId === group.id)
+              .map((app) => this.toCatalogApp(app))
+          }))
+          .filter((group) => group.a.length > 0);
+
+        return {
+          id: category.id,
+          n: category.name,
+          g: groups
+        };
+      })
+      .filter((category) => category.g.length > 0);
+
+    return {
+      v: data.version,
+      ts: new Date().toISOString(),
+      c: categories
+    };
+  }
+
+  toCatalogApp(app: AppBoxApp): CatalogAppDTO {
+    return {
+      id: app.id,
+      n: app.name,
+      t: app.type,
+      icon: `${this.publicBaseUrl()}/api/v1/appbox/assets/apps/${encodeURIComponent(app.id)}/icon`,
+      url: app.type === "ipa" ? app.downloadUrl : app.entryUrl
+    };
+  }
+
+  private publicBaseUrl() {
+    return (process.env.PUBLIC_API_BASE_URL || "http://127.0.0.1:39110").replace(/\/+$/, "");
+  }
+}

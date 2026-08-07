@@ -180,7 +180,32 @@ struct AppBoxCatalogItem: Identifiable, Hashable {
     let section: AppBoxSection
     let icon: AppBoxIcon
     let iconStyle: AppBoxIconStyle
+    let remoteIconURL: URL?
     let source: AppBoxAppSource
+
+    init(
+        id: String,
+        bundleIdentifier: String?,
+        chineseName: String,
+        englishName: String,
+        series: AppBoxSeries,
+        section: AppBoxSection,
+        icon: AppBoxIcon,
+        iconStyle: AppBoxIconStyle,
+        remoteIconURL: URL? = nil,
+        source: AppBoxAppSource
+    ) {
+        self.id = id
+        self.bundleIdentifier = bundleIdentifier
+        self.chineseName = chineseName
+        self.englishName = englishName
+        self.series = series
+        self.section = section
+        self.icon = icon
+        self.iconStyle = iconStyle
+        self.remoteIconURL = remoteIconURL
+        self.source = source
+    }
 
     func name(for language: AppBoxLanguage) -> String {
         language == .simplifiedChinese ? chineseName : englishName

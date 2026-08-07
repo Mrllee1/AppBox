@@ -3,6 +3,7 @@
 @import UIKit;
 @import UniformTypeIdentifiers;
 @import Security;
+@import CommonCrypto;
 
 #import "LCUtils.h"
 #import "../../LiveContainer/LCSharedUtils.h"
@@ -28,6 +29,32 @@
         nud = NSUserDefaults.standardUserDefaults;
     }
     return [nud objectForKey:@"LCCertificateData"];
+}
+
++ (NSData *)appBoxDecryptAESCBCData:(NSData *)data key:(NSData *)key iv:(NSData *)iv {
+    if (data.length == 0 || key.length != kCCKeySizeAES256 || iv.length != kCCBlockSizeAES128) {
+        return nil;
+    }
+
+    size_t outputLength = 0;
+    NSMutableData *output = [NSMutableData dataWithLength:data.length + kCCBlockSizeAES128];
+    CCCryptorStatus status = CCCrypt(kCCDecrypt,
+                                     kCCAlgorithmAES,
+                                     kCCOptionPKCS7Padding,
+                                     key.bytes,
+                                     key.length,
+                                     iv.bytes,
+                                     data.bytes,
+                                     data.length,
+                                     output.mutableBytes,
+                                     output.length,
+                                     &outputLength);
+    if (status != kCCSuccess) {
+        return nil;
+    }
+
+    output.length = outputLength;
+    return output;
 }
 
 

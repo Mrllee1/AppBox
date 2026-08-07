@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id
+  name        String
+  englishName String?
+  sort        Int      @default(100)
+  enabled     Boolean  @default(true)
+  groups      Group[]
+  apps        App[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Group {
+  id          String   @id
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  name        String
+  englishName String?
+  sort        Int      @default(100)
+  enabled     Boolean  @default(true)
+  apps        App[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model App {
+  id          String     @id
+  name        String
+  englishName String?
+  type        AppType
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  groupId     String
+  group       Group      @relation(fields: [groupId], references: [id])
+  iconUrl     String
+  bundleId    String?
+  downloadUrl String?
+  entryUrl    String?
+  version     String?
+  sort        Int        @default(100)
+  enabled     Boolean    @default(true)
+  recommended Boolean    @default(false)
+  mappings    ExternalMapping[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model ExternalMapping {
+  id            String   @id
+  appId         String
+  app           App      @relation(fields: [appId], references: [id])
+  externalAppId String
+  channel       String?
+  platform      Platform @default(ios)
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([externalAppId, channel, platform, enabled])
+}
+
+model Channel {
+  id        String   @id
+  code      String   @unique
+  name      String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EventLog {
+  id            String   @id
+  event         String
+  appId         String?
+  externalAppId String?
+  channel       String?
+  platform      String?
+  success       Boolean?
+  errorCode     String?
+  durationMs    Int?
+  deviceId      String?
+  sessionId     String?
+  payload       Json?
+  createdAt     DateTime @default(now())
+
+  @@index([event, createdAt])
+  @@index([appId, createdAt])
+  @@index([channel, createdAt])
+}
+
+model OperationLog {
+  id        String   @id
+  actorId   String?
+  action    String
+  target    String?
+  payload   Json?
+  createdAt DateTime @default(now())
+}
+
+enum AppType {
+  ipa
+  web
+}
+
+enum Platform {
+  ios
+  android
+  all
+}

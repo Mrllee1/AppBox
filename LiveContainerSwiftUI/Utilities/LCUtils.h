@@ -44,6 +44,7 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 + (NSString *)getVersionInfo;
 + (NSString *)liveProcessBundleIdentifier;
 + (NSData*)bookmarkForURL:(NSURL*) url;
++ (NSData * _Nullable)appBoxDecryptAESCBCData:(NSData *)data key:(NSData *)key iv:(NSData *)iv;
 @end
 
 @interface NSUserDefaults(LiveContainer)

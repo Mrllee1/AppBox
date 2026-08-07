@@ -8,6 +8,11 @@ xcuserdata
 Resources/Frameworks/OpenSSL.framework
 apps_nightly.json
 /dist
+node_modules/
+.next/
+appbox-platform/dist/
+appbox-platform/data/*.json
+appbox-platform/data/assets/
 Resources/AppBox-JITLess-*.p12
 Resources/AppBox-JITLess-*.plist
 /screenshots
