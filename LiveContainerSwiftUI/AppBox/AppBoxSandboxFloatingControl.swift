@@ -22,6 +22,8 @@ struct AppBoxSandboxFloatingControl: View {
     private enum Metrics {
         static let buttonSize: CGFloat = 60
         static let menuSize: CGFloat = 96
+        static let buttonCornerRadius: CGFloat = 15
+        static let menuCornerRadius: CGFloat = 22
         static let edgeInset: CGFloat = 4
         static let menuInset: CGFloat = 8
         static let dragThreshold: CGFloat = 6
@@ -89,41 +91,36 @@ struct AppBoxSandboxFloatingControl: View {
     private var menuControl: some View {
         Button(action: returnToSandbox) {
             VStack(spacing: 6) {
-                AppBoxGlyph(icon: .locationPin)
-                    .frame(width: 22, height: 22)
+                AppBoxAssistiveReturnMark()
+                    .frame(width: 27, height: 27)
                 Text(copy.text("返回沙盒", "Return to Box"))
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.system(size: 12, weight: .medium))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color(white: 75 / 255))
+                RoundedRectangle(cornerRadius: Metrics.menuCornerRadius, style: .continuous)
+                    .fill(Color.black.opacity(0.82))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: Metrics.menuCornerRadius, style: .continuous)
+                            .stroke(Color.white.opacity(0.10), lineWidth: 0.8)
+                    }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .shadow(color: .black.opacity(0.22), radius: 9, y: 4)
+            .clipShape(RoundedRectangle(cornerRadius: Metrics.menuCornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.24), radius: 12, y: 5)
         }
         .buttonStyle(AppBoxAssistiveMenuButtonStyle())
     }
 
     private var buttonControl: some View {
-        ZStack {
-            assistiveImage(named: "AppBoxAssistiveTouchIdle")
-                .opacity(state == .idle ? 1 : 0)
-            assistiveImage(named: "AppBoxAssistiveTouch")
-                .opacity(state == .idle ? 0 : 1)
-        }
+        AppBoxAssistiveTouchOrb(
+            isHighlighted: state == .pressed,
+            isIdle: state == .idle
+        )
         .scaleEffect(state == .pressed ? 0.96 : 1)
-        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    private func assistiveImage(named name: String) -> some View {
-        Image(name)
-            .resizable()
-            .interpolation(.high)
-            .frame(width: Metrics.buttonSize, height: Metrics.buttonSize)
+        .contentShape(Circle())
     }
 
     private var controlGesture: some Gesture {
@@ -302,5 +299,95 @@ private struct AppBoxAssistiveMenuButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.72 : 1)
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+private struct AppBoxAssistiveTouchOrb: View {
+    let isHighlighted: Bool
+    let isIdle: Bool
+
+    private let outer = Color(red: 32 / 255, green: 41 / 255, blue: 49 / 255)
+    private let middle = Color(red: 92 / 255, green: 100 / 255, blue: 104 / 255)
+    private let inner = Color(red: 145 / 255, green: 150 / 255, blue: 156 / 255)
+
+    var body: some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+            let scale = side / 100
+            let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            let ringCenter = CGPoint(
+                x: center.x - 0.5 * scale,
+                y: center.y - 0.5 * scale
+            )
+
+            ZStack {
+                Circle()
+                    .fill(outer)
+                    .frame(width: side, height: side)
+                    .position(center)
+
+                Circle()
+                    .fill(middle)
+                    .frame(width: 75 * scale, height: 75 * scale)
+                    .position(ringCenter)
+
+                Circle()
+                    .fill(inner)
+                    .frame(width: 65 * scale, height: 65 * scale)
+                    .position(ringCenter)
+
+                Circle()
+                    .fill(Color.white.opacity(isHighlighted ? 1 : 0.94))
+                    .frame(width: 50 * scale, height: 50 * scale)
+                    .position(center)
+                    .shadow(
+                        color: Color.white.opacity(isHighlighted ? 0.38 : 0.14),
+                        radius: isHighlighted ? 5 : 2
+                    )
+            }
+            .drawingGroup()
+            .opacity(isIdle ? 0.42 : 1)
+        }
+    }
+}
+
+private struct AppBoxAssistiveReturnMark: View {
+    var body: some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+            let stroke = max(1.5, side * 0.08)
+
+            ZStack {
+                Path { path in
+                    path.move(to: CGPoint(x: side * 0.20, y: side * 0.45))
+                    path.addLine(to: CGPoint(x: side * 0.50, y: side * 0.26))
+                    path.addLine(to: CGPoint(x: side * 0.80, y: side * 0.45))
+                    path.addLine(to: CGPoint(x: side * 0.80, y: side * 0.74))
+                    path.addLine(to: CGPoint(x: side * 0.50, y: side * 0.90))
+                    path.addLine(to: CGPoint(x: side * 0.20, y: side * 0.74))
+                    path.closeSubpath()
+                }
+                .stroke(
+                    .white,
+                    style: StrokeStyle(lineWidth: stroke, lineJoin: .round)
+                )
+
+                Path { path in
+                    path.move(to: CGPoint(x: side * 0.50, y: side * 0.52))
+                    path.addLine(to: CGPoint(x: side * 0.50, y: side * 0.36))
+                    path.move(to: CGPoint(x: side * 0.39, y: side * 0.49))
+                    path.addLine(to: CGPoint(x: side * 0.50, y: side * 0.36))
+                    path.addLine(to: CGPoint(x: side * 0.61, y: side * 0.49))
+                }
+                .stroke(.white, style: StrokeStyle(lineWidth: stroke, lineCap: .round, lineJoin: .round))
+
+                RoundedRectangle(cornerRadius: side * 0.06, style: .continuous)
+                    .stroke(.white, lineWidth: stroke)
+                    .frame(width: side * 0.34, height: side * 0.24)
+                    .offset(y: side * 0.16)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+        .aspectRatio(1, contentMode: .fit)
     }
 }

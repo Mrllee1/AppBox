@@ -19,22 +19,6 @@ static NSTimeInterval const LCFloatingIdleDelay = 1.5;
 static NSString *const LCFloatingDockEdgeKey = @"AppBoxAssistiveDockEdge";
 static NSString *const LCFloatingDockRatioKey = @"AppBoxAssistiveDockRatio";
 
-static UIImage *LCLoadHostImage(NSString *resourceName, NSString *assetName) {
-    NSBundle *hostBundle = NSUserDefaults.lcMainBundle;
-    NSString *path = [hostBundle pathForResource:resourceName ofType:@"png"];
-    NSData *data = path ? [NSData dataWithContentsOfFile:path] : nil;
-    UIImage *image = data ? [UIImage imageWithData:data scale:UIScreen.mainScreen.scale] : nil;
-    if (!image) {
-        image = [UIImage imageNamed:assetName
-                           inBundle:hostBundle
-      compatibleWithTraitCollection:nil];
-    }
-    if (!image) {
-        NSLog(@"[AppBox] Missing floating-control resource: %@", resourceName);
-    }
-    return image;
-}
-
 typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
     LCSandboxDockEdgeLeft,
     LCSandboxDockEdgeRight,
@@ -48,14 +32,20 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
 @property (nonatomic, copy, nullable) dispatch_block_t outsideInteractionHandler;
 @end
 
+@interface LCAssistiveTouchOrbView : UIView
+@property (nonatomic) BOOL emphasized;
+@property (nonatomic) BOOL idleAppearance;
+@end
+
+@interface LCAssistiveReturnIconView : UIView
+@end
+
 @interface LCSandboxFloatingView : UIView
-@property (nonatomic, strong) UIImage *idleButtonImage;
-@property (nonatomic, strong) UIImage *activeButtonImage;
-@property (nonatomic, strong) UIImageView *buttonImageView;
+@property (nonatomic, strong) LCAssistiveTouchOrbView *buttonView;
 @property (nonatomic, strong) UIVisualEffectView *menuEffectView;
 @property (nonatomic, strong) UIView *menuTintView;
 @property (nonatomic, strong) UIStackView *menuContent;
-@property (nonatomic, strong) UIImageView *iconView;
+@property (nonatomic, strong) LCAssistiveReturnIconView *iconView;
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, copy, nullable) dispatch_block_t activationHandler;
 - (void)setMenuExpansionAnchor:(CGPoint)anchor;
@@ -93,6 +83,134 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
 
 @end
 
+@implementation LCAssistiveTouchOrbView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (!self) return nil;
+
+    self.backgroundColor = UIColor.clearColor;
+    self.opaque = NO;
+    self.contentMode = UIViewContentModeRedraw;
+    _idleAppearance = YES;
+    return self;
+}
+
+- (void)setEmphasized:(BOOL)emphasized {
+    if (_emphasized == emphasized) return;
+    _emphasized = emphasized;
+    [self setNeedsDisplay];
+}
+
+- (void)setIdleAppearance:(BOOL)idleAppearance {
+    if (_idleAppearance == idleAppearance) return;
+    _idleAppearance = idleAppearance;
+    [self setNeedsDisplay];
+}
+
+- (void)drawRect:(CGRect)rect {
+    CGFloat side = MIN(CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
+    if (side <= 0) return;
+
+    CGFloat scale = side / 100.0;
+    CGPoint center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
+    CGPoint ringCenter = CGPointMake(center.x - 0.5 * scale, center.y - 0.5 * scale);
+
+    [self fillCircleWithDiameter:side
+                          center:center
+                           color:[UIColor colorWithRed:32.0 / 255.0
+                                                 green:41.0 / 255.0
+                                                  blue:49.0 / 255.0
+                                                 alpha:1]];
+    [self fillCircleWithDiameter:75.0 * scale
+                          center:ringCenter
+                           color:[UIColor colorWithRed:92.0 / 255.0
+                                                 green:100.0 / 255.0
+                                                  blue:104.0 / 255.0
+                                                 alpha:1]];
+    [self fillCircleWithDiameter:65.0 * scale
+                          center:ringCenter
+                           color:[UIColor colorWithRed:145.0 / 255.0
+                                                 green:150.0 / 255.0
+                                                  blue:156.0 / 255.0
+                                                 alpha:1]];
+    [self fillCircleWithDiameter:50.0 * scale
+                          center:center
+                           color:[UIColor colorWithWhite:1 alpha:self.emphasized ? 1.0 : 0.94]];
+}
+
+- (void)fillCircleWithDiameter:(CGFloat)diameter center:(CGPoint)center color:(UIColor *)color {
+    CGRect circleRect = CGRectMake(center.x - diameter / 2.0,
+                                   center.y - diameter / 2.0,
+                                   diameter,
+                                   diameter);
+    [color setFill];
+    [[UIBezierPath bezierPathWithOvalInRect:circleRect] fill];
+}
+
+@end
+
+@implementation LCAssistiveReturnIconView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (!self) return nil;
+
+    self.backgroundColor = UIColor.clearColor;
+    self.opaque = NO;
+    self.contentMode = UIViewContentModeRedraw;
+    return self;
+}
+
+- (void)drawRect:(CGRect)rect {
+    CGFloat side = MIN(CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
+    if (side <= 0) return;
+
+    CGFloat stroke = MAX(1.5, side * 0.08);
+    CGPoint origin = CGPointMake((CGRectGetWidth(self.bounds) - side) / 2.0,
+                                 (CGRectGetHeight(self.bounds) - side) / 2.0);
+
+    CGPoint (^point)(CGFloat, CGFloat) = ^CGPoint(CGFloat x, CGFloat y) {
+        return CGPointMake(origin.x + side * x, origin.y + side * y);
+    };
+
+    [UIColor.whiteColor setStroke];
+
+    UIBezierPath *box = [UIBezierPath bezierPath];
+    [box moveToPoint:point(0.20, 0.45)];
+    [box addLineToPoint:point(0.50, 0.26)];
+    [box addLineToPoint:point(0.80, 0.45)];
+    [box addLineToPoint:point(0.80, 0.74)];
+    [box addLineToPoint:point(0.50, 0.90)];
+    [box addLineToPoint:point(0.20, 0.74)];
+    [box closePath];
+    box.lineWidth = stroke;
+    box.lineJoinStyle = kCGLineJoinRound;
+    [box stroke];
+
+    UIBezierPath *arrow = [UIBezierPath bezierPath];
+    [arrow moveToPoint:point(0.50, 0.52)];
+    [arrow addLineToPoint:point(0.50, 0.36)];
+    [arrow moveToPoint:point(0.39, 0.49)];
+    [arrow addLineToPoint:point(0.50, 0.36)];
+    [arrow addLineToPoint:point(0.61, 0.49)];
+    arrow.lineWidth = stroke;
+    arrow.lineCapStyle = kCGLineCapRound;
+    arrow.lineJoinStyle = kCGLineJoinRound;
+    [arrow stroke];
+
+    CGRect trayRect = CGRectMake(origin.x + side * 0.33,
+                                 origin.y + side * 0.54,
+                                 side * 0.34,
+                                 side * 0.24);
+    UIBezierPath *tray = [UIBezierPath bezierPathWithRoundedRect:trayRect
+                                                    cornerRadius:side * 0.06];
+    tray.lineWidth = stroke;
+    [tray stroke];
+}
+
+@end
+
 @implementation LCSandboxFloatingView
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -101,12 +219,9 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
 
     self.backgroundColor = UIColor.clearColor;
 
-    _idleButtonImage = LCLoadHostImage(@"AppBoxAssistiveTouchIdleRaw", @"AppBoxAssistiveTouchIdle");
-    _activeButtonImage = LCLoadHostImage(@"AppBoxAssistiveTouchRaw", @"AppBoxAssistiveTouch") ?: _idleButtonImage;
-    _buttonImageView = [[UIImageView alloc] initWithImage:_idleButtonImage];
-    _buttonImageView.contentMode = UIViewContentModeScaleAspectFit;
-    _buttonImageView.userInteractionEnabled = NO;
-    [self addSubview:_buttonImageView];
+    _buttonView = [[LCAssistiveTouchOrbView alloc] initWithFrame:CGRectZero];
+    _buttonView.userInteractionEnabled = NO;
+    [self addSubview:_buttonView];
 
     UIBlurEffect *blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemChromeMaterialDark];
     _menuEffectView = [[UIVisualEffectView alloc] initWithEffect:blur];
@@ -120,22 +235,15 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
     _menuTintView.backgroundColor = [UIColor colorWithWhite:(75.0 / 255.0) alpha:1.0];
     [_menuEffectView.contentView addSubview:_menuTintView];
 
-    UIImageSymbolConfiguration *symbolConfiguration =
-        [UIImageSymbolConfiguration configurationWithPointSize:22.0
-                                                        weight:UIImageSymbolWeightSemibold];
-    UIImage *icon = [UIImage systemImageNamed:@"shippingbox.fill"
-                            withConfiguration:symbolConfiguration];
-    _iconView = [[UIImageView alloc] initWithImage:[icon imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    _iconView = [[LCAssistiveReturnIconView alloc] initWithFrame:CGRectZero];
     _iconView.translatesAutoresizingMaskIntoConstraints = NO;
-    _iconView.tintColor = UIColor.whiteColor;
-    _iconView.contentMode = UIViewContentModeScaleAspectFit;
 
     _titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
     _titleLabel.text = @"返回沙盒";
     _titleLabel.textColor = UIColor.whiteColor;
     _titleLabel.textAlignment = NSTextAlignmentCenter;
-    _titleLabel.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightRegular];
+    _titleLabel.font = [UIFont systemFontOfSize:12.0 weight:UIFontWeightMedium];
     _titleLabel.numberOfLines = 2;
 
     _menuContent = [[UIStackView alloc] initWithArrangedSubviews:@[_iconView, _titleLabel]];
@@ -166,9 +274,9 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    self.buttonImageView.bounds = CGRectMake(0, 0, LCFloatingCollapsedSize, LCFloatingCollapsedSize);
+    self.buttonView.bounds = CGRectMake(0, 0, LCFloatingCollapsedSize, LCFloatingCollapsedSize);
     CGPoint anchor = self.menuEffectView.layer.anchorPoint;
-    self.buttonImageView.center = CGPointMake(
+    self.buttonView.center = CGPointMake(
         CGRectGetWidth(self.bounds) * anchor.x,
         CGRectGetHeight(self.bounds) * anchor.y
     );
@@ -190,11 +298,11 @@ typedef NS_ENUM(NSInteger, LCSandboxDockEdge) {
     void (^changes)(void) = ^{
         BOOL expanded = state == LCSandboxFloatingStateExpanded;
         BOOL pressed = state == LCSandboxFloatingStatePressed;
-        self.buttonImageView.image = state == LCSandboxFloatingStateResting
-            ? self.idleButtonImage
-            : self.activeButtonImage;
-        self.buttonImageView.alpha = expanded ? 0.0 : 1.0;
-        self.buttonImageView.transform = pressed
+        BOOL idle = state == LCSandboxFloatingStateResting;
+        self.buttonView.idleAppearance = state == LCSandboxFloatingStateResting;
+        self.buttonView.emphasized = pressed;
+        self.buttonView.alpha = expanded ? 0.0 : (idle ? 0.42 : 1.0);
+        self.buttonView.transform = pressed
             ? CGAffineTransformMakeScale(0.96, 0.96)
             : CGAffineTransformIdentity;
         self.menuEffectView.alpha = expanded ? 1.0 : 0.0;
