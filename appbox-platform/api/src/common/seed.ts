@@ -27,13 +27,6 @@ export const seedData: AppBoxStoreData = {
       englishName: "Tools",
       sort: 10,
       enabled: true
-    },
-    {
-      id: "entertainment",
-      name: "娱乐",
-      englishName: "Entertainment",
-      sort: 20,
-      enabled: true
     }
   ],
   groups: [
@@ -42,14 +35,6 @@ export const seedData: AppBoxStoreData = {
       categoryId: "tools",
       name: "钱包",
       englishName: "Wallet",
-      sort: 10,
-      enabled: true
-    },
-    {
-      id: "games",
-      categoryId: "entertainment",
-      name: "棋牌娱乐",
-      englishName: "Games",
       sort: 10,
       enabled: true
     }
@@ -69,22 +54,6 @@ export const seedData: AppBoxStoreData = {
       sort: 10,
       enabled: true,
       recommended: true,
-      createdAt: now,
-      updatedAt: now
-    },
-    {
-      id: "appbox_web_demo",
-      name: "活动中心",
-      englishName: "Campaign Hub",
-      type: "web",
-      categoryId: "entertainment",
-      groupId: "games",
-      iconUrl: "https://pub-d768a0879cb24ceaa4a0cfe8b73ee372.r2.dev/icons/campaign.png",
-      entryUrl: "https://example.com",
-      version: "1.0.0",
-      sort: 20,
-      enabled: true,
-      recommended: false,
       createdAt: now,
       updatedAt: now
     }

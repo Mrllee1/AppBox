@@ -28,6 +28,7 @@ export class CatalogService {
           .map((group) => ({
             id: group.id,
             n: group.name,
+            ...(group.englishName ? { e: group.englishName } : {}),
             a: enabledApps
               .filter((app) => app.categoryId === category.id && app.groupId === group.id)
               .map((app) => this.toCatalogApp(app))
@@ -37,6 +38,7 @@ export class CatalogService {
         return {
           id: category.id,
           n: category.name,
+          ...(category.englishName ? { e: category.englishName } : {}),
           g: groups
         };
       })

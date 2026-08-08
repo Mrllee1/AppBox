@@ -46,9 +46,39 @@ export class AdminController {
     return this.admin.listCategories();
   }
 
+  @Post("categories")
+  createCategory(@Body() body: unknown) {
+    return this.admin.createCategory(body);
+  }
+
+  @Put("categories/:id")
+  updateCategory(@Param("id") id: string, @Body() body: unknown) {
+    return this.admin.updateCategory(id, body);
+  }
+
+  @Delete("categories/:id")
+  deleteCategory(@Param("id") id: string) {
+    return this.admin.deleteCategory(id);
+  }
+
   @Get("groups")
   listGroups() {
     return this.admin.listGroups();
+  }
+
+  @Post("groups")
+  createGroup(@Body() body: unknown) {
+    return this.admin.createGroup(body);
+  }
+
+  @Put("groups/:id")
+  updateGroup(@Param("id") id: string, @Body() body: unknown) {
+    return this.admin.updateGroup(id, body);
+  }
+
+  @Delete("groups/:id")
+  deleteGroup(@Param("id") id: string) {
+    return this.admin.deleteGroup(id);
   }
 
   @Get("mappings")

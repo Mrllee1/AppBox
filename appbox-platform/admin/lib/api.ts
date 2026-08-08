@@ -17,6 +17,32 @@ export interface AdminApp {
   recommended: boolean;
 }
 
+export interface AdminCategory {
+  id: string;
+  name: string;
+  englishName?: string;
+  sort: number;
+  enabled: boolean;
+}
+
+export interface AdminGroup {
+  id: string;
+  categoryId: string;
+  name: string;
+  englishName?: string;
+  sort: number;
+  enabled: boolean;
+}
+
+export interface AdminMapping {
+  id: string;
+  appId: string;
+  externalAppId: string;
+  channel?: string;
+  platform: "ios" | "android" | "all";
+  enabled: boolean;
+}
+
 export interface PlatformApiEntrypoint {
   baseUrl: string;
   enabled: boolean;
@@ -113,9 +139,37 @@ export const api = {
   me: () => request<{ success: true; user: AdminUser }>("/admin/auth/me"),
   summary: () => request<AdminSummary>("/admin/summary"),
   apps: () => request<{ success: true; data: AdminApp[] }>("/admin/apps"),
-  mappings: () => request<{ success: true; data: unknown[] }>("/admin/mappings"),
-  categories: () => request<{ success: true; data: Array<{ id: string; name: string }> }>("/admin/categories"),
-  groups: () => request<{ success: true; data: Array<{ id: string; name: string; categoryId: string }> }>("/admin/groups"),
+  mappings: () => request<{ success: true; data: AdminMapping[] }>("/admin/mappings"),
+  categories: () => request<{ success: true; data: AdminCategory[] }>("/admin/categories"),
+  groups: () => request<{ success: true; data: AdminGroup[] }>("/admin/groups"),
+  createCategory: (body: Partial<AdminCategory>) =>
+    request<{ success: true; data: AdminCategory }>("/admin/categories", {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+  updateCategory: (id: string, body: Partial<AdminCategory>) =>
+    request<{ success: true; data: AdminCategory }>(`/admin/categories/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body)
+    }),
+  deleteCategory: (id: string) =>
+    request<{ success: true }>(`/admin/categories/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    }),
+  createGroup: (body: Partial<AdminGroup>) =>
+    request<{ success: true; data: AdminGroup }>("/admin/groups", {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+  updateGroup: (id: string, body: Partial<AdminGroup>) =>
+    request<{ success: true; data: AdminGroup }>(`/admin/groups/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body)
+    }),
+  deleteGroup: (id: string) =>
+    request<{ success: true }>(`/admin/groups/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    }),
   platformConfig: () => request<{ success: true; data: PlatformConfig; cdnUrls: string[] }>("/admin/platform-config"),
   updatePlatformConfig: (body: PlatformConfig) =>
     request<{ success: true; data: PlatformConfig; cdnUrls: string[] }>("/admin/platform-config", {
@@ -142,6 +196,15 @@ export const api = {
     request<{ success: true; data: AdminApp }>("/admin/apps", {
       method: "POST",
       body: JSON.stringify(body)
+    }),
+  updateApp: (id: string, body: Partial<AdminApp>) =>
+    request<{ success: true; data: AdminApp }>(`/admin/apps/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body)
+    }),
+  deleteApp: (id: string) =>
+    request<{ success: true }>(`/admin/apps/${encodeURIComponent(id)}`, {
+      method: "DELETE"
     }),
   resolveDeeplink: (body: Record<string, string>) =>
     request<Record<string, unknown>>("/admin/deeplink/resolve-test", {

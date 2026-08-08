@@ -27,6 +27,7 @@ struct AppBoxPasswordView: View {
     let language: AppBoxLanguage
     let skin: AppBoxSkin
     let mode: AppBoxPasswordMode
+    let allowsDecoyManagement: Bool
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -53,6 +54,7 @@ struct AppBoxPasswordView: View {
         language: AppBoxLanguage,
         skin: AppBoxSkin,
         mode: AppBoxPasswordMode,
+        allowsDecoyManagement: Bool = false,
         service: AppBoxPINProviding = AppBoxPINService(),
         onUnlock: ((AppBoxUnlockResult) -> Void)? = nil,
         onSuccess: (() -> Void)? = nil,
@@ -61,6 +63,7 @@ struct AppBoxPasswordView: View {
         self.language = language
         self.skin = skin
         self.mode = mode
+        self.allowsDecoyManagement = allowsDecoyManagement
         self.service = service
         self.onUnlock = onUnlock
         self.onSuccess = onSuccess
@@ -68,7 +71,7 @@ struct AppBoxPasswordView: View {
 
         let primaryEnabled = service.hasPIN
         _hasPrimary = State(initialValue: primaryEnabled)
-        _hasDecoy = State(initialValue: service.hasDecoyPIN)
+        _hasDecoy = State(initialValue: allowsDecoyManagement && service.hasDecoyPIN)
 
         if mode == .unlock {
             _intent = State(initialValue: .unlock)
@@ -140,10 +143,8 @@ struct AppBoxPasswordView: View {
     private var header: some View {
         VStack(spacing: 16) {
             AppBoxGlyph(icon: stage == .success ? .shieldYes : .shield)
-                .frame(width: 46, height: 46)
+                .frame(width: 44, height: 44)
                 .foregroundColor(palette.accent)
-                .frame(width: 86, height: 86)
-                .appBoxGlassControl(palette, radius: 28, isInteractive: false)
 
             VStack(spacing: 8) {
                 Text(title)
@@ -226,18 +227,20 @@ struct AppBoxPasswordView: View {
 
             primaryActions
 
-            AppBoxPasswordStatusCard(
-                icon: .shield,
-                title: copy.text("伪装密码", "Decoy PIN"),
-                subtitle: hasDecoy
-                    ? copy.text("输入后进入伪装页面", "Opens the decoy page")
-                    : copy.text("可选，用于隐私伪装", "Optional privacy decoy"),
-                isEnabled: hasDecoy,
-                palette: palette
-            )
-            .padding(.top, 8)
+            if allowsDecoyManagement {
+                AppBoxPasswordStatusCard(
+                    icon: .shield,
+                    title: copy.text("伪装密码", "Decoy PIN"),
+                    subtitle: hasDecoy
+                        ? copy.text("输入后进入伪装页面", "Opens the decoy page")
+                        : copy.text("可选，用于隐私伪装", "Optional privacy decoy"),
+                    isEnabled: hasDecoy,
+                    palette: palette
+                )
+                .padding(.top, 8)
 
-            decoyActions
+                decoyActions
+            }
         }
     }
 
@@ -337,7 +340,10 @@ struct AppBoxPasswordView: View {
         if !feedback.isEmpty { return feedback }
         switch stage {
         case .overview:
-            return copy.text("主密码进入真实空间，伪装密码进入无关页面。", "Main PIN opens private space. Decoy PIN opens a neutral page.")
+            if allowsDecoyManagement {
+                return copy.text("主密码进入真实空间，伪装密码进入无关页面。", "Main PIN opens private space. Decoy PIN opens a neutral page.")
+            }
+            return copy.text("用于保护\(AppBoxBrand.chineseName)入口", "Protects \(AppBoxBrand.englishName)")
         case .verifyPrimary:
             return copy.text("请输入当前 4 位主密码", "Enter your current 4-digit main PIN")
         case .create:
@@ -346,7 +352,10 @@ struct AppBoxPasswordView: View {
             return copy.text("请再次输入密码", "Enter the PIN again")
         case .success:
             if intent == .removePrimary {
-                return copy.text("伪装密码也已同步移除", "The decoy PIN was removed too")
+                if allowsDecoyManagement {
+                    return copy.text("伪装密码也已同步移除", "The decoy PIN was removed too")
+                }
+                return copy.text("密码已移除", "PIN removed")
             }
             return copy.text("设置已保存", "Settings saved")
         }
@@ -366,7 +375,10 @@ struct AppBoxPasswordView: View {
     private var confirmationMessage: String {
         switch confirmation {
         case .removePrimary:
-            return copy.text("移除后，进入应用将不再需要密码，伪装密码也会被清除。", "The app will no longer require a PIN and the decoy PIN will be cleared.")
+            if allowsDecoyManagement {
+                return copy.text("移除后，进入应用将不再需要密码，伪装密码也会被清除。", "The app will no longer require a PIN and the decoy PIN will be cleared.")
+            }
+            return copy.text("移除后，进入应用将不再需要密码。", "The app will no longer require a PIN.")
         case .removeDecoy:
             return copy.text("关闭后，伪装密码将失效。", "The decoy PIN will stop working.")
         default:
@@ -432,7 +444,10 @@ struct AppBoxPasswordView: View {
             switch intent {
             case .createPrimary, .changePrimary:
                 if service.verifyDecoy(value) {
-                    fail(copy.text("主密码不能与伪装密码相同", "Main PIN cannot match the decoy PIN"))
+                    let message = allowsDecoyManagement
+                        ? copy.text("主密码不能与伪装密码相同", "Main PIN cannot match the decoy PIN")
+                        : copy.text("请换一个不同密码", "Choose a different PIN")
+                    fail(message)
                     firstPIN = ""
                     pin = ""
                     stage = .create
@@ -523,7 +538,7 @@ struct AppBoxPasswordView: View {
 
     private func refreshStatus() {
         hasPrimary = service.hasPIN
-        hasDecoy = service.hasDecoyPIN
+        hasDecoy = allowsDecoyManagement && service.hasDecoyPIN
     }
 
     private func updateInputFocus() {

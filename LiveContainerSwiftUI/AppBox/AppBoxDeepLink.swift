@@ -66,12 +66,12 @@ enum AppBoxDeepLinkParser {
 enum AppBoxNativeRouteResolver {
     static func itemID(for payload: AppBoxNativePayload, items: [AppBoxCatalogItem]) -> String? {
         if let data = payload.data,
-           let direct = items.first(where: { $0.id == data }) ?? AppBoxCatalog.item(id: data) {
+           let direct = items.first(where: { $0.id == data }) {
             return direct.id
         }
 
         if let appID = payload.appID,
-           let direct = items.first(where: { $0.id == appID }) ?? AppBoxCatalog.item(id: appID) {
+           let direct = items.first(where: { $0.id == appID }) {
             return direct.id
         }
 
@@ -80,7 +80,7 @@ enum AppBoxNativeRouteResolver {
             if items.contains(where: { $0.id == "tianya_selected" }) {
                 return "tianya_selected"
             }
-            return AppBoxCatalog.item(id: "tianya_selected")?.id
+            return nil
         default:
             return nil
         }

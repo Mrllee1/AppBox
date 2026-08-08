@@ -41,6 +41,10 @@ final class AppBoxLockController: ObservableObject {
         Self.persistedDefaultSpace()
     }
 
+    var allowsDecoyUnlock: Bool {
+        unlockTarget == .focus
+    }
+
     private static func persistedDefaultSpace() -> AppBoxSpaceSession {
         UserDefaults.standard.bool(forKey: appCenterActivatedKey) ? .real : .focus
     }
@@ -143,6 +147,7 @@ final class AppBoxLockController: ObservableObject {
 struct AppBoxLockScreen: View {
     let language: AppBoxLanguage
     let skin: AppBoxSkin
+    let allowsDecoyUnlock: Bool
     let onUnlock: (AppBoxUnlockResult) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -159,11 +164,13 @@ struct AppBoxLockScreen: View {
     init(
         language: AppBoxLanguage,
         skin: AppBoxSkin,
+        allowsDecoyUnlock: Bool = true,
         service: AppBoxPINProviding = AppBoxPINService(),
         onUnlock: @escaping (AppBoxUnlockResult) -> Void
     ) {
         self.language = language
         self.skin = skin
+        self.allowsDecoyUnlock = allowsDecoyUnlock
         self.service = service
         self.onUnlock = onUnlock
     }
@@ -185,10 +192,8 @@ struct AppBoxLockScreen: View {
 
             VStack(spacing: 20) {
                 AppBoxGlyph(icon: .shield)
-                    .frame(width: 48, height: 48)
+                    .frame(width: 46, height: 46)
                     .foregroundColor(palette.accent)
-                    .frame(width: 86, height: 86)
-                    .appBoxGlassControl(palette, radius: 28, isInteractive: false)
 
                 VStack(spacing: 8) {
                     Text(copy.text("请输入密码", "Enter PIN"))
@@ -261,7 +266,13 @@ struct AppBoxLockScreen: View {
     }
 
     private func handlePIN(_ value: String) {
-        let result = service.evaluate(value)
+        let result: AppBoxUnlockResult
+        if allowsDecoyUnlock {
+            result = service.evaluate(value)
+        } else {
+            result = service.verify(value) ? .real : .failed
+        }
+
         switch result {
         case .real, .decoy:
             feedback = ""
@@ -270,12 +281,14 @@ struct AppBoxLockScreen: View {
                 onUnlock(result)
             }
         case .failed:
-            feedback = ""
-            pin = ""
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
-                onUnlock(.decoy)
-            }
+            fail(copy.text("密码错误，请重试", "Incorrect PIN"))
         }
+    }
+
+    private func fail(_ message: String) {
+        feedback = message
+        pin = ""
+        runFailureAnimation()
     }
 
     private func runFailureAnimation() {

@@ -197,6 +197,7 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   const flatApps = catalog.c.flatMap((category) =>
     category.g.flatMap((group) => group.a)
   );
+  assert.equal(flatApps.some((app) => app.id === "appbox_web_demo"), false);
   const tianyaApp = flatApps.find((app) => app.id === "tianya_selected");
   assert.ok(tianyaApp);
   assert.deepEqual(Object.keys(tianyaApp).sort(), ["b", "icon", "id", "n", "t", "url"]);
@@ -285,7 +286,7 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   const summary = await request(baseUrl, "/admin/summary", {
     headers: authHeaders
   });
-  assert.equal(summary.enabled_apps, 2);
+  assert.equal(summary.enabled_apps, 1);
   assert.equal(summary.events.total_events, 2);
 
   const adminDeeplink = await request(baseUrl, "/admin/deeplink/resolve-test", {
@@ -390,6 +391,62 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   });
   assert.equal(materialized.success, true);
 
+  const createdCategory = await request(baseUrl, "/admin/categories", {
+    method: "POST",
+    headers: authHeaders,
+    body: JSON.stringify({
+      id: "qa_category",
+      name: "QA 分类",
+      englishName: "QA Category",
+      sort: 90,
+      enabled: true
+    })
+  });
+  assert.equal(createdCategory.success, true);
+  assert.equal(createdCategory.data.id, "qa_category");
+
+  const updatedCategory = await request(baseUrl, "/admin/categories/qa_category", {
+    method: "PUT",
+    headers: authHeaders,
+    body: JSON.stringify({
+      name: "QA 分类更新",
+      englishName: "QA Category Updated",
+      sort: 91,
+      enabled: true
+    })
+  });
+  assert.equal(updatedCategory.data.name, "QA 分类更新");
+  assert.equal(updatedCategory.data.sort, 91);
+
+  const createdGroup = await request(baseUrl, "/admin/groups", {
+    method: "POST",
+    headers: authHeaders,
+    body: JSON.stringify({
+      id: "qa_group",
+      categoryId: "qa_category",
+      name: "QA 分组",
+      englishName: "QA Group",
+      sort: 10,
+      enabled: true
+    })
+  });
+  assert.equal(createdGroup.success, true);
+  assert.equal(createdGroup.data.categoryId, "qa_category");
+
+  const updatedGroup = await request(baseUrl, "/admin/groups/qa_group", {
+    method: "PUT",
+    headers: authHeaders,
+    body: JSON.stringify({
+      categoryId: "qa_category",
+      name: "QA 分组更新",
+      englishName: "QA Group Updated",
+      sort: 11,
+      enabled: true
+    })
+  });
+  assert.equal(updatedGroup.data.name, "QA 分组更新");
+  assert.equal(updatedGroup.data.sort, 11);
+
   const created = await request(baseUrl, "/admin/apps", {
     method: "POST",
     headers: authHeaders,
@@ -397,8 +454,8 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
       id: "qa_web_app",
       name: "QA Web",
       type: "web",
-      categoryId: "tools",
-      groupId: "wallet",
+      categoryId: "qa_category",
+      groupId: "qa_group",
       iconUrl: "https://example.com/icon.png",
       entryUrl: "https://example.com/app",
       version: "1.0.1",
@@ -416,8 +473,8 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
     body: JSON.stringify({
       name: "QA Web Updated",
       type: "web",
-      categoryId: "tools",
-      groupId: "wallet",
+      categoryId: "qa_category",
+      groupId: "qa_group",
       iconUrl: "https://example.com/icon.png",
       entryUrl: "https://example.com/app",
       sort: 31,
@@ -438,6 +495,18 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
     headers: authHeaders
   });
   assert.equal(deleted.success, true);
+
+  const deletedGroup = await request(baseUrl, "/admin/groups/qa_group", {
+    method: "DELETE",
+    headers: authHeaders
+  });
+  assert.equal(deletedGroup.success, true);
+
+  const deletedCategory = await request(baseUrl, "/admin/categories/qa_category", {
+    method: "DELETE",
+    headers: authHeaders
+  });
+  assert.equal(deletedCategory.success, true);
 
   const catalogAfterDelete = decryptJson(await request(baseUrl, "/api/v1/appbox/catalog"));
   const visibleAfterDelete = catalogAfterDelete.c.flatMap((category) =>

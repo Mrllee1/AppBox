@@ -59,12 +59,14 @@ private struct AppBoxRemoteCatalog: Decodable {
 private struct AppBoxRemoteCategory: Decodable {
     let id: String
     let n: String
+    let e: String?
     let g: [AppBoxRemoteGroup]
 }
 
 private struct AppBoxRemoteGroup: Decodable {
     let id: String
     let n: String
+    let e: String?
     let a: [AppBoxRemoteApp]
 }
 
@@ -105,14 +107,14 @@ private enum AppBoxRemoteCatalogMapper {
                     item(from: app, category: category, group: group)
                 }
                 guard !items.isEmpty else { return nil }
-                let series = series(for: category.id)
+                let series = series(for: category)
                 let section = section(for: group.id)
                 return AppBoxCatalogGroup(
                     id: "\(category.id).\(group.id)",
                     series: series,
                     section: section,
                     chineseName: group.n,
-                    englishName: group.n,
+                    englishName: group.e ?? group.n,
                     items: items
                 )
             }
@@ -126,7 +128,7 @@ private enum AppBoxRemoteCatalogMapper {
     ) -> AppBoxCatalogItem? {
         guard let iconURL = URL(string: app.icon) else { return nil }
 
-        let series = series(for: category.id)
+        let series = series(for: category)
         let section = section(for: group.id)
         let source: AppBoxAppSource
         switch app.t.lowercased() {
@@ -153,15 +155,12 @@ private enum AppBoxRemoteCatalogMapper {
         )
     }
 
-    private static func series(for categoryID: String) -> AppBoxSeries {
-        switch categoryID.lowercased() {
-        case "entertainment", "games", "game", "media":
-            return .entertainment
-        case "lifestyle", "life":
-            return .lifestyle
-        default:
-            return .tools
-        }
+    private static func series(for category: AppBoxRemoteCategory) -> AppBoxSeries {
+        AppBoxSeries(
+            id: category.id,
+            chineseName: category.n,
+            englishName: category.e ?? category.n
+        )
     }
 
     private static func section(for groupID: String) -> AppBoxSection {

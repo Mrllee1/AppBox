@@ -6,6 +6,8 @@ export interface AppBoxCategory {
   englishName?: string;
   sort: number;
   enabled: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AppBoxGroup {
@@ -15,6 +17,8 @@ export interface AppBoxGroup {
   englishName?: string;
   sort: number;
   enabled: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AppBoxApp {
@@ -130,12 +134,14 @@ export interface CatalogAppDTO {
 export interface CatalogGroupDTO {
   id: string;
   n: string;
+  e?: string;
   a: CatalogAppDTO[];
 }
 
 export interface CatalogCategoryDTO {
   id: string;
   n: string;
+  e?: string;
   g: CatalogGroupDTO[];
 }
 

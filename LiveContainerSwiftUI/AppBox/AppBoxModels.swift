@@ -39,12 +39,16 @@ enum AppBoxSkin: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-enum AppBoxSeries: String, CaseIterable, Identifiable {
-    case tools
-    case entertainment
-    case lifestyle
+struct AppBoxSeries: Identifiable, Hashable {
+    let id: String
+    let chineseName: String
+    let englishName: String
 
-    var id: String { rawValue }
+    func title(for language: AppBoxLanguage) -> String {
+        let preferred = language == .simplifiedChinese ? chineseName : englishName
+        if !preferred.isEmpty { return preferred }
+        return id
+    }
 }
 
 enum AppBoxSection: String, CaseIterable, Identifiable {
@@ -306,11 +310,7 @@ struct AppBoxCopy {
     }
 
     func series(_ value: AppBoxSeries) -> String {
-        switch value {
-        case .tools: return text("工具系列", "Tools")
-        case .entertainment: return text("娱乐系列", "Entertainment")
-        case .lifestyle: return text("生活系列", "Lifestyle")
-        }
+        value.title(for: language)
     }
 
     func section(_ value: AppBoxSection) -> String {

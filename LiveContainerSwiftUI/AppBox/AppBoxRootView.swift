@@ -13,11 +13,12 @@ struct AppBoxRootView: View {
     @AppStorage("appbox.appearance") private var appearance: AppBoxAppearance = .system
     @AppStorage("appbox.skin") private var skin: AppBoxSkin = .sky
 
-    @State private var selectedSeries: AppBoxSeries = .tools
+    @State private var selectedSeriesID = ""
     @State private var query = ""
     @State private var showSettings = false
     @State private var showShare = false
     @State private var showPassword = false
+    @State private var passwordAllowsDecoyManagement = false
     @State private var pendingExternalIntent: AppBoxExternalIntent?
 
     private var copy: AppBoxCopy { AppBoxCopy(language: language) }
@@ -30,6 +31,7 @@ struct AppBoxRootView: View {
                 AppBoxLockScreen(
                     language: language,
                     skin: skin,
+                    allowsDecoyUnlock: lockController.allowsDecoyUnlock,
                     onUnlock: handleUnlock
                 )
                 .transition(.opacity)
@@ -52,6 +54,7 @@ struct AppBoxRootView: View {
                 language: language,
                 skin: skin,
                 mode: .manage,
+                allowsDecoyManagement: passwordAllowsDecoyManagement,
                 onProtectionChange: { _ in lockController.synchronizeProtectionState() }
             )
         }
@@ -80,8 +83,12 @@ struct AppBoxRootView: View {
         }
         .task {
             await store.refreshCatalogIfNeeded()
+            selectDefaultSeriesIfNeeded()
             consumeSharedDeepLink(sharedModel.deepLink)
             consumePendingExternalURL()
+        }
+        .onChange(of: store.catalogSeries.map(\.id)) { _ in
+            selectDefaultSeriesIfNeeded()
         }
         .onChange(of: store.notice) { notice in
             guard let notice else { return }
@@ -116,7 +123,7 @@ struct AppBoxRootView: View {
             isDecoy: isDecoy,
             isPrivacyEnabled: lockController.protectionEnabled,
             canManagePassword: !isDecoy,
-            openPassword: { showPassword = true },
+            openPassword: { openPassword(allowsDecoyManagement: true) },
             openShare: {
                 withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
                     showShare = true
@@ -155,7 +162,11 @@ struct AppBoxRootView: View {
 
                         seriesTabs
 
-                        let groups = store.catalogGroups(series: selectedSeries, query: query, language: language)
+                        let groups = store.catalogGroups(
+                            seriesID: selectedCatalogSeriesID,
+                            query: query,
+                            language: language
+                        )
                         if groups.isEmpty {
                             VStack(spacing: 10) {
                                 AppBoxGlyph(icon: .search)
@@ -201,7 +212,7 @@ struct AppBoxRootView: View {
                         toolbarButton(
                             icon: .lock,
                             label: copy.text("隐私密码", "Privacy PIN")
-                        ) { showPassword = true }
+                        ) { openPassword(allowsDecoyManagement: false) }
                         toolbarButton(
                             icon: .share,
                             label: copy.text("分享", "Share")
@@ -253,16 +264,41 @@ struct AppBoxRootView: View {
     }
 
     private var seriesTabs: some View {
-        Picker(copy.text("应用系列", "App series"), selection: $selectedSeries) {
-            ForEach(AppBoxSeries.allCases) { series in
-                Text(copy.series(series))
-                    .lineLimit(1)
-                    .tag(series)
+        Group {
+            if !store.catalogSeries.isEmpty {
+                Picker(copy.text("应用分类", "App category"), selection: $selectedSeriesID) {
+                    ForEach(store.catalogSeries) { series in
+                        Text(copy.series(series))
+                            .lineLimit(1)
+                            .tag(series.id)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .tint(palette.accent)
             }
         }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .tint(palette.accent)
+    }
+
+    private var selectedCatalogSeriesID: String? {
+        if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return nil
+        }
+        if store.catalogSeries.contains(where: { $0.id == selectedSeriesID }) {
+            return selectedSeriesID
+        }
+        return store.catalogSeries.first?.id
+    }
+
+    private func selectDefaultSeriesIfNeeded() {
+        let ids = store.catalogSeries.map(\.id)
+        guard !ids.isEmpty else {
+            selectedSeriesID = ""
+            return
+        }
+        if !ids.contains(selectedSeriesID) {
+            selectedSeriesID = ids[0]
+        }
     }
 
     private var installedSection: some View {
@@ -392,6 +428,11 @@ struct AppBoxRootView: View {
         case .failed:
             break
         }
+    }
+
+    private func openPassword(allowsDecoyManagement: Bool) {
+        passwordAllowsDecoyManagement = allowsDecoyManagement
+        showPassword = true
     }
 
     private func handleExternalURL(_ url: URL) {

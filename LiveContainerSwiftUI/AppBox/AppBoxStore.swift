@@ -31,12 +31,20 @@ final class AppBoxStore: ObservableObject {
         self.localInstallStore = resolvedLocalStore
         self.webDataManager = webDataManager ?? AppBoxWebDataStore.shared
         self.catalogService = catalogService ?? AppBoxRemoteCatalogService()
-        self.catalogGroups = AppBoxCatalog.fallbackGroups
+        self.catalogGroups = []
         localInstalledIDs = resolvedLocalStore.installedIDs
     }
 
     private var catalogItems: [AppBoxCatalogItem] {
         catalogGroups.flatMap(\.items)
+    }
+
+    var catalogSeries: [AppBoxSeries] {
+        catalogGroups.reduce(into: [AppBoxSeries]()) { result, group in
+            if !result.contains(where: { $0.id == group.series.id }) {
+                result.append(group.series)
+            }
+        }
     }
 
     func refreshCatalogIfNeeded() async {
@@ -51,19 +59,17 @@ final class AppBoxStore: ObservableObject {
             catalogGroups = try await catalogService.fetchCatalogGroups()
             recordRuntimeState("catalog-refresh-success|groups=\(catalogGroups.count)|items=\(catalogItems.count)")
         } catch {
-            if catalogGroups.isEmpty {
-                catalogGroups = AppBoxCatalog.fallbackGroups
-            }
-            recordRuntimeState("catalog-refresh-failed|\(error.localizedDescription)|fallbackItems=\(catalogItems.count)")
+            catalogGroups = []
+            recordRuntimeState("catalog-refresh-failed|\(error.localizedDescription)|items=0")
         }
     }
 
-    func catalogGroups(series: AppBoxSeries, query: String, language: AppBoxLanguage) -> [AppBoxCatalogGroup] {
-        AppBoxCatalog.filter(groups: catalogGroups, series: series, query: query)
+    func catalogGroups(seriesID: String?, query: String, language: AppBoxLanguage) -> [AppBoxCatalogGroup] {
+        AppBoxCatalog.filter(groups: catalogGroups, seriesID: seriesID, query: query)
     }
 
     func item(id: String) -> AppBoxCatalogItem? {
-        catalogItems.first { $0.id == id } ?? AppBoxCatalog.item(id: id)
+        catalogItems.first { $0.id == id }
     }
 
     func isInstalled(_ item: AppBoxCatalogItem, hostApps: [LCAppModel]) -> Bool {
