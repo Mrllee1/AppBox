@@ -4,11 +4,8 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>$(APP_GROUP_SIDESTORE)</string>
-		<string>$(APP_GROUP_ALTSTORE)</string>
+		<string>group.com.tianya.appbox</string>
 	</array>
-	<key>get-task-allow</key>
-	<true/>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)com.kdt.livecontainer.shared</string>

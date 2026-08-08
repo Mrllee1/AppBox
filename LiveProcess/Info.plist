@@ -32,11 +32,6 @@
 	</array>
 	<key>NSExtension</key>
 	<dict>
-		<key>NSExtensionAttributes</key>
-		<dict>
-			<key>NSExtensionActivationRule</key>
-			<string>FALSEPREDICATE</string>
-		</dict>
 		<key>NSExtensionContextClass</key>
 		<string>NSExtensionContext</string>
 		<key>NSExtensionContextHostClass</key>
