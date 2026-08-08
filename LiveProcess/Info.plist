@@ -42,7 +42,7 @@
 		<key>NSExtensionContextHostClass</key>
 		<string>NSExtensionContext</string>
 		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.ar.viewer</string>
+		<string>com.apple.services</string>
 		<key>NSExtensionPrincipalClass</key>
 		<string>LiveProcessHandler</string>
 	</dict>
