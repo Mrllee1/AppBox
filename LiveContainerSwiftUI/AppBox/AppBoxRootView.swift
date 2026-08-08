@@ -152,7 +152,16 @@ struct AppBoxRootView: View {
         ZStack(alignment: .top) {
             palette.background.ignoresSafeArea()
 
-            NavigationView {
+            VStack(spacing: 10) {
+                appCenterHeader
+
+                AppBoxSearchBar(
+                    text: $query,
+                    placeholder: copy.text("搜索应用", "Search apps"),
+                    palette: palette
+                )
+                .padding(.horizontal, AppBoxLayout.pagePadding)
+
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: AppBoxLayout.sectionSpacing) {
                         if !installedItems.isEmpty {
@@ -187,46 +196,10 @@ struct AppBoxRootView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 32)
                 }
-                .background(palette.background)
-                .navigationTitle(AppBoxBrand.name(for: language))
-                .navigationBarTitleDisplayMode(.inline)
-                .searchable(
-                    text: $query,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: copy.text("搜索应用", "Search apps")
-                )
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        toolbarButton(
-                            icon: .options,
-                            label: copy.text("设置", "Settings")
-                        ) { showSettings = true }
-                    }
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        toolbarButton(
-                            icon: appearance == .dark ? .modeLight : .modeDark,
-                            label: copy.text("切换外观", "Toggle appearance")
-                        ) {
-                            appearance = appearance == .dark ? .light : .dark
-                        }
-                        toolbarButton(
-                            icon: .lock,
-                            label: copy.text("隐私密码", "Privacy PIN")
-                        ) { openPassword(allowsDecoyManagement: false) }
-                        toolbarButton(
-                            icon: .share,
-                            label: copy.text("分享", "Share")
-                        ) {
-                            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
-                                showShare = true
-                            }
-                        }
-                    }
-                }
-                .tint(palette.accent)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: installedItems.map(\.id))
             }
-            .navigationViewStyle(StackNavigationViewStyle())
+            .padding(.top, 8)
+            .background(palette.background)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: installedItems.map(\.id))
 
             if let notice = store.notice {
                 AppBoxNoticeView(text: noticeText(notice), palette: palette)
@@ -253,6 +226,45 @@ struct AppBoxRootView: View {
             }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.20), value: store.launchState != nil)
+    }
+
+    private var appCenterHeader: some View {
+        ZStack {
+            Text(AppBoxBrand.name(for: language))
+                .font(.headline.weight(.semibold))
+                .foregroundColor(palette.primaryText)
+                .lineLimit(1)
+
+            HStack(spacing: 4) {
+                topIconButton(
+                    icon: .options,
+                    label: copy.text("设置", "Settings")
+                ) { showSettings = true }
+
+                Spacer(minLength: 12)
+
+                topIconButton(
+                    icon: appearance == .dark ? .modeLight : .modeDark,
+                    label: copy.text("切换外观", "Toggle appearance")
+                ) {
+                    appearance = appearance == .dark ? .light : .dark
+                }
+                topIconButton(
+                    icon: .lock,
+                    label: copy.text("隐私密码", "Privacy PIN")
+                ) { openPassword(allowsDecoyManagement: false) }
+                topIconButton(
+                    icon: .share,
+                    label: copy.text("分享", "Share")
+                ) {
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                        showShare = true
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, AppBoxLayout.pagePadding)
+        .frame(height: 44)
     }
 
     private func dismissSensitiveContent() {
@@ -375,14 +387,19 @@ struct AppBoxRootView: View {
         return Array(repeating: GridItem(.flexible(minimum: 44), spacing: 9), count: columnCount)
     }
 
-    private func toolbarButton(
+    private func topIconButton(
         icon: AppBoxIcon,
         label: String,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Image(systemName: icon.rawValue)
+            AppBoxGlyph(icon: icon)
+                .frame(width: 19, height: 19)
+                .foregroundStyle(palette.primaryText)
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(label)
     }
 

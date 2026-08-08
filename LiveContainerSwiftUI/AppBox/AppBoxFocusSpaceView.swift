@@ -135,8 +135,8 @@ struct AppBoxFocusSpaceView: View {
                     AppBoxGlyph(icon: headerIcon)
                         .frame(width: 20, height: 20)
                         .foregroundColor(headerIcon == .share ? palette.primaryText : palette.accent)
-                        .frame(width: 52, height: 52)
-                        .appBoxGlassControl(palette, radius: 26, isInteractive: true)
+                        .frame(width: 42, height: 42)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(headerActionTitle)
