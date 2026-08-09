@@ -1,5 +1,6 @@
 #import "LCSharedUtils.h"
 #import "FoundationPrivate.h"
+#import "LCMachOUtils.h"
 #import "UIKitPrivate.h"
 #import "utils.h"
 @import MachO;
@@ -11,6 +12,26 @@ extern NSBundle *lcMainBundle;
 NSString* FBSOpenApplicationOptionKeyActivateAsClassic = @"__ActivateAsClassic";
 NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
 
+static NSDictionary *LCCodeEntitlements(void) {
+    static NSDictionary *entitlements;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSString *entitlementXML = getLCEntitlementXML();
+        NSData *data = [entitlementXML dataUsingEncoding:NSUTF8StringEncoding];
+        if (!data) {
+            return;
+        }
+        id plist = [NSPropertyListSerialization propertyListWithData:data
+                                                             options:NSPropertyListImmutable
+                                                              format:NULL
+                                                               error:NULL];
+        if ([plist isKindOfClass:NSDictionary.class]) {
+            entitlements = plist;
+        }
+    });
+    return entitlements ?: @{};
+}
+
 @implementation LCSharedUtils
 
 + (NSString*) teamIdentifier {
@@ -21,13 +42,16 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
         // Simulator builds have no signing team or keychain access group.
         ans = @"SIMULATOR";
 #else
-        void* taskSelf = SecTaskCreateFromSelf(NULL);
-        CFErrorRef error = NULL;
-        CFTypeRef cfans = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("com.apple.developer.team-identifier"), &error);
-        if(CFGetTypeID(cfans) == CFStringGetTypeID()) {
-            ans = (__bridge NSString*)cfans;
+        id value = LCCodeEntitlements()[@"com.apple.developer.team-identifier"];
+        if ([value isKindOfClass:NSString.class] && [value length] > 0) {
+            ans = value;
         }
-        CFRelease(taskSelf);
+        if (ans.length == 0) {
+            value = [NSBundle.mainBundle objectForInfoDictionaryKey:@"AppBoxTeamIdentifier"];
+            if ([value isKindOfClass:NSString.class] && [value length] > 0) {
+                ans = value;
+            }
+        }
 #endif
         if(!ans) {
             // the above seems not to work if the device is jailbroken by Palera1n, so we use the public api one as backup
@@ -96,17 +120,24 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
             appGroupID = cached;
             return;
         }
-        CFErrorRef error = NULL;
-        void* taskSelf = SecTaskCreateFromSelf(NULL);
-        CFTypeRef value = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("com.apple.security.application-groups"), &error);
-        CFRelease(taskSelf);
-        
-        if(!value) {
-            return;
+        id value = LCCodeEntitlements()[@"com.apple.security.application-groups"];
+        NSArray *appGroups = [value isKindOfClass:NSArray.class] ? value : nil;
+        if (appGroups.count == 0) {
+            value = [NSBundle.mainBundle objectForInfoDictionaryKey:@"AppBoxAppGroupIdentifier"];
+            if ([value isKindOfClass:NSString.class] && [value length] > 0) {
+                appGroups = @[value];
+            }
         }
-        NSArray* appGroups = (__bridge NSArray *)value;
-        if(appGroups.count > 0) {
-            appGroupID = [appGroups firstObject];
+
+        for (id group in appGroups) {
+            if (![group isKindOfClass:NSString.class]) {
+                continue;
+            }
+            NSURL *path = [NSFileManager.defaultManager containerURLForSecurityApplicationGroupIdentifier:group];
+            if (path) {
+                appGroupID = group;
+                return;
+            }
         }
     });
     return appGroupID;

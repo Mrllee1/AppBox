@@ -340,8 +340,7 @@ struct LCJITLessDiagnoseView : View {
         if certificateDataFound {
             validateCertificate()
         }
-        let task = SecTaskCreateFromSelf(nil)
-        guard let value = SecTaskCopyValueForEntitlement(task, "com.apple.developer.team-identifier" as CFString, nil), let teamId = value.takeRetainedValue() as? String else {
+        guard let teamId = LCSharedUtils.teamIdentifier(), !teamId.isEmpty else {
             errorInfo = "Failed to read com.apple.developer.team-identifier"
             errorShow = true
             return

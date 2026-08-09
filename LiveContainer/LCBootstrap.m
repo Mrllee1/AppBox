@@ -304,21 +304,10 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     
     if([guestAppInfo[@"doUseLCBundleId"] boolValue] ) {
         NSMutableDictionary* infoPlist = [NSMutableDictionary dictionaryWithContentsOfFile:[NSString stringWithFormat:@"%@/Info.plist", bundlePath]];
-        CFErrorRef error = NULL;
-        void* taskSelf = SecTaskCreateFromSelf(NULL);
-        CFTypeRef value = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("application-identifier"), &error);
-        CFRelease(taskSelf);
-        if (value) {
-            NSString *entStr = (__bridge NSString *)value;
-            CFRelease(value);
-            NSRange dotRange = [entStr rangeOfString:@"."];
-            if (dotRange.location != NSNotFound) {
-                NSString *expectedBundleId = [entStr substringFromIndex:dotRange.location + 1];
-                if(![infoPlist[@"CFBundleIdentifier"] isEqualToString:expectedBundleId]) {
-                    infoPlist[@"CFBundleIdentifier"] = expectedBundleId;
-                    [infoPlist writeBinToFile:[NSString stringWithFormat:@"%@/Info.plist", bundlePath] atomically:YES];
-                }
-            }
+        NSString *expectedBundleId = lcMainBundle.bundleIdentifier;
+        if (expectedBundleId.length > 0 && ![infoPlist[@"CFBundleIdentifier"] isEqualToString:expectedBundleId]) {
+            infoPlist[@"CFBundleIdentifier"] = expectedBundleId;
+            [infoPlist writeBinToFile:[NSString stringWithFormat:@"%@/Info.plist", bundlePath] atomically:YES];
         }
     }
     
@@ -373,13 +362,13 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         init_bypassDyldLibValidation();
     }
 
-    // Locate dyld image name address
-    const char **path = _CFGetProcessPath();
-    const char *oldPath = *path;
-    
     // Overwrite @executable_path
-    const char *appExecPath = appBundle.executablePath.fileSystemRepresentation;
-    *path = appExecPath;
+    NSString *guestExecutablePath = appBundle.executablePath;
+    if (guestExecutablePath.length == 0) {
+        return @"App's executable path not found. Please try force re-signing or reinstalling this app.";
+    }
+    const char *guestAppExecPath = guestExecutablePath.fileSystemRepresentation;
+    const char *appExecPath = guestAppExecPath;
     overwriteExecPath(appExecPath);
     
     // Overwrite NSUserDefaults
@@ -496,15 +485,11 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     overwriteMainCFBundle();
 
     // Overwrite executable info
-    if(!appBundle.executablePath) {
-        return @"App's executable path not found. Please try force re-signing or reinstalling this app.";
-    }
-
     NSMutableArray<NSString *> *objcArgv = NSProcessInfo.processInfo.arguments.mutableCopy;
-    objcArgv[0] = appBundle.executablePath;
+    objcArgv[0] = guestExecutablePath;
     [NSProcessInfo.processInfo performSelector:@selector(setArguments:) withObject:objcArgv];
     NSProcessInfo.processInfo.processName = appBundle.infoDictionary[@"CFBundleExecutable"];
-    *_CFGetProgname() = NSProcessInfo.processInfo.processName.UTF8String;
+    setprogname(NSProcessInfo.processInfo.processName.UTF8String);
     Class swiftNSProcessInfo = NSClassFromString(@"_NSSwiftProcessInfo");
     if(swiftNSProcessInfo) {
         // Swizzle the arguments method to return the ObjC arguments
@@ -549,14 +534,12 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         if(!selected32BitLayer || [selected32BitLayer length] == 0) {
             appError = @"No 32-bit translation layer installed";
             NSLog(@"[LCBootstrap] %@", appError);
-            *path = oldPath;
             return appError;
         }
         NSBundle *selected32bitLayerBundle = [NSBundle bundleWithPath:[docPath stringByAppendingPathComponent:selected32BitLayer]]; //TODO make it user friendly;
         if(!selected32bitLayerBundle) {
             appError = @"The specified LiveExec32.app path is not found";
             NSLog(@"[LCBootstrap] %@", appError);
-            *path = oldPath;
             return appError;
         }
         // maybe need to save selected32bitLayerBundle to static variable?
@@ -592,7 +575,6 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
             appError = @"dlopen: an unknown error occurred";
         }
         NSLog(@"[LCBootstrap] %@", appError);
-        *path = oldPath;
         return appError;
     }
     
@@ -626,7 +608,6 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         ) {
         appError = error.localizedDescription;
         NSLog(@"[LCBootstrap] loading bundle failed: %@", error);
-        *path = oldPath;
         return appError;
     }
     NSLog(@"[LCBootstrap] loaded bundle");
@@ -636,7 +617,6 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     if (!appMain) {
         appError = @"Could not find the main entry point";
         NSLog(@"[LCBootstrap] %@", appError);
-        *path = oldPath;
         return appError;
     }
 
@@ -650,7 +630,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         ret = appMain(argc, argv);
 #if is32BitSupported
     } else {
-        char *argv32[] = {(char*)appExecPath, (char*)*path, NULL};
+        char *argv32[] = {(char*)appExecPath, (char*)guestAppExecPath, NULL};
         ret = appMain(sizeof(argv32)/sizeof(*argv32) - 1, argv32);
     }
 #endif

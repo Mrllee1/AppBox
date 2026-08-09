@@ -2,7 +2,6 @@
 #import "LCSharedUtils.h"
 #import "UIKitPrivate.h"
 #import "utils.h"
-#import "../LiveContainer/FoundationPrivate.h"
 
 BOOL fixFilePicker;
 __attribute__((constructor))
@@ -103,25 +102,8 @@ static void NSFMGuestHooksInit() {
 @implementation DOCConfiguration(LiveContainerHook)
 
 - (void)hook_setHostIdentifier:(NSString *)ignored {
-    CFErrorRef error = NULL;
-    void* taskSelf = SecTaskCreateFromSelf(NULL);
-    CFTypeRef value = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("application-identifier"), &error);
-    CFRelease(taskSelf);
-    if (value) {
-        NSString *entStr = (__bridge NSString *)value;
-        CFRelease(value);
-        NSRange dotRange = [entStr rangeOfString:@"."];
-        if (dotRange.location != NSNotFound) {
-               NSString *result = [entStr substringFromIndex:dotRange.location + 1];
-            [self hook_setHostIdentifier:result];
-        } else {
-            [self hook_setHostIdentifier:entStr];
-        }
-    } else if (error) {
-        NSLog(@"Error fetching entitlement: %@", error);
-        CFRelease(error);
-        [self hook_setHostIdentifier:ignored];
-    }
+    NSString *hostIdentifier = NSUserDefaults.lcMainBundle.bundleIdentifier;
+    [self hook_setHostIdentifier:hostIdentifier.length > 0 ? hostIdentifier : ignored];
 }
 
 @end

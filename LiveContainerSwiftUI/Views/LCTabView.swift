@@ -202,8 +202,7 @@ struct LCTabView: View {
             return
         }
         
-        let task = SecTaskCreateFromSelf(nil)
-        guard let value = SecTaskCopyValueForEntitlement(task, "application-identifier" as CFString, nil), let appIdentifier = value.takeRetainedValue() as? String else {
+        guard let appIdentifier = AppBoxRuntimePolicy.applicationIdentifier else {
             errorInfo = "Unable to determine application-identifier"
             errorShow = true
             return
@@ -231,8 +230,7 @@ struct LCTabView: View {
             return
         }
 
-        let task = SecTaskCreateFromSelf(nil)
-        guard let value = SecTaskCopyValueForEntitlement(task, "get-task-allow" as CFString, nil), (value.takeRetainedValue() as? NSNumber)?.boolValue ?? false else {
+        guard AppBoxRuntimePolicy.getTaskAllow else {
             errorInfo = "lc.settings.notDevCert".loc
             errorShow = true
             return

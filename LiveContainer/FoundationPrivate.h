@@ -25,11 +25,6 @@
 - (void)_hostWillResignActiveNote:(NSNotification *)note;
 @end
 
-void* SecTaskCreateFromSelf(CFAllocatorRef allocator);
-NSString *SecTaskCopyTeamIdentifier(void *task, NSError **error);
-CFTypeRef SecTaskCopyValueForEntitlement(void *task, CFStringRef key, CFErrorRef *error);
-
-
 @interface _CFXPreferences2 : NSObject
 +(instancetype)copyDefaultPreferences;
 -(CFPropertyListRef)hook_copyAppValueForKey:(CFStringRef)key identifier:(CFStringRef)identifier container:(CFStringRef)container configurationURL:(CFURLRef)configurationURL;
@@ -40,4 +35,3 @@ CFTypeRef SecTaskCopyValueForEntitlement(void *task, CFStringRef key, CFErrorRef
 @interface CFPrefsPlistSource2 : NSObject
 -(id)hook_initWithDomain:(CFStringRef)arg1 user:(CFStringRef)arg2 byHost:(bool)arg3 containerPath:(CFStringRef)arg4 containingPreferences:(id)arg5 ;
 @end
-

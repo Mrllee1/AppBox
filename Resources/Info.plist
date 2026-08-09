@@ -4,6 +4,12 @@
 <dict>
 	<key>AppBoxAllowsDistributionSigning</key>
 	<true/>
+	<key>AppBoxAppGroupIdentifier</key>
+	<string>group.com.tianya.appbox</string>
+	<key>AppBoxApplicationIdentifier</key>
+	<string>$(DEVELOPMENT_TEAM).$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>AppBoxTeamIdentifier</key>
+	<string>$(DEVELOPMENT_TEAM)</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDisplayName</key>
