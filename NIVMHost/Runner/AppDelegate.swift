@@ -10,6 +10,7 @@ final class AppBoxHostDelegate: UIResponder, UIApplicationDelegate, UIKitCompati
   ]
 
   var window: UIWindow?
+  private var surfaceCoordinator: AppBoxSurfaceCoordinatorViewController?
 
   var keyWindow: UIWindow {
     if let window { return window }
@@ -64,11 +65,24 @@ final class AppBoxHostDelegate: UIResponder, UIApplicationDelegate, UIKitCompati
         self.inspectDeveloperController(controller, navigation: navigation)
       }
     } else {
-      window.rootViewController = AppBoxLauncherViewController()
+      let coordinator = AppBoxSurfaceCoordinatorViewController()
+      surfaceCoordinator = coordinator
+      window.rootViewController = coordinator
     }
     window.makeKeyAndVisible()
+    if let url = launchOptions?[.url] as? URL {
+      _ = surfaceCoordinator?.handle(url: url)
+    }
     print("APPBOX_RUNTIME host_ready runtime=\(ProcessInfo.processInfo.arguments.contains("--appbox-playbox-developer") ? "playbox_developer" : "launcher")")
     return true
+  }
+
+  func application(
+    _ application: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    surfaceCoordinator?.handle(url: url) ?? false
   }
 
   private func inspectDeveloperController(

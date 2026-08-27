@@ -31,6 +31,60 @@ class RunnerTests: XCTestCase {
     }
   }
 
+  func testFreshAppBoxLaunchUsesPrivacySurface() {
+    let suiteName = "AppBoxSurfaceTests.fresh.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    XCTAssertEqual(
+      AppBoxSurfaceRoute.initialSurface(arguments: ["AppBox"], defaults: defaults),
+      .privacy
+    )
+  }
+
+  func testForcedBoxLaunchPersistsTheActivatedSurface() {
+    let suiteName = "AppBoxSurfaceTests.box.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+
+    XCTAssertEqual(
+      AppBoxSurfaceRoute.initialSurface(
+        arguments: ["AppBox", "--appbox-force-surface"],
+        defaults: defaults
+      ),
+      .box
+    )
+    XCTAssertTrue(defaults.bool(forKey: AppBoxSurfaceRoute.activatedKey))
+    XCTAssertEqual(
+      AppBoxSurfaceRoute.initialSurface(arguments: ["AppBox"], defaults: defaults),
+      .box
+    )
+  }
+
+  func testPrivacyCaptureLaunchResetsTheActivatedSurface() {
+    let suiteName = "AppBoxSurfaceTests.capture.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suiteName)!
+    defer { defaults.removePersistentDomain(forName: suiteName) }
+    defaults.set(true, forKey: AppBoxSurfaceRoute.activatedKey)
+
+    XCTAssertEqual(
+      AppBoxSurfaceRoute.initialSurface(
+        arguments: ["AppBox", "--appbox-capture-privacy"],
+        defaults: defaults
+      ),
+      .privacy
+    )
+    XCTAssertFalse(defaults.bool(forKey: AppBoxSurfaceRoute.activatedKey))
+  }
+
+  func testAppBoxURLsRouteABFacesWithoutHijackingGuestRelaunch() {
+    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://box")!), .box)
+    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://open?id=tianya")!), .box)
+    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://privacy")!), .privacy)
+    XCTAssertNil(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://playbox.guestapp.relaunch")!))
+    XCTAssertNil(AppBoxSurfaceRoute.surface(for: URL(string: "https://3601.help")!))
+  }
+
   func testAlternateIconUsesOneSystemRequest() {
     let system = FakeAppIconSystem()
     let manager = AppIconManager(system: system)

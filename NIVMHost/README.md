@@ -1,10 +1,34 @@
-# AppBox NIVM Host
+# Quietform (AppBox NIVM Host)
 
-This is the active iPhone host for the PlayBox-style AppBox flow.
+`Quietform` is the App Store-facing English product name. This repository is
+the active iPhone host for the PlayBox-style AppBox flow.
+
+## A/B surfaces
+
+AppBox now keeps the original privacy surface as its A face and the NIVM app
+catalog as its B face:
+
+- A face (`Quietform`) uses Apple's `FamilyControls`, `ManagedSettings`, and
+  the system `FamilyActivityPicker`. The user grants Screen Time access,
+  chooses apps/categories in the iOS-owned picker, and can hide or restore the
+  selected items. Only Apple's opaque selection tokens are persisted.
+- B face (`天涯盒子`) is the existing encrypted catalog, download,
+  installation, NIVM/QEMU runtime, and guest-return flow described below.
+- A fresh install starts on A. Opening `appbox://box` (or the existing
+  `appbox://open`, `appbox://install`, and `appbox://native` entry commands)
+  activates B and persists it across normal launches.
+- Opening `appbox://privacy` returns to A and persists that choice. The internal
+  `appbox://playbox.guestapp.relaunch` callback deliberately preserves B so the
+  guest floating menu continues to return to the box instead of exposing A.
+
+The host target and its provisioning profile must both contain
+`com.apple.developer.family-controls`. App Store distribution also requires the
+corresponding Apple-approved Family Controls distribution entitlement; a local
+development profile alone is not sufficient for release submission.
 
 ## User flow
 
-1. AppBox restores its last verified catalog from Application Support so a
+1. The activated B face restores its last verified catalog from Application Support so a
    return/relaunch can render immediately, then refreshes the encrypted catalog
    from `AppBoxCatalogBaseURL` in the background.
 2. The launcher renders server categories as five-column cards with real app
@@ -68,6 +92,9 @@ The cache/startup revision is captured under
 `Build/DeviceQA/playbox-launch-progress-cache/`: `launcher-cached.png`,
 `launch-progress.png`, and `launcher-after-return.png` verify immediate catalog
 restoration, the phase overlay, and recovery after the floating return action.
+The A/B implementation is captured under `Build/DeviceQA/appbox-ab-surfaces/`:
+`privacy-screen.png` and `box-screen.png` are real-device renders of the two
+surfaces.
 
 ## Prerequisites
 
@@ -92,6 +119,18 @@ pod install
 
 Successful completion prints `APPBOX_HOST_OK`, installs
 `com.tianya.appbox`, and launches it on the selected device.
+
+Useful A/B QA launches are:
+
+```bash
+# Reset to and capture A.
+xcrun devicectl device process launch --device <device-identifier> \
+  --terminate-existing com.tianya.appbox --appbox-capture-privacy
+
+# Force and capture B.
+xcrun devicectl device process launch --device <device-identifier> \
+  --terminate-existing com.tianya.appbox --appbox-capture-launcher
+```
 
 For repeatable device QA of a server-provided catalog app, launch AppBox with
 its catalog id:

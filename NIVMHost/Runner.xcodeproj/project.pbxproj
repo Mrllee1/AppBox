@@ -24,6 +24,11 @@
 		AB0A00102F00000000000010 /* LNKiwiDecryptProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00112F00000000000011 /* LNKiwiDecryptProbe.swift */; };
 		AB0A00122F00000000000012 /* AppBoxCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00132F00000000000013 /* AppBoxCatalogService.swift */; };
 		AB0A00142F00000000000014 /* AppBoxAssetCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00152F00000000000015 /* AppBoxAssetCrypto.m */; };
+		AB0A00202F00000000000020 /* AppBoxVisibilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00212F00000000000021 /* AppBoxVisibilityService.swift */; };
+		AB0A00222F00000000000022 /* AppBoxPrivacySurfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00232F00000000000023 /* AppBoxPrivacySurfaceView.swift */; };
+		AB0A00242F00000000000024 /* AppBoxSurfaceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00252F00000000000025 /* AppBoxSurfaceCoordinator.swift */; };
+		AB0A00262F00000000000026 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00272F00000000000027 /* FamilyControls.framework */; };
+		AB0A00282F00000000000028 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00292F00000000000029 /* ManagedSettings.framework */; };
 		F584CB7B2E796FBE00E25C34 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F584CB7A2E796FBE00E25C34 /* NetworkExtension.framework */; };
 /* End PBXBuildFile section */
 
@@ -72,6 +77,11 @@
 		AB0A00132F00000000000013 /* AppBoxCatalogService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxCatalogService.swift; sourceTree = "<group>"; };
 		AB0A00152F00000000000015 /* AppBoxAssetCrypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppBoxAssetCrypto.m; sourceTree = "<group>"; };
 		AB0A00162F00000000000016 /* AppBoxAssetCrypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppBoxAssetCrypto.h; sourceTree = "<group>"; };
+		AB0A00212F00000000000021 /* AppBoxVisibilityService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxVisibilityService.swift; sourceTree = "<group>"; };
+		AB0A00232F00000000000023 /* AppBoxPrivacySurfaceView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxPrivacySurfaceView.swift; sourceTree = "<group>"; };
+		AB0A00252F00000000000025 /* AppBoxSurfaceCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxSurfaceCoordinator.swift; sourceTree = "<group>"; };
+		AB0A00272F00000000000027 /* FamilyControls.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FamilyControls.framework; path = System/Library/Frameworks/FamilyControls.framework; sourceTree = SDKROOT; };
+		AB0A00292F00000000000029 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
 		CED8FB9BFD546D34300C73DB /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF02A11BB7AD9779878AA02F /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		D8162EAD23E375935A770639 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
@@ -119,6 +129,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB0A00262F00000000000026 /* FamilyControls.framework in Frameworks */,
+				AB0A00282F00000000000028 /* ManagedSettings.framework in Frameworks */,
 				9759E9FBC16909494FB6897E /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -138,6 +150,8 @@
 		1EC80B3B92DA2231E0879175 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AB0A00272F00000000000027 /* FamilyControls.framework */,
+				AB0A00292F00000000000029 /* ManagedSettings.framework */,
 				3C7D85D02F94F68C00FAFF26 /* Libbox.xcframework */,
 				F584CB7A2E796FBE00E25C34 /* NetworkExtension.framework */,
 				591BC9A37FFC72957CA28C90 /* Pods_Runner.framework */,
@@ -225,6 +239,9 @@
 				AB0A00132F00000000000013 /* AppBoxCatalogService.swift */,
 				AB0A00152F00000000000015 /* AppBoxAssetCrypto.m */,
 				AB0A00162F00000000000016 /* AppBoxAssetCrypto.h */,
+				AB0A00212F00000000000021 /* AppBoxVisibilityService.swift */,
+				AB0A00232F00000000000023 /* AppBoxPrivacySurfaceView.swift */,
+				AB0A00252F00000000000025 /* AppBoxSurfaceCoordinator.swift */,
 				7B4B7C2A2D7E4A0A9F6C0012 /* KeyboardInsetsStreamHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
@@ -469,6 +486,9 @@
 				AB0A00102F00000000000010 /* LNKiwiDecryptProbe.swift in Sources */,
 				AB0A00122F00000000000012 /* AppBoxCatalogService.swift in Sources */,
 				AB0A00142F00000000000014 /* AppBoxAssetCrypto.m in Sources */,
+				AB0A00202F00000000000020 /* AppBoxVisibilityService.swift in Sources */,
+				AB0A00222F00000000000022 /* AppBoxPrivacySurfaceView.swift in Sources */,
+				AB0A00242F00000000000024 /* AppBoxSurfaceCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

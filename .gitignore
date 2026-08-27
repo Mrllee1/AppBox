@@ -17,3 +17,4 @@ Resources/AppBox-JITLess-*.p12
 Resources/AppBox-JITLess-*.plist
 /screenshots
 /NIVMHost/Build
+/NIVMHost/dist
