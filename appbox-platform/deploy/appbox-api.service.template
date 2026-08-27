@@ -1,0 +1,19 @@
+[Unit]
+Description=AppBox API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=appbox
+Group=appbox
+WorkingDirectory=__APPBOX_PLATFORM_DIR__
+EnvironmentFile=/etc/appbox/appbox.env
+ExecStart=/usr/bin/npm run start:api
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

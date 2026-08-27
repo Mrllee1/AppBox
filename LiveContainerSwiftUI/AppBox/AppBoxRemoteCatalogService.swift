@@ -77,6 +77,11 @@ private struct AppBoxRemoteApp: Decodable {
     let icon: String
     let url: String?
     let b: String?
+    let h: String?
+    let nu: String?
+    let nh: String?
+    let ver: String?
+    let build: String?
 }
 
 enum AppBoxClientCryptoConfig {
@@ -133,6 +138,15 @@ private enum AppBoxRemoteCatalogMapper {
         let source: AppBoxAppSource
         switch app.t.lowercased() {
         case "ipa":
+            guard app.url.flatMap(URL.init(string:)) != nil,
+                  app.h?.count == 64,
+                  app.nu.flatMap(URL.init(string:)) != nil,
+                  app.nh?.count == 64,
+                  app.b != nil,
+                  app.ver != nil,
+                  app.build != nil else {
+                return nil
+            }
             source = .ipa(downloadURL: app.url.flatMap(URL.init(string:)))
         case "web":
             guard let url = app.url.flatMap(URL.init(string:)) else { return nil }
@@ -151,7 +165,12 @@ private enum AppBoxRemoteCatalogMapper {
             icon: icon(for: app.t, groupID: group.id),
             iconStyle: style(for: category.id, groupID: group.id),
             remoteIconURL: iconURL,
-            source: source
+            source: source,
+            downloadSHA256: app.h,
+            nivmURL: app.nu.flatMap(URL.init(string:)),
+            nivmSHA256: app.nh,
+            expectedVersion: app.ver,
+            expectedBuild: app.build
         )
     }
 

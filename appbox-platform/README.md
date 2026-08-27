@@ -17,7 +17,7 @@ Admin: `http://127.0.0.1:39111`
 Client API docs:
 
 - local: `http://127.0.0.1:39111/docs/client-api`
-- production: `https://666999.lol/docs/client-api`
+- production: `https://3601.help/docs/client-api`
 
 Default local admin account:
 
@@ -47,6 +47,12 @@ npm run build
 npm run start:api
 npm run start:admin
 ```
+
+For the reproducible nginx + systemd deployment used by the iOS catalog, see
+[`deploy/README.md`](./deploy/README.md). The current NIVMHost client and API
+share the default base64 `APPBOX_CLIENT_AES_KEY`; if this value is rotated, the
+iOS client must be rebuilt with the same key. Asset-image key/IV overrides must
+also be supplied to both the API and the NIVMHost build.
 
 Admin endpoints under `/admin/*` require `Authorization: Bearer <token>`.
 Public client endpoints remain unauthenticated but use AES-256-GCM envelopes.

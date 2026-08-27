@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { Injectable } from "@nestjs/common";
 import { seedData } from "./seed";
-import { AppBoxStoreData } from "./types";
+import { AppBoxApp, AppBoxStoreData } from "./types";
 
 @Injectable()
 export class FileDataStore {
@@ -40,11 +40,43 @@ export class FileDataStore {
 
   private async initialize(): Promise<void> {
     await mkdir(dirname(this.filePath), { recursive: true });
+    let raw: string;
     try {
-      await readFile(this.filePath, "utf8");
+      raw = await readFile(this.filePath, "utf8");
     } catch {
       await this.writeRaw(seedData);
+      return;
     }
+
+    const parsed = JSON.parse(raw) as AppBoxStoreData;
+    const hasInvalidEnabledIPA = parsed.apps.some(
+      (app) => app.type === "ipa" && app.enabled && !this.isNIVMReady(app)
+    );
+    if (hasInvalidEnabledIPA) {
+      const apps = parsed.apps.map((app) => {
+        if (app.type === "ipa" && !this.isNIVMReady(app)) {
+          return { ...app, enabled: false };
+        }
+        return app;
+      });
+      await this.writeRaw({
+        ...parsed,
+        version: parsed.version + 1,
+        apps
+      });
+    }
+  }
+
+  private isNIVMReady(app: AppBoxApp): boolean {
+    return Boolean(
+      app.bundleId &&
+      app.version &&
+      app.build &&
+      app.downloadUrl &&
+      /^[a-fA-F0-9]{64}$/.test(app.downloadSha256 || "") &&
+      app.nivmUrl &&
+      /^[a-fA-F0-9]{64}$/.test(app.nivmSha256 || "")
+    );
   }
 
   private async writeRaw(data: AppBoxStoreData): Promise<void> {

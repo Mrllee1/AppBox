@@ -1,9 +1,35 @@
+import CryptoKit
 import Foundation
 
 struct AppBoxIPAInstallRequest: Equatable {
     let id: String
     let sourceURL: URL
     let expectedBundleIdentifier: String?
+    let expectedDownloadSHA256: String?
+    let nivmURL: URL?
+    let expectedNIVMSHA256: String?
+    let expectedVersion: String?
+    let expectedBuild: String?
+
+    init(
+        id: String,
+        sourceURL: URL,
+        expectedBundleIdentifier: String?,
+        expectedDownloadSHA256: String? = nil,
+        nivmURL: URL? = nil,
+        expectedNIVMSHA256: String? = nil,
+        expectedVersion: String? = nil,
+        expectedBuild: String? = nil
+    ) {
+        self.id = id
+        self.sourceURL = sourceURL
+        self.expectedBundleIdentifier = expectedBundleIdentifier
+        self.expectedDownloadSHA256 = expectedDownloadSHA256
+        self.nivmURL = nivmURL
+        self.expectedNIVMSHA256 = expectedNIVMSHA256
+        self.expectedVersion = expectedVersion
+        self.expectedBuild = expectedBuild
+    }
 }
 
 @MainActor
@@ -23,6 +49,9 @@ enum AppBoxIPAInstallError: LocalizedError {
     case missingApplication
     case unreadableApplication
     case bundleIdentifierMismatch
+    case versionMismatch
+    case checksumMismatch(String)
+    case invalidNIVM
     case alreadyInstalled
     case signingFailed(String)
 
@@ -40,6 +69,12 @@ enum AppBoxIPAInstallError: LocalizedError {
             return "The application information could not be read."
         case .bundleIdentifierMismatch:
             return "The downloaded app does not match this catalog item."
+        case .versionMismatch:
+            return "The downloaded app version does not match this catalog item."
+        case .checksumMismatch(let artifact):
+            return "The downloaded \(artifact) failed SHA-256 verification."
+        case .invalidNIVM:
+            return "The downloaded NIVM runtime is invalid."
         case .alreadyInstalled:
             return "The application is already installed."
         case .signingFailed(let message):
@@ -80,6 +115,11 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
         }
         try Task.checkCancellation()
 
+        if let expected = request.expectedDownloadSHA256,
+           try sha256(of: archiveURL) != expected.lowercased() {
+            throw AppBoxIPAInstallError.checksumMismatch("application package")
+        }
+
         progress(.processing)
         let extractionProgress = Progress.discreteProgress(totalUnitCount: 100)
         guard await extractArchive(archiveURL, to: extractionDirectory, progress: extractionProgress) == 0 else {
@@ -104,6 +144,19 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
            importedBundleIdentifier != expectedBundleIdentifier {
             throw AppBoxIPAInstallError.bundleIdentifierMismatch
         }
+        guard let importedPlist = NSDictionary(
+            contentsOf: applicationURL.appendingPathComponent("Info.plist")
+        ) else {
+            throw AppBoxIPAInstallError.unreadableApplication
+        }
+        if let expectedVersion = request.expectedVersion,
+           importedPlist["CFBundleShortVersionString"] as? String != expectedVersion {
+            throw AppBoxIPAInstallError.versionMismatch
+        }
+        if let expectedBuild = request.expectedBuild,
+           importedPlist["CFBundleVersion"] as? String != expectedBuild {
+            throw AppBoxIPAInstallError.versionMismatch
+        }
 
         let relativeBundlePath = "\(importedBundleIdentifier.sanitizeNonACSII()).app"
         let outputURL = LCPath.bundlePath.appendingPathComponent(relativeBundlePath, isDirectory: true)
@@ -121,6 +174,17 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
 
         guard let finalInfo = LCAppInfo(bundlePath: outputURL.path) else {
             throw AppBoxIPAInstallError.unreadableApplication
+        }
+
+        if let nivmURL = request.nivmURL {
+            try await installNIVM(
+                from: nivmURL,
+                expectedSHA256: request.expectedNIVMSHA256,
+                into: outputURL,
+                workingDirectory: workingDirectory,
+                progress: progress,
+                requestID: request.id
+            )
         }
         finalInfo.relativeBundlePath = relativeBundlePath
         finalInfo.spoofSDKVersion = true
@@ -172,6 +236,67 @@ final class AppBoxIPAInstallService: AppBoxIPAInstalling {
         progress: Progress
     ) async -> Int32 {
         extract(archiveURL.path, destinationURL.path, progress)
+    }
+
+    private func installNIVM(
+        from sourceURL: URL,
+        expectedSHA256: String?,
+        into applicationURL: URL,
+        workingDirectory: URL,
+        progress: @escaping @MainActor (AppBoxInstallState) -> Void,
+        requestID: String
+    ) async throws {
+        let fileManager = FileManager.default
+        let downloadedURL = workingDirectory.appendingPathComponent("runtime.nivm.download")
+        let download = AppBoxIPADownloadOperation { value in
+            progress(.downloading(progress: 0.62 + (value * 0.33)))
+        }
+        downloads[requestID] = download
+        defer { downloads[requestID] = nil }
+        try await download.start(from: sourceURL, to: downloadedURL)
+        try Task.checkCancellation()
+
+        if let expectedSHA256,
+           try sha256(of: downloadedURL) != expectedSHA256.lowercased() {
+            throw AppBoxIPAInstallError.checksumMismatch("NIVM runtime")
+        }
+
+        let destination = applicationURL.appendingPathComponent("rocketship.nivm")
+        if try hasNIVMMagic(downloadedURL) {
+            try? fileManager.removeItem(at: destination)
+            try fileManager.copyItem(at: downloadedURL, to: destination)
+            return
+        }
+
+        let extractionURL = workingDirectory.appendingPathComponent("NIVM", isDirectory: true)
+        try fileManager.createDirectory(at: extractionURL, withIntermediateDirectories: true)
+        let extractionProgress = Progress.discreteProgress(totalUnitCount: 100)
+        guard await extractArchive(downloadedURL, to: extractionURL, progress: extractionProgress) == 0 else {
+            throw AppBoxIPAInstallError.invalidNIVM
+        }
+        let candidates = try fileManager.subpathsOfDirectory(atPath: extractionURL.path)
+            .filter { URL(fileURLWithPath: $0).lastPathComponent == "rocketship.nivm" }
+        guard candidates.count == 1 else { throw AppBoxIPAInstallError.invalidNIVM }
+        let extractedNIVM = extractionURL.appendingPathComponent(candidates[0])
+        guard try hasNIVMMagic(extractedNIVM) else { throw AppBoxIPAInstallError.invalidNIVM }
+        try? fileManager.removeItem(at: destination)
+        try fileManager.copyItem(at: extractedNIVM, to: destination)
+    }
+
+    private nonisolated func hasNIVMMagic(_ url: URL) throws -> Bool {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        return try handle.read(upToCount: 4) == Data("NIVM".utf8)
+    }
+
+    private nonisolated func sha256(of url: URL) throws -> String {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var digest = SHA256()
+        while let chunk = try handle.read(upToCount: 1024 * 1024), !chunk.isEmpty {
+            digest.update(data: chunk)
+        }
+        return digest.finalize().map { String(format: "%02x", $0) }.joined()
     }
 
     private func sign(_ appInfo: LCAppInfo) async -> (succeeded: Bool, message: String?) {

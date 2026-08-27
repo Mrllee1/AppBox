@@ -186,6 +186,11 @@ struct AppBoxCatalogItem: Identifiable, Hashable {
     let iconStyle: AppBoxIconStyle
     let remoteIconURL: URL?
     let source: AppBoxAppSource
+    let downloadSHA256: String?
+    let nivmURL: URL?
+    let nivmSHA256: String?
+    let expectedVersion: String?
+    let expectedBuild: String?
 
     init(
         id: String,
@@ -197,7 +202,12 @@ struct AppBoxCatalogItem: Identifiable, Hashable {
         icon: AppBoxIcon,
         iconStyle: AppBoxIconStyle,
         remoteIconURL: URL? = nil,
-        source: AppBoxAppSource
+        source: AppBoxAppSource,
+        downloadSHA256: String? = nil,
+        nivmURL: URL? = nil,
+        nivmSHA256: String? = nil,
+        expectedVersion: String? = nil,
+        expectedBuild: String? = nil
     ) {
         self.id = id
         self.bundleIdentifier = bundleIdentifier
@@ -209,6 +219,11 @@ struct AppBoxCatalogItem: Identifiable, Hashable {
         self.iconStyle = iconStyle
         self.remoteIconURL = remoteIconURL
         self.source = source
+        self.downloadSHA256 = downloadSHA256
+        self.nivmURL = nivmURL
+        self.nivmSHA256 = nivmSHA256
+        self.expectedVersion = expectedVersion
+        self.expectedBuild = expectedBuild
     }
 
     func name(for language: AppBoxLanguage) -> String {

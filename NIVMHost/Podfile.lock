@@ -1,0 +1,282 @@
+PODS:
+  - audio_session (0.0.1):
+    - Flutter
+  - camera_avfoundation (0.0.1):
+    - Flutter
+  - connectivity_plus (0.0.1):
+    - Flutter
+  - device_info_plus (0.0.1):
+    - Flutter
+  - DKImagePickerController/Core (4.3.9):
+    - DKImagePickerController/ImageDataManager
+    - DKImagePickerController/Resource
+  - DKImagePickerController/ImageDataManager (4.3.9)
+  - DKImagePickerController/PhotoGallery (4.3.9):
+    - DKImagePickerController/Core
+    - DKPhotoGallery
+  - DKImagePickerController/Resource (4.3.9)
+  - DKPhotoGallery (0.0.19):
+    - DKPhotoGallery/Core (= 0.0.19)
+    - DKPhotoGallery/Model (= 0.0.19)
+    - DKPhotoGallery/Preview (= 0.0.19)
+    - DKPhotoGallery/Resource (= 0.0.19)
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Core (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Preview
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Model (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Preview (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Resource
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Resource (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - file_picker (0.0.1):
+    - DKImagePickerController/PhotoGallery
+    - Flutter
+  - Flutter (1.0.0)
+  - flutter_local_notifications (0.0.1):
+    - Flutter
+  - flutter_secure_storage (6.0.0):
+    - Flutter
+  - flutter_singbox (0.1.0):
+    - Flutter
+  - gal (1.0.0):
+    - Flutter
+    - FlutterMacOS
+  - geolocator_apple (1.2.0):
+    - Flutter
+    - FlutterMacOS
+  - image_picker_ios (0.0.1):
+    - Flutter
+  - JNKeychain (0.1.4)
+  - just_audio (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - libwebp (1.5.0):
+    - libwebp/demux (= 1.5.0)
+    - libwebp/mux (= 1.5.0)
+    - libwebp/sharpyuv (= 1.5.0)
+    - libwebp/webp (= 1.5.0)
+  - libwebp/demux (1.5.0):
+    - libwebp/webp
+  - libwebp/mux (1.5.0):
+    - libwebp/demux
+  - libwebp/sharpyuv (1.5.0)
+  - libwebp/webp (1.5.0):
+    - libwebp/sharpyuv
+  - mobile_device_identifier (0.0.1):
+    - Flutter
+    - JNKeychain
+  - mobile_scanner (7.0.0):
+    - Flutter
+    - FlutterMacOS
+  - open_filex (0.0.2):
+    - Flutter
+  - openinstall_flutter_plugin (0.0.1):
+    - Flutter
+  - package_info_plus (0.4.5):
+    - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - permission_handler_apple (9.3.0):
+    - Flutter
+  - photo_manager (3.9.0):
+    - Flutter
+    - FlutterMacOS
+  - qr_code_tools (0.1.0):
+    - Flutter
+  - record_ios (1.2.0):
+    - Flutter
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
+  - sensors_plus (0.0.1):
+    - Flutter
+  - share_plus (0.0.1):
+    - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - sqflite_darwin (0.0.4):
+    - Flutter
+    - FlutterMacOS
+  - SwiftyGif (5.4.5)
+  - url_launcher_ios (0.0.1):
+    - Flutter
+  - video_player_avfoundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - video_thumbnail (0.0.1):
+    - Flutter
+    - libwebp
+  - wakelock_plus (0.0.1):
+    - Flutter
+  - webview_flutter_wkwebview (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - ZIPFoundation (0.9.20)
+
+DEPENDENCIES:
+  - audio_session (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/audio_session/ios`)
+  - camera_avfoundation (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/camera_avfoundation/ios`)
+  - connectivity_plus (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/connectivity_plus/ios`)
+  - device_info_plus (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/device_info_plus/ios`)
+  - file_picker (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/file_picker/ios`)
+  - Flutter (from `../../pornhub/pornhub_client/ios/Flutter`)
+  - flutter_local_notifications (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_secure_storage (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/flutter_secure_storage/ios`)
+  - flutter_singbox (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/flutter_singbox/ios`)
+  - gal (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/gal/darwin`)
+  - geolocator_apple (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/geolocator_apple/darwin`)
+  - image_picker_ios (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/image_picker_ios/ios`)
+  - just_audio (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/just_audio/darwin`)
+  - mobile_device_identifier (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/mobile_device_identifier/ios`)
+  - mobile_scanner (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/mobile_scanner/darwin`)
+  - open_filex (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/open_filex/ios`)
+  - openinstall_flutter_plugin (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/openinstall_flutter_plugin/ios`)
+  - package_info_plus (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/package_info_plus/ios`)
+  - path_provider_foundation (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/path_provider_foundation/darwin`)
+  - permission_handler_apple (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/permission_handler_apple/ios`)
+  - photo_manager (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/photo_manager/darwin`)
+  - qr_code_tools (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/qr_code_tools/ios`)
+  - record_ios (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/record_ios/ios`)
+  - sensors_plus (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/sensors_plus/ios`)
+  - share_plus (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/share_plus/ios`)
+  - shared_preferences_foundation (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sqflite_darwin (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/sqflite_darwin/darwin`)
+  - url_launcher_ios (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/url_launcher_ios/ios`)
+  - video_player_avfoundation (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/video_player_avfoundation/darwin`)
+  - video_thumbnail (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/video_thumbnail/ios`)
+  - wakelock_plus (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/wakelock_plus/ios`)
+  - webview_flutter_wkwebview (from `../../pornhub/pornhub_client/ios/.symlinks/plugins/webview_flutter_wkwebview/darwin`)
+  - ZIPFoundation (~> 0.9)
+
+SPEC REPOS:
+  trunk:
+    - DKImagePickerController
+    - DKPhotoGallery
+    - JNKeychain
+    - libwebp
+    - SDWebImage
+    - SwiftyGif
+    - ZIPFoundation
+
+EXTERNAL SOURCES:
+  audio_session:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/audio_session/ios"
+  camera_avfoundation:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/camera_avfoundation/ios"
+  connectivity_plus:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/connectivity_plus/ios"
+  device_info_plus:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/device_info_plus/ios"
+  file_picker:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/file_picker/ios"
+  Flutter:
+    :path: "../../pornhub/pornhub_client/ios/Flutter"
+  flutter_local_notifications:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/flutter_local_notifications/ios"
+  flutter_secure_storage:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/flutter_secure_storage/ios"
+  flutter_singbox:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/flutter_singbox/ios"
+  gal:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/gal/darwin"
+  geolocator_apple:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/geolocator_apple/darwin"
+  image_picker_ios:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/image_picker_ios/ios"
+  just_audio:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/just_audio/darwin"
+  mobile_device_identifier:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/mobile_device_identifier/ios"
+  mobile_scanner:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/mobile_scanner/darwin"
+  open_filex:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/open_filex/ios"
+  openinstall_flutter_plugin:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/openinstall_flutter_plugin/ios"
+  package_info_plus:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/package_info_plus/ios"
+  path_provider_foundation:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/path_provider_foundation/darwin"
+  permission_handler_apple:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/permission_handler_apple/ios"
+  photo_manager:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/photo_manager/darwin"
+  qr_code_tools:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/qr_code_tools/ios"
+  record_ios:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/record_ios/ios"
+  sensors_plus:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/sensors_plus/ios"
+  share_plus:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/share_plus/ios"
+  shared_preferences_foundation:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/shared_preferences_foundation/darwin"
+  sqflite_darwin:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/sqflite_darwin/darwin"
+  url_launcher_ios:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/url_launcher_ios/ios"
+  video_player_avfoundation:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/video_player_avfoundation/darwin"
+  video_thumbnail:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/video_thumbnail/ios"
+  wakelock_plus:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/wakelock_plus/ios"
+  webview_flutter_wkwebview:
+    :path: "../../pornhub/pornhub_client/ios/.symlinks/plugins/webview_flutter_wkwebview/darwin"
+
+SPEC CHECKSUMS:
+  audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
+  camera_avfoundation: 968a9a5323c79a99c166ad9d7866bfd2047b5a9b
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
+  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
+  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
+  file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
+  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
+  flutter_singbox: 23523bbf38a558b34cd62a9e9cad1da7482db7f0
+  gal: baecd024ebfd13c441269ca7404792a7152fde89
+  geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
+  image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  JNKeychain: fb6cc9ec95959ba46cd95d0ee6f7a05e41da9f42
+  just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
+  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  mobile_device_identifier: fc935973d028805e3e09428cc615ecfc22624e5a
+  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
+  open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
+  openinstall_flutter_plugin: b32ee9c02b0cf3d63ef01ed1492dbd8f7a6baef4
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  photo_manager: 25fd77df14f4f0ba5ef99e2c61814dde77e2bceb
+  qr_code_tools: 81a52b19190422a5ce108223f64b5ea81865b342
+  record_ios: 412daca2350b228e698fffcd08f1f94ceb1e3844
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+  sensors_plus: 6a11ed0c2e1d0bd0b20b4029d3bad27d96e0c65b
+  share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
+  video_thumbnail: b637e0ad5f588ca9945f6e2c927f73a69a661140
+  wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
+  webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
+  ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
+
+PODFILE CHECKSUM: 5d18301a70573762eb4ad65270207ddc1a12228b
+
+COCOAPODS: 1.16.2

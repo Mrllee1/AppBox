@@ -258,7 +258,7 @@ export class PlatformConfigService {
   }
 
   private loadClientKey() {
-    const configured = process.env.APPBOX_CLIENT_AES_KEY || "appbox-local-client-aes-key";
+    const configured = process.env.APPBOX_CLIENT_AES_KEY || "6btlrID18OytwUZ0s41atap+4WxlXr1xpebjrE04hnY=";
     const raw = this.decodeConfiguredKey(configured);
     return raw.length === 32 ? raw : createHash("sha256").update(raw).digest();
   }

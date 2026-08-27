@@ -1,0 +1,8 @@
+#include "Generated.xcconfig"
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+// Xcode 26+ 兼容：禁用显式模块
+SWIFT_ENABLE_EXPLICIT_MODULES=NO
+// Flutter 框架搜索路径（Flutter pod 由 Flutter tooling 处理，需手动指定）
+FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) "$(FLUTTER_ROOT)/bin/cache/artifacts/engine/ios/Flutter.xcframework/ios-arm64"
+FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) "$(FLUTTER_ROOT)/bin/cache/artifacts/engine/ios/Flutter.xcframework/ios-arm64_x86_64-simulator"
+OTHER_LDFLAGS = $(inherited) -framework Flutter

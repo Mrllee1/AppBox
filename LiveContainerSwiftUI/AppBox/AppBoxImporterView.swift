@@ -206,9 +206,9 @@ final class AppBoxImportViewModel: ObservableObject {
             return .network
         case .unreadableSource:
             return .unreadableFile
-        case .invalidArchive, .missingApplication, .unreadableApplication:
+        case .invalidArchive, .missingApplication, .unreadableApplication, .invalidNIVM:
             return .invalidArchive
-        case .bundleIdentifierMismatch:
+        case .bundleIdentifierMismatch, .versionMismatch, .checksumMismatch:
             return .catalogMismatch
         case .alreadyInstalled:
             return .alreadyInstalled

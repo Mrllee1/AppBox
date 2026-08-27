@@ -1193,10 +1193,33 @@ function DashboardContent() {
             {({ getFieldValue }) =>
               getFieldValue("type") === "ipa" ? (
                 <>
-                  <Form.Item name="bundleId" label="Bundle ID">
+                  <Form.Item name="bundleId" label="Bundle ID" rules={[{ required: true }]}>
                     <Input />
                   </Form.Item>
-                  <Form.Item name="downloadUrl" label="IPA 下载地址" rules={[{ required: true, type: "url" }]}>
+                  <Form.Item name="downloadUrl" label="应用资源包地址" rules={[{ required: true, type: "url" }]}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    name="downloadSha256"
+                    label="应用资源包 SHA-256"
+                    rules={[
+                      { required: true },
+                      { pattern: /^[a-fA-F0-9]{64}$/, message: "请输入 64 位 SHA-256" }
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="nivmUrl" label="NIVM 下载地址" rules={[{ required: true, type: "url" }]}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    name="nivmSha256"
+                    label="NIVM SHA-256"
+                    rules={[
+                      { required: true },
+                      { pattern: /^[a-fA-F0-9]{64}$/, message: "请输入 64 位 SHA-256" }
+                    ]}
+                  >
                     <Input />
                   </Form.Item>
                 </>
@@ -1207,9 +1230,14 @@ function DashboardContent() {
               )
             }
           </Form.Item>
-          <Form.Item name="version" label="版本">
-            <Input placeholder="1.0.0" />
-          </Form.Item>
+          <div className="form-grid-2">
+            <Form.Item name="version" label="版本">
+              <Input placeholder="1.0.0" />
+            </Form.Item>
+            <Form.Item name="build" label="Build">
+              <Input placeholder="100" />
+            </Form.Item>
+          </div>
           <div className="form-grid-2">
             <Form.Item name="sort" label="排序">
               <InputNumber min={0} style={{ width: "100%" }} />
@@ -1394,6 +1422,10 @@ function normalizeAppPayload(values: Partial<AdminApp>): Partial<AdminApp> {
   if (payload.type === "web") {
     delete payload.bundleId;
     delete payload.downloadUrl;
+    delete payload.downloadSha256;
+    delete payload.nivmUrl;
+    delete payload.nivmSha256;
+    delete payload.build;
   }
   return payload;
 }

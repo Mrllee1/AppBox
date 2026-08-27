@@ -200,7 +200,9 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   assert.equal(flatApps.some((app) => app.id === "appbox_web_demo"), false);
   const tianyaApp = flatApps.find((app) => app.id === "tianya_selected");
   assert.ok(tianyaApp);
-  assert.deepEqual(Object.keys(tianyaApp).sort(), ["b", "icon", "id", "n", "t", "url"]);
+  assert.deepEqual(Object.keys(tianyaApp).sort(), [
+    "b", "build", "h", "icon", "id", "n", "nh", "nu", "t", "url", "ver"
+  ]);
   assert.equal(tianyaApp.b, "app.nqyqstm6mu.tianya");
   assert.match(tianyaApp.icon, /\/api\/v1\/appbox\/assets\/apps\/tianya_selected\/icon$/);
   assert.equal(tianyaApp.icon.includes("r2.dev"), false);
@@ -233,7 +235,9 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   assert.equal(deeplink.ok, 1);
   assert.equal(deeplink.act, "install_or_launch");
   assert.equal(deeplink.app.id, "tianya_selected");
-  assert.deepEqual(Object.keys(deeplink.app).sort(), ["b", "icon", "id", "n", "t", "url"]);
+  assert.deepEqual(Object.keys(deeplink.app).sort(), [
+    "b", "build", "h", "icon", "id", "n", "nh", "nu", "t", "url", "ver"
+  ]);
   assert.match(deeplink.app.icon, /\/api\/v1\/appbox\/assets\/apps\/tianya_selected\/icon$/);
 
   const events = decryptJson(await request(baseUrl, "/api/v1/events/batch", {
@@ -447,6 +451,96 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   assert.equal(updatedGroup.data.name, "QA 分组更新");
   assert.equal(updatedGroup.data.sort, 11);
 
+  const packageHash = "a".repeat(64);
+  const nivmHash = "b".repeat(64);
+  await assert.rejects(
+    () => request(baseUrl, "/admin/apps", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        id: "qa_incomplete_ipa",
+        name: "Incomplete IPA",
+        type: "ipa",
+        categoryId: "qa_category",
+        groupId: "qa_group",
+        iconUrl: "https://example.com/icon.png",
+        bundleId: "com.example.qa.incomplete",
+        downloadUrl: "https://example.com/incomplete.ipa",
+        version: "1.0.0",
+        build: "1"
+      })
+    }),
+    /400 Bad Request/
+  );
+  await assert.rejects(
+    () => request(baseUrl, "/admin/apps", {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        id: "qa_removed_runtime_app",
+        name: "Removed runtime field",
+        type: "ipa",
+        runtime: "nivm",
+        categoryId: "qa_category",
+        groupId: "qa_group",
+        iconUrl: "https://example.com/icon.png",
+        bundleId: "com.example.qa.removed-runtime",
+        downloadUrl: "https://example.com/qa-app.zip",
+        downloadSha256: packageHash,
+        nivmUrl: "https://example.com/qa-runtime.nivm",
+        nivmSha256: nivmHash,
+        version: "2.0.0",
+        build: "200"
+      })
+    }),
+    /400 Bad Request/
+  );
+  const createdNivmApp = await request(baseUrl, "/admin/apps", {
+    method: "POST",
+    headers: authHeaders,
+    body: JSON.stringify({
+      id: "qa_nivm_app",
+      name: "QA NIVM",
+      type: "ipa",
+      categoryId: "qa_category",
+      groupId: "qa_group",
+      iconUrl: "https://example.com/icon.png",
+      bundleId: "com.example.qa.nivm",
+      downloadUrl: "https://example.com/qa-app.zip",
+      downloadSha256: packageHash,
+      nivmUrl: "https://example.com/qa-runtime.nivm",
+      nivmSha256: nivmHash,
+      version: "2.0.0",
+      build: "200",
+      sort: 20,
+      enabled: true,
+      recommended: false
+    })
+  });
+  assert.equal(Object.hasOwn(createdNivmApp.data, "runtime"), false);
+
+  const partiallyUpdatedNivmApp = await request(baseUrl, "/admin/apps/qa_nivm_app", {
+    method: "PUT",
+    headers: authHeaders,
+    body: JSON.stringify({
+      downloadUrl: "https://example.com/qa-app-v2.zip"
+    })
+  });
+  assert.equal(Object.hasOwn(partiallyUpdatedNivmApp.data, "runtime"), false);
+  assert.equal(partiallyUpdatedNivmApp.data.sort, 20);
+  assert.equal(partiallyUpdatedNivmApp.data.enabled, true);
+  assert.equal(partiallyUpdatedNivmApp.data.recommended, false);
+
+  const catalogWithNivm = decryptJson(await request(baseUrl, "/api/v1/appbox/catalog"));
+  const nivmCatalogItem = catalogWithNivm.c
+    .flatMap((category) => category.g.flatMap((group) => group.a))
+    .find((app) => app.id === "qa_nivm_app");
+  assert.deepEqual(Object.keys(nivmCatalogItem).sort(), [
+    "b", "build", "h", "icon", "id", "n", "nh", "nu", "t", "url", "ver"
+  ]);
+  assert.equal(nivmCatalogItem.h, packageHash);
+  assert.equal(nivmCatalogItem.nh, nivmHash);
+
   const created = await request(baseUrl, "/admin/apps", {
     method: "POST",
     headers: authHeaders,
@@ -495,6 +589,12 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
     headers: authHeaders
   });
   assert.equal(deleted.success, true);
+
+  const deletedNivm = await request(baseUrl, "/admin/apps/qa_nivm_app", {
+    method: "DELETE",
+    headers: authHeaders
+  });
+  assert.equal(deletedNivm.success, true);
 
   const deletedGroup = await request(baseUrl, "/admin/groups/qa_group", {
     method: "DELETE",

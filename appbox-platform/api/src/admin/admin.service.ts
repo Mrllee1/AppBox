@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { FileDataStore } from "../common/file-data-store";
@@ -16,11 +16,24 @@ const AppInputSchema = z.object({
   iconUrl: z.string().url(),
   bundleId: z.string().optional(),
   downloadUrl: z.string().url().optional(),
+  downloadSha256: z.string().regex(/^[a-fA-F0-9]{64}$/).optional(),
+  nivmUrl: z.string().url().optional(),
+  nivmSha256: z.string().regex(/^[a-fA-F0-9]{64}$/).optional(),
   entryUrl: z.string().url().optional(),
   version: z.string().optional(),
+  build: z.string().optional(),
   sort: z.number().int().default(100),
   enabled: z.boolean().default(true),
   recommended: z.boolean().default(false)
+}).strict();
+
+// Zod preserves defaults through partial(), which makes an omitted field look
+// present during PATCH-style updates. Override every defaulted property so a
+// URL-only update cannot silently reset ordering or visibility.
+const AppUpdateSchema = AppInputSchema.partial().extend({
+  sort: z.number().int().optional(),
+  enabled: z.boolean().optional(),
+  recommended: z.boolean().optional()
 });
 
 const CategoryInputSchema = z.object({
@@ -80,7 +93,7 @@ export class AdminService {
   }
 
   async createApp(rawBody: unknown) {
-    const input = AppInputSchema.parse(rawBody);
+    const input = this.parseAppInput(rawBody);
     const existing = await this.store.read();
     this.assertAppTarget(input);
     this.assertCategoryGroup(existing, input.categoryId, input.groupId);
@@ -102,8 +115,12 @@ export class AdminService {
       iconAssetUrl: iconAsset.assetUrl,
       bundleId: input.bundleId,
       downloadUrl: input.downloadUrl,
+      downloadSha256: input.downloadSha256?.toLowerCase(),
+      nivmUrl: input.nivmUrl,
+      nivmSha256: input.nivmSha256?.toLowerCase(),
       entryUrl: input.entryUrl,
       version: input.version,
+      build: input.build,
       sort: input.sort,
       enabled: input.enabled,
       recommended: input.recommended,
@@ -119,7 +136,16 @@ export class AdminService {
   }
 
   async updateApp(id: string, rawBody: unknown) {
-    const input = AppInputSchema.partial().parse(rawBody);
+    const parsedInput = this.parseAppUpdate(rawBody);
+    const input = {
+      ...parsedInput,
+      ...(parsedInput.downloadSha256
+        ? { downloadSha256: parsedInput.downloadSha256.toLowerCase() }
+        : {}),
+      ...(parsedInput.nivmSha256
+        ? { nivmSha256: parsedInput.nivmSha256.toLowerCase() }
+        : {})
+    };
     const existing = await this.store.read();
     const current = existing.apps.find((candidate) => candidate.id === id);
     if (!current) throw new NotFoundException("App not found");
@@ -337,11 +363,43 @@ export class AdminService {
 
   private assertAppTarget(input: Partial<z.infer<typeof AppInputSchema>>) {
     if (input.type === "ipa" && !input.downloadUrl) {
-      throw new Error("IPA apps require downloadUrl");
+      throw new BadRequestException("IPA apps require downloadUrl");
+    }
+    if (input.type === "ipa") {
+      if (!input.bundleId || !input.version || !input.build) {
+        throw new BadRequestException("NIVM apps require bundleId, version and build");
+      }
+      if (!input.downloadSha256 || !input.nivmUrl || !input.nivmSha256) {
+        throw new BadRequestException("NIVM apps require downloadSha256, nivmUrl and nivmSha256");
+      }
     }
     if (input.type === "web" && !input.entryUrl) {
-      throw new Error("Web apps require entryUrl");
+      throw new BadRequestException("Web apps require entryUrl");
     }
+  }
+
+  private parseAppInput(rawBody: unknown): z.infer<typeof AppInputSchema> {
+    const result = AppInputSchema.safeParse(rawBody);
+    if (!result.success) {
+      throw new BadRequestException({
+        success: false,
+        error_code: "INVALID_APP_PAYLOAD",
+        details: result.error.issues
+      });
+    }
+    return result.data;
+  }
+
+  private parseAppUpdate(rawBody: unknown): z.infer<typeof AppUpdateSchema> {
+    const result = AppUpdateSchema.safeParse(rawBody);
+    if (!result.success) {
+      throw new BadRequestException({
+        success: false,
+        error_code: "INVALID_APP_PAYLOAD",
+        details: result.error.issues
+      });
+    }
+    return result.data;
   }
 
   private assertCategory(data: AppBoxStoreData, categoryId: string) {

@@ -1,73 +1,64 @@
-# AppBox Design QA
+# AppBox PlayBox Alignment - Design QA
 
-## Sources
+## Evidence
 
-- Main reference: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-8438e77d-1821-4166-861f-9acb6a17efc1.png`
-- Settings reference: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-de4dc4c6-d67c-4f8e-97d3-13cd53206ca1.png`
-- Share reference: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-6020b982-6a41-4c6d-8dea-27b74c7ba3d4.png`
-- Share overlay refinement: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-6e8e6f33-a124-4917-8c75-d1f2be061dea.png`
-- PIN reference: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-a08f2c3a-5415-4524-8658-bb64578ed4b0.png`
-- Launch transition reference: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-1e50aaf1-ae8c-4286-9938-8d5a2c3ed9d2.png`
+- Source visual: `/var/folders/bv/dxb0_wm90mn_wnkjstp9_4540000gn/T/codex-clipboard-0dc4b0fe-4288-408f-939d-19e4b3dde7a9.png`
+- Implementation capture: `NIVMHost/QA/implementation-iphone15.png`
+- Shared comparison input: `NIVMHost/QA/playbox-comparison.png`
+- In-process runtime capture: `NIVMHost/QA/inprocess-guest-adult-douyin-315.png`
+- Device: connected iPhone 15, portrait, 393 x 852 points at 3x
+- Implementation pixels: 1179 x 2556
+- Source pixels: 668 x 576, cropped catalog component; source point density is unknown
+- Tested state: offline catalog fallback, six supported applications grouped
+  into `看片` and `直播`, two installed/launchable guests, remaining install
+  controls visible
 
-## Implementation captures
+The comparison uses the supplied PlayBox catalog component and a focused crop
+of the same catalog region from the physical-device capture. The source is not
+a full-screen reference, so full-view parity is assessed only for the shared
+catalog surface.
 
-- Main: `screenshots/appbox/home-installed.png`
-- Settings: `screenshots/appbox/settings.png`
-- Share: `screenshots/appbox/share.png`
-- PIN: `screenshots/appbox/privacy-pin.png`
-- Dark mode: `screenshots/appbox/dark.png`
-- Dark settings: `screenshots/appbox/settings-dark.png`
-- Dark theme picker: `screenshots/appbox/theme-dark.png`
-- English layout: `screenshots/appbox/home-english.png`
-- IPA import: `screenshots/appbox/ipa-import.png`
-- Main side-by-side comparison: `screenshots/appbox/main-comparison.png`
-- Share side-by-side comparison: `screenshots/appbox/share-comparison.png`
-- Launch transition: `screenshots/appbox/launch-transition.png`
-- Launch transition side-by-side comparison: `screenshots/appbox/launch-transition-comparison.png`
+## Fidelity review
 
-All implementation captures use an iPhone 16e simulator at 393 x 852 points. The main reference was center-cropped by 28 source pixels and scaled to the same implementation viewport before comparison.
-
-## Comparison
-
-- Typography: the refined version uses semibold headings, regular item labels, and restrained secondary text to create a clearer hierarchy without clipping.
-- Layout: the reference structure remains recognizable through the header, search, conditional installed section, three series tabs, and five-column app grid. The implementation replaces heavy colored category bands with unframed sections and dividers for a quieter, more professional result.
-- Color and surfaces: the page background is a neutral cool gray, while white or graphite surfaces, hairline borders, and accent-only selected states improve contrast. Native Liquid Glass is limited to controls on iOS 26; iOS 15-25 use a material fallback through the same component API. Sky, Mint, Coral, and dark appearances were checked.
-- Controls: install actions use a stable 32-point capsule inside a 44-point hit target, with an accent-soft state for installed apps. Series and appearance choices use the native segmented picker.
-- Assets and icons: AppBox uses a generated full-resolution bitmap app icon. Interface and catalog glyphs use Apple SF Symbols with semantic tint colors verified in light and dark modes.
-- Interaction states: empty installed state, installing, installed, launch, search, language, appearance, skin, in-place share overlay, PIN entry, and IPA file/link import entry were exercised.
-- Accessibility: all primary controls expose labels and selected traits; tap targets are at least 44 points; Chinese and English copy fit the tested viewport. Accessibility text sizes automatically switch the catalog from five columns to three.
-- Launch transition: the reference's centered app identity, title, progress bar, security status, and dimmed catalog context are preserved. The implementation uses the selected app's real catalog icon and localized name, and shows equivalent mid-launch progress at 48% versus the reference's 45%.
+- Typography: bold white section titles, compact semibold app labels, and
+  readable capsule actions follow the reference hierarchy without clipping.
+- Layout: rounded category cards, five equal columns, square icons, two-line
+  labels, and one action per tile match the PlayBox structure.
+- Color: the dark page, blue/teal grouped cards, restrained borders, and muted
+  action pills reproduce the visible source palette and contrast.
+- Images: fallback entries use real icons extracted from their corresponding
+  IPA packages. Remote catalog icons are downloaded and AES-256-CBC decrypted
+  using the same key/IV contract as the backend.
+- Copy and state: group titles and app names are real data. `安装` changes to
+  `启动` only after strict package verification and persisted installation.
+- Interaction: install downloads the selected package; launch enters an NIVM
+  guest in the current AppBox process without requiring a manual reopen.
+- Compatibility boundary: the known Flutter Debug package
+  `tianya-348-playbox.ipa` is intentionally excluded from the supported catalog;
+  its device run requires Flutter tooling and is not a valid standalone guest.
 
 ## Iterations
 
-1. Added a simulator-only team identifier fallback after the unsigned simulator build exposed a missing entitlement value.
-2. Kept signing and entitlement checks active on physical devices while bypassing them only for the simulator target.
-3. Verified persisted install state after terminate/relaunch and ignored unrelated URL schemes instead of opening the importer.
-4. Centralized Apple SF Symbols in the typed `AppBoxIcon` registry and hid decorative glyphs from the accessibility tree.
-5. Consolidated semantic colors, spacing, surfaces, headings, headers, and control geometry into reusable AppBox presentation components.
-6. Reworked catalog groups into neutral unframed sections, converted series and appearance choices into consistent segmented controls, and clarified install/open states.
-7. Rebuilt settings, share, and PIN screens around the same typography, border, radius, and spacing rules.
-8. Fixed appearance propagation so the active settings and theme sheets update immediately when switching between light and dark modes.
-9. Removed decorative settings cards, catalog counts, heavy shadows, and filled install pills to produce a quieter content hierarchy.
-10. Added native iOS 26 Liquid Glass for navigation and functional controls with an iOS 15-25 material fallback and Reduce Transparency handling.
-11. Replaced the full-screen share presentation with an in-place overlay so the app center remains visible beneath a light 20% dimming layer.
-12. Added one shared four-phase launch transition for installed IPA and H5 items: preparing, integrity verification, secure environment startup, and ready.
-13. Refined the transition after side-by-side review by reducing the panel width, icon, and title scale, then replacing an over-blurred full-screen material with a restrained dim layer so the originating catalog remains legible.
-
-## Launch Transition QA
-
-- Reference: 1386 x 958 pixels. Implementation: 1170 x 2532 pixels, rendered at 390 x 844 points at 3x scale.
-- Focus comparison: the implementation was cropped to the launch region and placed beside the full reference at a shared 958-pixel height. Both captures show the equivalent verification phase, at 45% and 48% respectively.
-- Full-view review: the modal stays centered without clipping, preserves the installed and category context beneath it, and remains readable against varied catalog colors.
-- Interaction review: the installed H5 item advances through 14%, 48%, 82%, and 100%, opens its web runtime, and returns to the catalog through the runtime close control. Duplicate launch taps are ignored while a transition is active.
-- Accessibility review: each phase exposes a combined label containing the app name, phase description, and progress percentage.
-- Native browser-console checks do not apply to this SwiftUI simulator flow; build diagnostics and runtime accessibility state were checked instead.
+1. The first implementation used generic symbols and a separate single-item
+   recommendation card. The result had visibly different density and hierarchy.
+2. Real IPA icons were extracted, the source-built guest was merged into the
+   first five-column group, and section/card geometry was tightened.
+3. Remote encrypted icons were added to the same rendering path so the online
+   server state remains visually identical to the verified fallback state.
+4. The final physical-device run installed Adult Douyin 3.1.5, launched it
+   in-process, and reached the application's login screen after its resource
+   bootstrap. The source-built Tianya 20.0.0+357 guest was also reinstalled so
+   both applications coexist with `启动` state. The resulting screens are
+   preserved in the captures above.
 
 ## Findings
 
 - P0: none.
 - P1: none.
-- P2: the iOS 26.2 simulator share service renders an empty system activity sheet. `sharingd` reports `failed to update remote share sheet: no proxy object`; AppBox's QR/share poster and activity-controller invocation are valid, so this requires real-device confirmation rather than an application UI change.
-- Launch transition P0/P1/P2: none after the final comparison pass.
+- P2: none.
+- P3: the supplied source contains five applications in each group, while the
+  verified fallback currently contains four video applications and two
+  live-streaming applications; this is data-driven and does not change the
+  five-column grid geometry.
 
 final result: passed

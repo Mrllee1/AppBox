@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 🔗 OpenInstall Universal Links 配置 -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:ecedok.oplinking.com</string>
+	</array>
+	<!-- 🔗 App Groups 配置（VPN 功能需要） -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.app.nqyqstm6mu.tianya</string>
+	</array>
+	<!-- 🔗 Network Extension 配置（VPN 功能需要） -->
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>packet-tunnel-provider</string>
+	</array>
+</dict>
+</plist>

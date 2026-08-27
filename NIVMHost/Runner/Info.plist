@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>zh-Hans</string>
+	<key>CFBundleDisplayName</key>
+	<string>AppBox</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh-Hans</string>
+		<string>en</string>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>AppBox</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Development-only: the connected iPhone downloads the test IPA from this Mac. -->
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>127.0.0.1</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>AppBox 使用本地网络下载开发测试用的两个指定 IPA。</string>
+	<key>AppBoxGuestURL</key>
+	<string>$(APPBOX_GUEST_URL)</string>
+	<key>AppBoxCatalogBaseURL</key>
+	<string>$(APPBOX_CATALOG_BASE_URL)</string>
+	<key>AppBoxClientAESKey</key>
+	<string>$(APPBOX_CLIENT_AES_KEY)</string>
+	<key>AppBoxAssetAESKey</key>
+	<string>$(APPBOX_ASSET_AES_KEY)</string>
+	<key>AppBoxAssetAESIV</key>
+	<string>$(APPBOX_ASSET_AES_IV)</string>
+	<key>AppBoxPornhubGuestURL</key>
+	<string>$(APPBOX_PORNHUB_GUEST_URL)</string>
+	<key>AppBoxPlayBoxGuestURL</key>
+	<string>$(APPBOX_PLAYBOX_GUEST_URL)</string>
+	<key>AppBoxDYZBGQGuestURL</key>
+	<string>$(APPBOX_DYZB_GQ_GUEST_URL)</string>
+	<key>AppBoxDYZBTFGuestURL</key>
+	<string>$(APPBOX_DYZB_TF_GUEST_URL)</string>
+	<key>AppBoxChungongGuestURL</key>
+	<string>$(APPBOX_CHUNGONG_GUEST_URL)</string>
+	<key>AppBoxIGXiongmaoGuestURL</key>
+	<string>$(APPBOX_IG_XIONGMAO_GUEST_URL)</string>
+	<key>AppBoxTianya348GuestURL</key>
+	<string>$(APPBOX_TIANYA_348_GUEST_URL)</string>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>location</string>
+	</array>
+	
+	<!-- AppBox only owns its own relaunch scheme. The original Flutter app keeps tianya://. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>appbox.guest.relaunch</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>appbox</string>
+			</array>
+		</dict>
+	</array>
+
+	<key>NSNetworkExtensionUsageDescription</key>
+    <string>天涯需要VPN权限来保护您的网络安全和隐私，加密您的网络连接。</string>
+    
+    <!-- 相册访问权限 -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>天涯需要访问您的相册来选择和保存图片，用于发布内容和个人头像设置。</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>天涯需要写入您的相册，用于保存图片和视频。</string>
+    
+    <!-- 相机权限（二维码扫描、头像拍摄等） -->
+    <key>NSCameraUsageDescription</key>
+    <string>天涯需要访问您的相机来扫描二维码和拍摄照片，用于登录、内容发布和头像设置。</string>
+    
+    <!-- 麦克风权限（用于聊天室语音直播） -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>天涯需要访问您的麦克风来进行语音直播和录音。</string>
+    
+    <!-- 定位权限（VPN 网络优化 / 实时位置共享） -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>天涯需要获取您的位置，用于共享实时位置、发布动态，以及优化 VPN 网络连接。</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>天涯需要在后台持续获取位置，以便在您共享实时位置时，对方可以看到您的最新位置。您可随时在系统设置中关闭。</string>
+</dict>
+</plist>

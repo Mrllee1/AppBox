@@ -10,8 +10,12 @@ export interface AdminApp {
   iconUrl: string;
   bundleId?: string;
   downloadUrl?: string;
+  downloadSha256?: string;
+  nivmUrl?: string;
+  nivmSha256?: string;
   entryUrl?: string;
   version?: string;
+  build?: string;
   sort: number;
   enabled: boolean;
   recommended: boolean;

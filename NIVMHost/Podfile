@@ -1,0 +1,121 @@
+# iOS 最低版本：NetworkExtension + Libbox(sing-box) 要求 iOS 15+
+platform :ios, '15.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+singbox_simulator_stub = ENV['FLUTTER_SINGBOX_SIMULATOR_STUB'] == '1'
+if singbox_simulator_stub
+  puts "🔧 FLUTTER_SINGBOX_SIMULATOR_STUB=1：iOS 模拟器将使用 flutter_singbox/VPNExtension stub，不链接 Libbox。"
+end
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+
+  appbox_client_ios = ENV['APPBOX_CLIENT_IOS_ROOT'] || File.expand_path('../../pornhub/pornhub_client/ios', __dir__)
+  unless File.directory?(appbox_client_ios)
+    raise "pornhub_client iOS source was not found: #{appbox_client_ios}. Set APPBOX_CLIENT_IOS_ROOT."
+  end
+  flutter_install_all_ios_pods appbox_client_ios
+  pod 'ZIPFoundation', '~> 0.9'
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    # permission_handler iOS 权限宏配置
+    # 使用追加方式确保每个权限宏都被添加（||= 在值已存在时不会更新）
+    target.build_configurations.each do |config|
+      current = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+      current = [current] if current.is_a?(String)
+
+      ['PERMISSION_CAMERA=1', 'PERMISSION_PHOTOS=1', 'PERMISSION_MICROPHONE=1', 'PERMISSION_LOCATION=1'].each do |perm|
+        current.push(perm) unless current.include?(perm)
+      end
+
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = current
+
+      if singbox_simulator_stub && target.name == 'flutter_singbox'
+        current_swift = config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] || '$(inherited)'
+        current_swift = current_swift.split(/\s+/)
+        ['$(inherited)', 'FLUTTER_SINGBOX_SIMULATOR_STUB'].each do |flag|
+          current_swift.push(flag) unless current_swift.include?(flag)
+        end
+        config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = current_swift.join(' ')
+      end
+    end
+  end
+
+  # Libbox.xcframework 当前只保留真机 arm64 slice。flutter_singbox / VPNExtension
+  # 在模拟器会走 Swift stub，因此 Runner 模拟器构建不能链接 Libbox；否则会出现：
+  #   ld: framework 'Libbox' not found
+  #
+  # CocoaPods 会因为 vendored_frameworks 把 `-framework "Libbox"` 写进通用
+  # OTHER_LDFLAGS。这里把它挪到 iphoneos 条件下，保证：
+  # - iOS 模拟器：不链接 Libbox，可正常调 UI/业务；
+  # - iOS 真机/打包：仍链接真实 Libbox。
+  runner_xcconfigs = Dir.glob(File.join(File.dirname(__FILE__), 'Pods', 'Target Support Files', 'Pods-Runner', 'Pods-Runner.*.xcconfig'))
+  runner_xcconfigs.each do |xcconfig_path|
+    content = File.read(xcconfig_path)
+    content = content.lines.map do |line|
+      if line.start_with?('OTHER_LDFLAGS =')
+        line.gsub(/\s+-framework\s+"Libbox"/, '').gsub(/\s+-framework\s+Libbox/, '')
+      else
+        line
+      end
+    end.join
+
+    iphoneos_flag = '-framework "Libbox"'
+    if content.match?(/^OTHER_LDFLAGS\[sdk=iphoneos\*\]\s*=/)
+      content = content.gsub(/^(OTHER_LDFLAGS\[sdk=iphoneos\*\]\s*=\s*)(.*)$/) do
+        line = Regexp.last_match(0)
+        line.include?(iphoneos_flag) ? line : "#{Regexp.last_match(1)}#{Regexp.last_match(2)} #{iphoneos_flag}"
+      end
+    else
+      content << "\n" + 'OTHER_LDFLAGS[sdk=iphoneos*] = $(inherited) -framework "Libbox"' + "\n"
+    end
+
+    File.write(xcconfig_path, content)
+  end
+
+  runner_frameworks_script = File.join(File.dirname(__FILE__), 'Pods', 'Target Support Files', 'Pods-Runner', 'Pods-Runner-frameworks.sh')
+  if File.exist?(runner_frameworks_script)
+    content = File.read(runner_frameworks_script)
+    content = content.gsub(/^\s*install_framework "\$\{PODS_XCFRAMEWORKS_BUILD_DIR\}\/flutter_singbox\/Libbox\.framework"\n/) do
+      <<~'SH'
+        if [[ "${PLATFORM_NAME}" != *"simulator"* ]]; then
+          install_framework "${PODS_XCFRAMEWORKS_BUILD_DIR}/flutter_singbox/Libbox.framework"
+        else
+          echo "Skipping Libbox.framework embed for iOS Simulator"
+        fi
+      SH
+    end
+    File.write(runner_frameworks_script, content)
+  end
+end

@@ -164,11 +164,6 @@ struct AppBoxRootView: View {
 
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: AppBoxLayout.sectionSpacing) {
-                        if !installedItems.isEmpty {
-                            installedSection
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-
                         seriesTabs
 
                         let groups = store.catalogGroups(
@@ -343,19 +338,19 @@ struct AppBoxRootView: View {
     }
 
     private func catalogSection(_ group: AppBoxCatalogGroup) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            AppBoxSectionHeading(
-                title: group.title(for: language, fallback: copy),
-                palette: palette
-            )
-            LazyVGrid(columns: gridColumns, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(group.title(for: language, fallback: copy))
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+            LazyVGrid(columns: gridColumns, spacing: 14) {
                 ForEach(group.items) { item in
                     AppBoxAppCell(
                         item: item,
                         copy: copy,
                         palette: palette,
                         isInstalled: store.isInstalled(item, hostApps: sharedModel.apps),
-                        installState: store.installStates[item.id]
+                        installState: store.installStates[item.id],
+                        playBoxStyle: true
                     ) {
                         if let state = store.installStates[item.id] {
                             if state.isCancellable {
@@ -375,11 +370,31 @@ struct AppBoxRootView: View {
                     }
                 }
             }
-            Rectangle()
-                .fill(palette.divider)
-                .frame(height: 1)
         }
-        .padding(.horizontal, 2)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 16)
+        .background(groupCardColor(group))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 0.7)
+        }
+        .shadow(color: Color.black.opacity(0.12), radius: 12, y: 6)
+    }
+
+    private func groupCardColor(_ group: AppBoxCatalogGroup) -> Color {
+        switch group.section {
+        case .media:
+            return Color(red: 0.17, green: 0.25, blue: 0.43)
+        case .games:
+            return Color(red: 0.15, green: 0.31, blue: 0.36)
+        case .community:
+            return Color(red: 0.24, green: 0.25, blue: 0.47)
+        case .productivity:
+            return Color(red: 0.20, green: 0.29, blue: 0.40)
+        case .lifestyle:
+            return Color(red: 0.28, green: 0.25, blue: 0.42)
+        }
     }
 
     private var gridColumns: [GridItem] {

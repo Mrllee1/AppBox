@@ -58,7 +58,12 @@ export class CatalogService {
       t: app.type,
       icon: app.iconAssetUrl || `${this.publicBaseUrl()}/api/v1/appbox/assets/apps/${encodeURIComponent(app.id)}/icon`,
       url: app.type === "ipa" ? app.downloadUrl : app.entryUrl,
-      ...(app.bundleId ? { b: app.bundleId } : {})
+      ...(app.bundleId ? { b: app.bundleId } : {}),
+      ...(app.type === "ipa" && app.downloadSha256 ? { h: app.downloadSha256 } : {}),
+      ...(app.type === "ipa" && app.nivmUrl ? { nu: app.nivmUrl } : {}),
+      ...(app.type === "ipa" && app.nivmSha256 ? { nh: app.nivmSha256 } : {}),
+      ...(app.type === "ipa" && app.version ? { ver: app.version } : {}),
+      ...(app.type === "ipa" && app.build ? { build: app.build } : {})
     };
   }
 

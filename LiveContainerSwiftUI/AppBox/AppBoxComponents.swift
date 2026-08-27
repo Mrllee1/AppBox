@@ -173,6 +173,7 @@ struct AppBoxAppCell: View {
     let palette: AppBoxPalette
     let isInstalled: Bool
     let installState: AppBoxInstallState?
+    var playBoxStyle = false
     let action: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -186,15 +187,15 @@ struct AppBoxAppCell: View {
             .buttonStyle(.plain)
             .disabled(isActionDisabled)
             Text(item.name(for: copy.language))
-                .font(.caption2)
-                .foregroundColor(palette.primaryText)
+                .font(.system(size: playBoxStyle ? 14 : 11, weight: playBoxStyle ? .semibold : .regular))
+                .foregroundColor(playBoxStyle ? .white : palette.primaryText)
                 .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                 .minimumScaleFactor(0.75)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
             Button(action: action) {
                 Text(actionTitle)
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 14, weight: .semibold))
                 .padding(.horizontal, 10)
                 .frame(minWidth: 56, minHeight: 32)
                 .foregroundColor(actionColor)
@@ -238,11 +239,13 @@ struct AppBoxAppCell: View {
 
     private var actionColor: Color {
         if case .failed = installState { return palette.destructive }
+        if playBoxStyle { return Color.white.opacity(0.78) }
         return palette.accent
     }
 
     private var actionBackground: Color {
         if case .failed = installState { return palette.destructive.opacity(0.12) }
+        if playBoxStyle { return Color.white.opacity(0.14) }
         if isInstalled || installState != nil { return palette.accentSoft }
         return palette.mutedSurface
     }

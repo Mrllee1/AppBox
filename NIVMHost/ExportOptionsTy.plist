@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+    com.ty.xianchufang 项目专用导出配置
+
+    ⚠️ Team Y2GPCHCN2Y 下 com.ty.xianchufang 当前只有 AppStore profile（无 Development / AdHoc）。
+    导出只能走 app-store；若需 Dev/AdHoc 需先去 developer.apple.com 为该 team 新建对应 profile
+    并下载到本机，再改本文件的 method。
+
+    输出的 IPA 虽为 AppStore 签名、无法直装设备，但：
+      - 可直接交给重签工作室（他们会剥壳用自己的证书重签）
+      - 或上传 App Store Connect 做 TestFlight
+    -->
+    <key>method</key>
+    <string>app-store</string>
+    <key>teamID</key>
+    <string>Y2GPCHCN2Y</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>signingCertificate</key>
+    <string>iPhone Distribution</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.ty.xianchufang</key>
+        <string>com_ty_xianchufang_AppStore</string>
+        <key>com.ty.xianchufang.VPNExtension</key>
+        <string>com_ty_xianchufang_VPNExtension_AppStore</string>
+    </dict>
+    <key>uploadSymbols</key>
+    <false/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>compileBitcode</key>
+    <false/>
+</dict>
+</plist>

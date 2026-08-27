@@ -41,7 +41,12 @@ struct AppBoxContainerBridge: AppBoxContainerBridging {
             AppBoxIPAInstallRequest(
                 id: item.id,
                 sourceURL: sourceURL,
-                expectedBundleIdentifier: bundleIdentifier
+                expectedBundleIdentifier: bundleIdentifier,
+                expectedDownloadSHA256: item.downloadSHA256,
+                nivmURL: item.nivmURL,
+                expectedNIVMSHA256: item.nivmSHA256,
+                expectedVersion: item.expectedVersion,
+                expectedBuild: item.expectedBuild
             ),
             progress: progress
         )

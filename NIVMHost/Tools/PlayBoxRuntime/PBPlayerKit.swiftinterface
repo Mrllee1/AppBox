@@ -1,0 +1,21 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.3
+// swift-module-flags: -target arm64-apple-ios15.0 -enable-objc-interop -module-name PBPlayerKit
+import Foundation
+import UIKit
+
+public protocol UIKitCompatible : UIKit.UIApplicationDelegate {
+  var keyWindow: UIKit.UIWindow { get }
+  var rootVC: UIKit.UIViewController { get }
+  var currentVC: UIKit.UIViewController { get }
+}
+
+public final class PBPlayerKitBridge : Foundation.NSObject {
+  public static let shared: PBPlayerKit.PBPlayerKitBridge
+  public func launchApp(_ bundleID: Swift.String)
+}
+
+public struct PBPlayerKitBox {
+  public static func setupApp()
+  public static func setupForGeust()
+}

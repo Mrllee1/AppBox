@@ -33,8 +33,12 @@ export interface AppBoxApp {
   iconAssetUrl?: string;
   bundleId?: string;
   downloadUrl?: string;
+  downloadSha256?: string;
+  nivmUrl?: string;
+  nivmSha256?: string;
   entryUrl?: string;
   version?: string;
+  build?: string;
   sort: number;
   enabled: boolean;
   recommended: boolean;
@@ -129,6 +133,11 @@ export interface CatalogAppDTO {
   icon: string;
   url?: string;
   b?: string;
+  h?: string;
+  nu?: string;
+  nh?: string;
+  ver?: string;
+  build?: string;
 }
 
 export interface CatalogGroupDTO {
