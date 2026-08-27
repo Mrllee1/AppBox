@@ -14,6 +14,11 @@ API: `http://127.0.0.1:39110`
 
 Admin: `http://127.0.0.1:39111`
 
+Client API docs:
+
+- local: `http://127.0.0.1:39111/docs/client-api`
+- production: `https://666999.lol/docs/client-api`
+
 Default local admin account:
 
 - username: `admin`
