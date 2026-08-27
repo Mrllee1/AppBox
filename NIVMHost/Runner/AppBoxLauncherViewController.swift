@@ -7,6 +7,14 @@ private func AppBoxLaunchSelectedPlayBoxGuestInProcess() -> Int32
 final class AppBoxLauncherViewController: UIViewController {
   private let pornhubCoordinator = GuestRuntimeCoordinator()
   private let catalogService = AppBoxCatalogService()
+  private let launchedVersionsURL: URL = {
+    let directory = FileManager.default.urls(
+      for: .applicationSupportDirectory,
+      in: .userDomainMask
+    ).first!
+    return directory.appendingPathComponent("AppBoxLaunchedVersions.plist")
+  }()
+  private lazy var launchedVersions: [String: String] = loadLaunchedVersions()
   private var catalogSections: [AppBoxRuntimeCatalogSection] = []
   private var playBoxCoordinators: [String: PlayBoxGuestRuntimeCoordinator] = [:]
   private let pornhubButton = UIButton(type: .system)
@@ -430,6 +438,49 @@ final class AppBoxLauncherViewController: UIViewController {
     ])
   }
 
+  private func launchedVersionToken(for descriptor: PlayBoxGuestDescriptor) -> String {
+    "\(descriptor.expectedVersion)+\(descriptor.expectedBuild)"
+  }
+
+  private func hasLaunchedInstalledApp(_ descriptor: PlayBoxGuestDescriptor) -> Bool {
+    launchedVersions[descriptor.id] == launchedVersionToken(for: descriptor)
+  }
+
+  private func markInstalledAppLaunched(_ descriptor: PlayBoxGuestDescriptor?) {
+    guard let descriptor else { return }
+    let versionToken = launchedVersionToken(for: descriptor)
+    guard launchedVersions[descriptor.id] != versionToken else { return }
+    launchedVersions[descriptor.id] = versionToken
+    do {
+      try FileManager.default.createDirectory(
+        at: launchedVersionsURL.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+      )
+      let data = try PropertyListSerialization.data(
+        fromPropertyList: launchedVersions,
+        format: .binary,
+        options: 0
+      )
+      try data.write(to: launchedVersionsURL, options: .atomic)
+      refreshInstalledCard()
+      print("APPBOX_RUNTIME first_launch_recorded id=\(descriptor.id) version=\(versionToken)")
+    } catch {
+      launchedVersions.removeValue(forKey: descriptor.id)
+      print("APPBOX_RUNTIME first_launch_record_failed id=\(descriptor.id) error=\(error.localizedDescription)")
+    }
+  }
+
+  private func loadLaunchedVersions() -> [String: String] {
+    guard let data = try? Data(contentsOf: launchedVersionsURL),
+          let propertyList = try? PropertyListSerialization.propertyList(
+            from: data,
+            options: [],
+            format: nil
+          ),
+          let versions = propertyList as? [String: String] else { return [:] }
+    return versions
+  }
+
   private func makeInstalledTile(_ descriptor: PlayBoxGuestDescriptor) -> UIView {
     let icon = descriptor.usesFlutterSidecar
       ? UIImage(named: "guest_pornhub") ?? UIImage(systemName: "play.rectangle.fill")
@@ -460,6 +511,7 @@ final class AppBoxLauncherViewController: UIViewController {
     statusDot.translatesAutoresizingMaskIntoConstraints = false
     statusDot.backgroundColor = UIColor(red: 0.28, green: 0.62, blue: 1, alpha: 1)
     statusDot.layer.cornerRadius = 2.5
+    statusDot.isHidden = hasLaunchedInstalledApp(descriptor)
     NSLayoutConstraint.activate([
       statusDot.widthAnchor.constraint(equalToConstant: 5),
       statusDot.heightAnchor.constraint(equalToConstant: 5),
@@ -1160,7 +1212,7 @@ final class AppBoxLauncherViewController: UIViewController {
       self.updateLaunchProgress(0.94, detail: "首次启动正在初始化，请稍候", showsPercentage: false)
       let startItem = DispatchWorkItem { [weak self] in
         guard let self, self.launchInProgress else { return }
-        self.performGuestLaunch(runtimeKind: runtimeKind)
+        self.performGuestLaunch(runtimeKind: runtimeKind, descriptor: visibleDescriptor)
       }
       self.launchWorkItems.append(startItem)
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.14, execute: startItem)
@@ -1172,7 +1224,10 @@ final class AppBoxLauncherViewController: UIViewController {
     )
   }
 
-  private func performGuestLaunch(runtimeKind: String) {
+  private func performGuestLaunch(
+    runtimeKind: String,
+    descriptor: PlayBoxGuestDescriptor?
+  ) {
     let defaults = UserDefaults.standard
     if runtimeKind == "playbox" {
       let launchResult = AppBoxLaunchSelectedPlayBoxGuestInProcess()
@@ -1182,6 +1237,7 @@ final class AppBoxLauncherViewController: UIViewController {
       defaults.synchronize()
       _ = preparePlayBoxContinuationMarker(playBox: false)
       if launchResult == 0 {
+        markInstalledAppLaunched(descriptor)
         return
       }
       finishLaunchFeedback()
@@ -1196,6 +1252,7 @@ final class AppBoxLauncherViewController: UIViewController {
       guard let self else { return }
       completionCount += 1
       if accepted, !self.relaunchExitScheduled {
+        self.markInstalledAppLaunched(descriptor)
         self.relaunchExitScheduled = true
         UIApplication.shared.perform(NSSelectorFromString("suspend"))
         exit(0)
