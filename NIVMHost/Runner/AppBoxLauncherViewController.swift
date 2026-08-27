@@ -17,10 +17,6 @@ final class AppBoxLauncherViewController: UIViewController {
   private let contentStack = UIStackView()
   private let installedCardContainer = UIView()
   private var installedTileControls: [UIControl] = []
-  private let statusCard = UIView()
-  private let statusSpinner = UIActivityIndicatorView(style: .medium)
-  private let statusLabel = UILabel()
-  private let progressView = UIProgressView(progressViewStyle: .default)
   private let launchOverlay = UIView()
   private let launchPanel = UIView()
   private let launchIconView = UIImageView()
@@ -34,7 +30,10 @@ final class AppBoxLauncherViewController: UIViewController {
   private var pendingCatalogStartID: String?
   private var autoStartCatalogID: String?
   private var activeCatalogID: String?
-  private var statusHideWorkItem: DispatchWorkItem?
+  private var buttonProgressWorkItem: DispatchWorkItem?
+  private var pendingButtonProgress: (button: UIButton, progress: Float)?
+  private var lastButtonProgressRenderTime: CFTimeInterval = 0
+  private var displayedButtonProgress: Float = 0
   private var launchWorkItems: [DispatchWorkItem] = []
   private var launchInProgress = false
   private var catalogRefreshInFlight = false
@@ -54,10 +53,6 @@ final class AppBoxLauncherViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    catalogSections = catalogService.cachedSections()
-    if !catalogSections.isEmpty {
-      print("APPBOX_CATALOG cache_ready sections=\(catalogSections.count) apps=\(catalogApps.count)")
-    }
     configureBackground()
     rebuildCoordinators()
     configureGridButton(pornhubButton, title: "安装")
@@ -73,9 +68,6 @@ final class AppBoxLauncherViewController: UIViewController {
     pornhubCoordinator.onEvent = { [weak self] event in self?.handlePornhub(event) }
     refreshInstalledState()
     handleLaunchArguments()
-    if !catalogSections.isEmpty {
-      performPendingCatalogAction()
-    }
     Task { await refreshRemoteCatalog() }
   }
 
@@ -129,8 +121,6 @@ final class AppBoxLauncherViewController: UIViewController {
     contentStack.axis = .vertical
     contentStack.spacing = 10
 
-    configureStatusCard()
-
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.alwaysBounceVertical = true
     scrollView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 28, right: 0)
@@ -182,8 +172,6 @@ final class AppBoxLauncherViewController: UIViewController {
         tiles: tiles
       ))
     }
-
-    contentStack.addArrangedSubview(statusCard)
   }
 
   private func configureBackground() {
@@ -216,45 +204,6 @@ final class AppBoxLauncherViewController: UIViewController {
     header.isLayoutMarginsRelativeArrangement = true
     header.layoutMargins = UIEdgeInsets(top: 2, left: 4, bottom: 5, right: 4)
     return header
-  }
-
-  private func configureStatusCard() {
-    statusCard.backgroundColor = UIColor(red: 0.11, green: 0.15, blue: 0.24, alpha: 0.96)
-    statusCard.layer.cornerRadius = 15
-    statusCard.layer.borderWidth = 1
-    statusCard.layer.borderColor = UIColor.white.withAlphaComponent(0.09).cgColor
-    statusCard.isHidden = true
-
-    statusSpinner.translatesAutoresizingMaskIntoConstraints = false
-    statusSpinner.color = UIColor.white.withAlphaComponent(0.82)
-
-    statusLabel.numberOfLines = 2
-    statusLabel.textColor = UIColor.white.withAlphaComponent(0.82)
-    statusLabel.font = .systemFont(ofSize: 12.5, weight: .medium)
-
-    let row = UIStackView(arrangedSubviews: [statusSpinner, statusLabel])
-    row.translatesAutoresizingMaskIntoConstraints = false
-    row.axis = .horizontal
-    row.alignment = .center
-    row.spacing = 9
-
-    progressView.translatesAutoresizingMaskIntoConstraints = false
-    progressView.progress = 0
-    progressView.progressTintColor = UIColor(red: 0.47, green: 0.67, blue: 1, alpha: 1)
-    progressView.trackTintColor = UIColor.white.withAlphaComponent(0.12)
-
-    statusCard.addSubview(row)
-    statusCard.addSubview(progressView)
-    NSLayoutConstraint.activate([
-      row.leadingAnchor.constraint(equalTo: statusCard.leadingAnchor, constant: 13),
-      row.trailingAnchor.constraint(equalTo: statusCard.trailingAnchor, constant: -13),
-      row.topAnchor.constraint(equalTo: statusCard.topAnchor, constant: 11),
-      progressView.leadingAnchor.constraint(equalTo: statusCard.leadingAnchor, constant: 13),
-      progressView.trailingAnchor.constraint(equalTo: statusCard.trailingAnchor, constant: -13),
-      progressView.topAnchor.constraint(equalTo: row.bottomAnchor, constant: 8),
-      progressView.bottomAnchor.constraint(equalTo: statusCard.bottomAnchor, constant: -11),
-      progressView.heightAnchor.constraint(equalToConstant: 3),
-    ])
   }
 
   private func makeCatalogPlaceholder(failed: Bool) -> UIView {
@@ -675,18 +624,26 @@ final class AppBoxLauncherViewController: UIViewController {
     title: String,
     loading: Bool
   ) {
-    button.setTitle(title, for: .normal)
-    button.setTitle(title, for: .disabled)
-    button.setTitle(title, for: .highlighted)
+    if button.title(for: .normal) != title {
+      UIView.performWithoutAnimation {
+        button.setTitle(title, for: .normal)
+        button.setTitle(title, for: .disabled)
+        button.setTitle(title, for: .highlighted)
+        button.layoutIfNeeded()
+      }
+    }
     let spinner = button.viewWithTag(3107) as? UIActivityIndicatorView
-    if loading {
+    if loading && spinner?.isAnimating != true {
       spinner?.startAnimating()
-    } else {
+    } else if !loading && spinner?.isAnimating == true {
       spinner?.stopAnimating()
     }
-    button.contentEdgeInsets = loading
+    let insets = loading
       ? UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
       : .zero
+    if button.contentEdgeInsets != insets {
+      button.contentEdgeInsets = insets
+    }
   }
 
   private func sectionColor(index: Int, title: String) -> UIColor {
@@ -755,18 +712,6 @@ final class AppBoxLauncherViewController: UIViewController {
         self.refreshControl.endRefreshing()
         if self.catalogSections.isEmpty {
           self.renderCatalog()
-          self.showStatus(
-            "在线目录暂不可用，请检查网络后重试",
-            busy: false,
-            progress: 0
-          )
-        } else if !self.launchInProgress {
-          self.showStatus(
-            "已显示本地应用，在线内容稍后自动更新",
-            busy: false,
-            progress: 0,
-            autoHide: true
-          )
         }
         print("APPBOX_CATALOG unavailable error=\(error.localizedDescription)")
       }
@@ -836,7 +781,7 @@ final class AppBoxLauncherViewController: UIViewController {
   private func installInjectedPlayBoxGuest(_ descriptor: PlayBoxGuestDescriptor) {
     activeCatalogID = descriptor.id
     if let button = playBoxButtons[descriptor.id] {
-      setButtonPresentation(button, title: "校验中", loading: true)
+      setButtonPresentation(button, title: "安装中", loading: true)
     }
     setBusy(true, message: "正在验证 USB 注入的 \(descriptor.displayName)…")
     playBoxCoordinators[descriptor.id]?.prepare(from: URL(string: "http://127.0.0.1/")!)
@@ -858,18 +803,16 @@ final class AppBoxLauncherViewController: UIViewController {
   private func handlePornhub(_ event: GuestRuntimeCoordinator.Event) {
     switch event {
     case .status(let message):
+      cancelButtonProgressRender()
       setButtonPresentation(pornhubButton, title: compactLoadingTitle(message), loading: true)
-      showStatus(message, busy: true, progress: progressView.progress)
       print("APPBOX_FLUTTER_RUNTIME \(message)")
     case .progress(let value, let artifact):
-      let percent = max(1, min(99, Int(value * 100)))
-      setButtonPresentation(pornhubButton, title: "\(percent)%", loading: true)
-      showStatus(
-        String(format: "正在下载%@… %.1f%%", artifact, value * 100),
-        busy: true,
-        progress: Float(value)
-      )
+      let overallProgress = artifact.contains("NIVM")
+        ? 0.82 + (Float(value) * 0.16)
+        : 0.02 + (Float(value) * 0.78)
+      renderButtonProgress(pornhubButton, progress: overallProgress)
     case .ready(let payload):
+      cancelButtonProgressRender()
       pornhubInstalled = true
       UserDefaults.standard.set(payload.ipaSHA256, forKey: "AppBoxPornhubGuestIPAHash")
       setButtonPresentation(pornhubButton, title: "启动", loading: false)
@@ -884,6 +827,7 @@ final class AppBoxLauncherViewController: UIViewController {
         }
       }
     case .failure(let message):
+      cancelButtonProgressRender()
       setButtonPresentation(
         pornhubButton,
         title: pornhubInstalled ? "启动" : "重试",
@@ -899,22 +843,17 @@ final class AppBoxLauncherViewController: UIViewController {
   ) {
     switch event {
     case .status(let message):
+      cancelButtonProgressRender()
       if let button = playBoxButtons[descriptor.id] {
         setButtonPresentation(button, title: compactLoadingTitle(message), loading: true)
       }
-      showStatus(message, busy: true, progress: progressView.progress)
       print("APPBOX_PLAYBOX_RUNTIME guest=\(descriptor.id) \(message)")
     case .progress(let value):
-      let percent = max(1, min(99, Int(value * 100)))
       if let button = playBoxButtons[descriptor.id] {
-        setButtonPresentation(button, title: "\(percent)%", loading: true)
+        renderButtonProgress(button, progress: Float(value))
       }
-      showStatus(
-        String(format: "正在下载 \(descriptor.displayName)… %.1f%%", value * 100),
-        busy: true,
-        progress: Float(value)
-      )
     case .ready(let payload):
+      cancelButtonProgressRender()
       installedPlayBoxGuests[descriptor.id] = payload
       UserDefaults.standard.set(
         payload.ipaSHA256,
@@ -934,6 +873,7 @@ final class AppBoxLauncherViewController: UIViewController {
         }
       }
     case .failure(let message):
+      cancelButtonProgressRender()
       if let button = playBoxButtons[descriptor.id] {
         setButtonPresentation(
           button,
@@ -945,14 +885,14 @@ final class AppBoxLauncherViewController: UIViewController {
     }
   }
 
-  private func setBusy(_ busy: Bool, message: String) {
+  private func setBusy(_ busy: Bool, message _: String) {
     pornhubButton.isEnabled = !busy
     playBoxButtons.values.forEach { $0.isEnabled = !busy }
     installedTileControls.forEach { $0.isEnabled = !busy }
     if busy {
-      showStatus(message, busy: true, progress: 0)
+      cancelButtonProgressRender()
+      displayedButtonProgress = 0
     } else {
-      showStatus(message, busy: false, progress: 1, autoHide: true)
       pornhubButton.isEnabled = true
       playBoxButtons.values.forEach { $0.isEnabled = true }
       installedTileControls.forEach { $0.isEnabled = true }
@@ -960,6 +900,7 @@ final class AppBoxLauncherViewController: UIViewController {
   }
 
   private func showFailure(_ message: String) {
+    cancelButtonProgressRender()
     if launchInProgress {
       finishLaunchFeedback()
     }
@@ -967,7 +908,11 @@ final class AppBoxLauncherViewController: UIViewController {
     pornhubButton.isEnabled = true
     playBoxButtons.values.forEach { $0.isEnabled = true }
     installedTileControls.forEach { $0.isEnabled = true }
-    showStatus("失败：\(message)", busy: false, progress: 0, autoHide: true)
+    if presentedViewController == nil, view.window != nil {
+      let alert = UIAlertController(title: "操作失败", message: message, preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "知道了", style: .default))
+      present(alert, animated: true)
+    }
     print("APPBOX_RUNTIME guest_failed error=\(message)")
   }
 
@@ -1006,9 +951,13 @@ final class AppBoxLauncherViewController: UIViewController {
     }
   }
 
-  private func updateLaunchProgress(_ progress: Float, detail: String) {
+  private func updateLaunchProgress(
+    _ progress: Float,
+    detail: String,
+    showsPercentage: Bool = true
+  ) {
     launchProgressView.setProgress(progress, animated: true)
-    launchDetailLabel.text = "\(detail) \(Int(progress * 100))%"
+    launchDetailLabel.text = showsPercentage ? "\(detail) \(Int(progress * 100))%" : detail
     UIAccessibility.post(notification: .announcement, argument: launchDetailLabel.text)
   }
 
@@ -1044,18 +993,20 @@ final class AppBoxLauncherViewController: UIViewController {
 
   private func refreshInstalledState() {
     pornhubInstalled = hasInstalledPornhubGuest()
-    setButtonPresentation(
-      pornhubButton,
-      title: pornhubInstalled ? "启动" : "安装",
-      loading: false
-    )
+    if activeCatalogID == nil || activeCatalogID != flutterCatalogApp?.id {
+      setButtonPresentation(
+        pornhubButton,
+        title: pornhubInstalled ? "启动" : "安装",
+        loading: false
+      )
+    }
     pornhubButton.isEnabled = true
 
     installedPlayBoxGuests.removeAll()
     for descriptor in playBoxCatalogApps {
       let guest = installedPlayBoxGuest(descriptor)
       installedPlayBoxGuests[descriptor.id] = guest
-      if let button = playBoxButtons[descriptor.id] {
+      if activeCatalogID != descriptor.id, let button = playBoxButtons[descriptor.id] {
         setButtonPresentation(button, title: guest == nil ? "安装" : "启动", loading: false)
         button.isEnabled = true
       }
@@ -1064,39 +1015,45 @@ final class AppBoxLauncherViewController: UIViewController {
     if launchInProgress {
       setLaunchControlsEnabled(false)
     }
-    if activeCatalogID == nil {
-      statusCard.isHidden = true
-    }
   }
 
   private func compactLoadingTitle(_ message: String) -> String {
     if message.contains("下载") { return "下载中" }
-    if message.contains("解包") { return "解包中" }
-    if message.contains("安装") || message.contains("写入") { return "安装中" }
-    return "校验中"
+    return "安装中"
   }
 
-  private func showStatus(
-    _ message: String,
-    busy: Bool,
-    progress: Float,
-    autoHide: Bool = false
-  ) {
-    statusHideWorkItem?.cancel()
-    statusCard.isHidden = false
-    statusLabel.text = message
-    progressView.progress = progress
-    if busy {
-      statusSpinner.startAnimating()
-    } else {
-      statusSpinner.stopAnimating()
+  private func renderButtonProgress(_ button: UIButton, progress: Float) {
+    let clamped = max(displayedButtonProgress, min(0.99, max(0.01, progress)))
+    pendingButtonProgress = (button, clamped)
+    let now = CACurrentMediaTime()
+    let delay = max(0, 0.10 - (now - lastButtonProgressRenderTime))
+    guard delay > 0 else {
+      flushButtonProgressRender()
+      return
     }
-    guard autoHide else { return }
+    guard buttonProgressWorkItem == nil else { return }
     let item = DispatchWorkItem { [weak self] in
-      self?.statusCard.isHidden = true
+      self?.flushButtonProgressRender()
     }
-    statusHideWorkItem = item
-    DispatchQueue.main.asyncAfter(deadline: .now() + (message.hasPrefix("失败") ? 4 : 1.8), execute: item)
+    buttonProgressWorkItem = item
+    DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
+  }
+
+  private func flushButtonProgressRender() {
+    buttonProgressWorkItem?.cancel()
+    buttonProgressWorkItem = nil
+    guard let pending = pendingButtonProgress else { return }
+    pendingButtonProgress = nil
+    displayedButtonProgress = pending.progress
+    lastButtonProgressRenderTime = CACurrentMediaTime()
+    let percent = max(1, min(99, Int(pending.progress * 100)))
+    setButtonPresentation(pending.button, title: "\(percent)%", loading: true)
+  }
+
+  private func cancelButtonProgressRender() {
+    buttonProgressWorkItem?.cancel()
+    buttonProgressWorkItem = nil
+    pendingButtonProgress = nil
   }
 
   private func hasInstalledPornhubGuest() -> Bool {
@@ -1182,14 +1139,12 @@ final class AppBoxLauncherViewController: UIViewController {
     }
     defaults.synchronize()
     launchInProgress = true
-    statusHideWorkItem?.cancel()
-    statusCard.isHidden = true
     setLaunchControlsEnabled(false)
     let visibleDescriptor = descriptor ?? flutterCatalogApp
     showLaunchOverlay(for: visibleDescriptor)
-    scheduleLaunchStep(after: 0.18, progress: 0.30, detail: "正在启动安全环境运行")
-    scheduleLaunchStep(after: 0.40, progress: 0.62, detail: "正在载入应用资源")
-    scheduleLaunchStep(after: 0.62, progress: 0.88, detail: "即将进入应用")
+    scheduleLaunchStep(after: 0.18, progress: 0.28, detail: "正在启动安全环境运行")
+    scheduleLaunchStep(after: 0.42, progress: 0.58, detail: "正在载入应用资源")
+    scheduleLaunchStep(after: 0.68, progress: 0.82, detail: "正在准备应用窗口")
 
     let shouldCapture = ProcessInfo.processInfo.arguments.contains("--appbox-capture-launch-progress")
     if shouldCapture {
@@ -1202,8 +1157,13 @@ final class AppBoxLauncherViewController: UIViewController {
 
     let launchItem = DispatchWorkItem { [weak self] in
       guard let self, self.launchInProgress else { return }
-      self.updateLaunchProgress(0.96, detail: "正在启动安全环境运行")
-      self.performGuestLaunch(runtimeKind: runtimeKind)
+      self.updateLaunchProgress(0.94, detail: "首次启动正在初始化，请稍候", showsPercentage: false)
+      let startItem = DispatchWorkItem { [weak self] in
+        guard let self, self.launchInProgress else { return }
+        self.performGuestLaunch(runtimeKind: runtimeKind)
+      }
+      self.launchWorkItems.append(startItem)
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.14, execute: startItem)
     }
     launchWorkItems.append(launchItem)
     DispatchQueue.main.asyncAfter(

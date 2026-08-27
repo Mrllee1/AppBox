@@ -10,7 +10,6 @@
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		9759E9FBC16909494FB6897E /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 591BC9A37FFC72957CA28C90 /* Pods_Runner.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -29,6 +28,9 @@
 		AB0A00242F00000000000024 /* AppBoxSurfaceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00252F00000000000025 /* AppBoxSurfaceCoordinator.swift */; };
 		AB0A00262F00000000000026 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00272F00000000000027 /* FamilyControls.framework */; };
 		AB0A00282F00000000000028 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00292F00000000000029 /* ManagedSettings.framework */; };
+		AB0A00302F00000000000030 /* AppBoxInternalUnlockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00312F00000000000031 /* AppBoxInternalUnlockService.swift */; };
+		AB0A00322F00000000000032 /* AppBoxFocusAutomationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00332F00000000000033 /* AppBoxFocusAutomationStore.swift */; };
+		AB0A00342F00000000000034 /* AppBoxGeofenceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00352F00000000000035 /* AppBoxGeofenceMonitor.swift */; };
 		F584CB7B2E796FBE00E25C34 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F584CB7A2E796FBE00E25C34 /* NetworkExtension.framework */; };
 /* End PBXBuildFile section */
 
@@ -82,6 +84,9 @@
 		AB0A00252F00000000000025 /* AppBoxSurfaceCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxSurfaceCoordinator.swift; sourceTree = "<group>"; };
 		AB0A00272F00000000000027 /* FamilyControls.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FamilyControls.framework; path = System/Library/Frameworks/FamilyControls.framework; sourceTree = SDKROOT; };
 		AB0A00292F00000000000029 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
+		AB0A00312F00000000000031 /* AppBoxInternalUnlockService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxInternalUnlockService.swift; sourceTree = "<group>"; };
+		AB0A00332F00000000000033 /* AppBoxFocusAutomationStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxFocusAutomationStore.swift; sourceTree = "<group>"; };
+		AB0A00352F00000000000035 /* AppBoxGeofenceMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxGeofenceMonitor.swift; sourceTree = "<group>"; };
 		CED8FB9BFD546D34300C73DB /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF02A11BB7AD9779878AA02F /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		D8162EAD23E375935A770639 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
@@ -131,7 +136,6 @@
 			files = (
 				AB0A00262F00000000000026 /* FamilyControls.framework in Frameworks */,
 				AB0A00282F00000000000028 /* ManagedSettings.framework in Frameworks */,
-				9759E9FBC16909494FB6897E /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +246,9 @@
 				AB0A00212F00000000000021 /* AppBoxVisibilityService.swift */,
 				AB0A00232F00000000000023 /* AppBoxPrivacySurfaceView.swift */,
 				AB0A00252F00000000000025 /* AppBoxSurfaceCoordinator.swift */,
+				AB0A00312F00000000000031 /* AppBoxInternalUnlockService.swift */,
+				AB0A00332F00000000000033 /* AppBoxFocusAutomationStore.swift */,
+				AB0A00352F00000000000035 /* AppBoxGeofenceMonitor.swift */,
 				7B4B7C2A2D7E4A0A9F6C0012 /* KeyboardInsetsStreamHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
@@ -274,12 +281,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
-				2FAA3375B49B7A6875A02672 /* [CP] Check Pods Manifest.lock */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
-				59C222AC56215511818F6292 /* [CP] Embed Pods Frameworks */,
-				5E43225D6B618A7D1160B0CF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -489,6 +493,9 @@
 				AB0A00202F00000000000020 /* AppBoxVisibilityService.swift in Sources */,
 				AB0A00222F00000000000022 /* AppBoxPrivacySurfaceView.swift in Sources */,
 				AB0A00242F00000000000024 /* AppBoxSurfaceCoordinator.swift in Sources */,
+				AB0A00302F00000000000030 /* AppBoxInternalUnlockService.swift in Sources */,
+				AB0A00322F00000000000032 /* AppBoxFocusAutomationStore.swift in Sources */,
+				AB0A00342F00000000000034 /* AppBoxGeofenceMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -573,7 +580,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -585,7 +592,6 @@
 		};
 		249021D4217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A37D6AF6E9AC7F9C7CDF3A08 /* Pods-Runner.profile.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconWeChat AppIconQQ AppIconAlipay AppIconToutiao AppIconDouyin AppIconXiaohongshu AppIconTelegram";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -731,7 +737,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -783,7 +789,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -797,7 +803,6 @@
 		};
 		97C147061CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1DE71E9E653CF8520199893E /* Pods-Runner.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconWeChat AppIconQQ AppIconAlipay AppIconToutiao AppIconDouyin AppIconXiaohongshu AppIconTelegram";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -839,6 +844,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG APPBOX_INTERNAL_UNLOCK $(inherited)";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -846,7 +852,6 @@
 		};
 		97C147071CF9000F007C117D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D8162EAD23E375935A770639 /* Pods-Runner.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconWeChat AppIconQQ AppIconAlipay AppIconToutiao AppIconDouyin AppIconXiaohongshu AppIconTelegram";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -916,7 +921,7 @@
 				INFOPLIST_FILE = VPNExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "天涯VPN";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -967,7 +972,7 @@
 				INFOPLIST_FILE = VPNExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "天涯VPN";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1015,7 +1020,7 @@
 				INFOPLIST_FILE = VPNExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "天涯VPN";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

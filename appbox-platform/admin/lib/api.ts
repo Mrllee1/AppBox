@@ -105,6 +105,20 @@ export interface LoginResponse {
   user: AdminUser;
 }
 
+export interface InternalUnlockCodeRecord {
+  id: string;
+  createdAt: string;
+  expiresAt: string;
+  consumedAt?: string;
+  status: "active" | "consumed" | "expired";
+}
+
+export interface IssuedInternalUnlockCode {
+  success: true;
+  code: string;
+  expiresAt: string;
+}
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? (process.env.NODE_ENV === "production" ? "" : "http://127.0.0.1:39110");
 let adminToken = "";
@@ -146,6 +160,16 @@ export const api = {
   mappings: () => request<{ success: true; data: AdminMapping[] }>("/admin/mappings"),
   categories: () => request<{ success: true; data: AdminCategory[] }>("/admin/categories"),
   groups: () => request<{ success: true; data: AdminGroup[] }>("/admin/groups"),
+  internalUnlockCodes: () =>
+    request<{ success: true; data: InternalUnlockCodeRecord[] }>("/admin/internal-unlock/codes"),
+  issueInternalUnlockCode: (ttlMinutes: number, customCode?: string) =>
+    request<IssuedInternalUnlockCode>("/admin/internal-unlock/codes", {
+      method: "POST",
+      body: JSON.stringify({
+        ttlMinutes,
+        ...(customCode?.trim() ? { customCode: customCode.trim() } : {})
+      })
+    }),
   createCategory: (body: Partial<AdminCategory>) =>
     request<{ success: true; data: AdminCategory }>("/admin/categories", {
       method: "POST",

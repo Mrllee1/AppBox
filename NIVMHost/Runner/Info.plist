@@ -56,6 +56,8 @@
 	<string>$(APPBOX_GUEST_URL)</string>
 	<key>AppBoxCatalogBaseURL</key>
 	<string>$(APPBOX_CATALOG_BASE_URL)</string>
+	<key>AppBoxVerificationBaseURL</key>
+	<string>$(APPBOX_VERIFICATION_BASE_URL)</string>
 	<key>AppBoxClientAESKey</key>
 	<string>$(APPBOX_CLIENT_AES_KEY)</string>
 	<key>AppBoxAssetAESKey</key>
@@ -132,11 +134,23 @@
     <!-- 麦克风权限（用于聊天室语音直播） -->
     <key>NSMicrophoneUsageDescription</key>
     <string>Quietform 需要访问您的麦克风，以使用语音和录音功能。</string>
+
+    <!-- 联系人 / 语音识别 / 日历权限仅在用户主动使用对应功能时申请。 -->
+    <key>NSContactsUsageDescription</key>
+    <string>Quietform 仅在您主动使用联系人功能时访问通讯录，用于选择联系人并完成您发起的分享或互动。</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Quietform 仅在您主动使用语音输入时使用语音识别，将语音转换为文字以便填写或搜索内容。</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>Quietform 仅在您主动使用日程功能时访问日历，用于读取或添加您选择的日程。</string>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>Quietform 仅在您主动管理日程时读取和更新您选择的日历内容。</string>
+    <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+    <string>Quietform 仅在您主动添加日程时，将您确认的事件写入系统日历。</string>
     
-    <!-- 定位权限（VPN 网络优化 / 实时位置共享） -->
+    <!-- 定位权限（用户主动创建的地点专注规则） -->
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Quietform 需要在使用期间获取您的位置，以共享位置并优化网络连接。</string>
+    <string>Quietform 使用当前位置创建您主动设置的地点专注规则。</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Quietform 仅在您主动共享实时位置时持续获取位置；您可随时在系统设置中关闭。</string>
+    <string>Quietform 仅在您启用地点规则后监听到达或离开事件，以自动应用您设置的专注保护。</string>
 </dict>
 </plist>

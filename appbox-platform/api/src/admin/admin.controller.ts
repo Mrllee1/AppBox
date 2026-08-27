@@ -5,6 +5,7 @@ import { AssetsService } from "../assets/assets.service";
 import { DeeplinkService } from "../deeplink/deeplink.service";
 import { PlatformConfigService } from "../platform-config/platform-config.service";
 import { AdminService } from "./admin.service";
+import { InternalUnlockService } from "../internal-unlock/internal-unlock.service";
 
 @Controller("/admin")
 @UseGuards(AdminAuthGuard)
@@ -13,7 +14,8 @@ export class AdminController {
     @Inject(AdminService) private readonly admin: AdminService,
     @Inject(AssetsService) private readonly assets: AssetsService,
     @Inject(DeeplinkService) private readonly deeplink: DeeplinkService,
-    @Inject(PlatformConfigService) private readonly platformConfig: PlatformConfigService
+    @Inject(PlatformConfigService) private readonly platformConfig: PlatformConfigService,
+    @Inject(InternalUnlockService) private readonly internalUnlock: InternalUnlockService
   ) {}
 
   @Get("summary")
@@ -134,5 +136,15 @@ export class AdminController {
   @Post("platform-config/publish")
   publishPlatformConfig() {
     return this.platformConfig.publishRemoteConfig();
+  }
+
+  @Get("internal-unlock/codes")
+  listInternalUnlockCodes() {
+    return this.internalUnlock.list();
+  }
+
+  @Post("internal-unlock/codes")
+  issueInternalUnlockCode(@Body() body: unknown) {
+    return this.internalUnlock.issue(body);
   }
 }

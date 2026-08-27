@@ -72,6 +72,7 @@ static id AppBoxInProcessGuestDelegate;
 static UIWindow *AppBoxInProcessGuestWindow;
 static UIViewController *AppBoxInProcessGuestRootController;
 static NSBundle *AppBoxGuestMainBundle;
+static CFBundleRef AppBoxGuestMainCFBundle;
 static NSBundle *AppBoxHostBundle;
 static NSMutableArray<NSValue *> *AppBoxLooseGuestImages;
 static uintptr_t AppBoxChungongKingfisherBase;
@@ -3821,10 +3822,6 @@ static void AppBoxRegisterFlutterPlugin(id engine, NSString *framework,
         pluginKey, NSStringFromClass(pluginClass));
 }
 
-@interface NSBundle (AppBoxPrivate)
-- (id)_cfBundle;
-@end
-
 @interface NSProcessInfo (AppBoxPrivate)
 - (void)setArguments:(NSArray<NSString *> *)arguments;
 @end
@@ -3921,7 +3918,7 @@ static BOOL AppBoxOverwriteMainNSBundle(NSBundle *newBundle) {
 #endif
 }
 
-static BOOL AppBoxOverwriteMainCFBundle(void) {
+static BOOL AppBoxOverwriteMainCFBundle(NSBundle *newBundle) {
 #if defined(__arm64__)
   uint32_t *instruction = (uint32_t *)CFBundleGetMainBundle;
   void **mainBundleAddress = NULL;
@@ -3948,11 +3945,21 @@ static BOOL AppBoxOverwriteMainCFBundle(void) {
     }
   }
 
-  if (mainBundleAddress == NULL || NSBundle.mainBundle._cfBundle == nil) {
+  if (mainBundleAddress == NULL || newBundle.bundleURL == nil) {
     return NO;
   }
-  *mainBundleAddress = (__bridge void *)NSBundle.mainBundle._cfBundle;
-  return CFBundleGetMainBundle() == (__bridge CFBundleRef)NSBundle.mainBundle._cfBundle;
+
+  // `_cfBundle` is a private NSBundle selector and is rejected by App Store
+  // validation. Create the equivalent Core Foundation bundle through the
+  // public API and retain it for the lifetime of the guest process instead.
+  CFBundleRef guestCFBundle = CFBundleCreate(
+      kCFAllocatorDefault, (__bridge CFURLRef)newBundle.bundleURL);
+  if (guestCFBundle == NULL) {
+    return NO;
+  }
+  AppBoxGuestMainCFBundle = guestCFBundle;
+  *mainBundleAddress = (void *)guestCFBundle;
+  return CFBundleGetMainBundle() == guestCFBundle;
 #else
   return NO;
 #endif
@@ -3967,7 +3974,8 @@ static BOOL AppBoxInstallGuestProcessIdentity(NSString *bundlePath,
 
   AppBoxGuestMainBundle = guestBundle;
   BOOL nsBundleReplaced = AppBoxOverwriteMainNSBundle(guestBundle);
-  BOOL cfBundleReplaced = nsBundleReplaced && AppBoxOverwriteMainCFBundle();
+  BOOL cfBundleReplaced =
+      nsBundleReplaced && AppBoxOverwriteMainCFBundle(guestBundle);
 
   NSMutableArray<NSString *> *arguments =
       NSProcessInfo.processInfo.arguments.mutableCopy;

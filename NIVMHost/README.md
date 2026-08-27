@@ -120,6 +120,33 @@ pod install
 Successful completion prints `APPBOX_HOST_OK`, installs
 `com.tianya.appbox`, and launches it on the selected device.
 
+## App Store IPA
+
+Use the App Store build script instead of wrapping a device-specific build by
+hand:
+
+```bash
+cd /Users/king/Documents/GitHub/AppBox/NIVMHost
+./scripts/build_appstore_ipa.sh
+```
+
+The script creates a `generic/platform=iOS` archive, stages and signs the NIVM
+runtime, preserves the required standalone 167x167 iPad Pro icon and its
+`Info.plist` references, exports with App Store Connect signing, and then
+verifies the ZIP, nested code signatures, source icon sets, and exported app
+icon bundle. A successful run ends with `APPSTORE_IPA_OK` and prints the final
+IPA path, byte size, and SHA-256.
+
+The final bundle validation also rejects the non-public `-[NSBundle _cfBundle]`
+selector and requires non-empty Contacts, Speech Recognition, and Calendar
+purpose strings. Guest identity redirection creates its Core Foundation bundle
+with the public `CFBundleCreate` API instead of calling the private selector.
+
+The verified custom `ios_debug_unopt` Flutter engine remains the distribution
+default because the smaller pure release engine currently crashes the
+source-built Flutter guest during VM initialization. Debug and local symbols
+are stripped from the staged copy, leaving the original engine build untouched.
+
 Useful A/B QA launches are:
 
 ```bash

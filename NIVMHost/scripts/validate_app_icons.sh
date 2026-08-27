@@ -7,7 +7,8 @@ IOS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ASSET_DIR="${IOS_DIR}/Runner/Assets.xcassets"
 BUILT_APP="${1:-}"
 
-ICON_SETS=(
+PRIMARY_ICON_SET="AppIcon"
+ALTERNATE_ICON_SETS=(
   AppIconWeChat
   AppIconQQ
   AppIconAlipay
@@ -16,6 +17,7 @@ ICON_SETS=(
   AppIconXiaohongshu
   AppIconTelegram
 )
+ICON_SETS=("${PRIMARY_ICON_SET}" "${ALTERNATE_ICON_SETS[@]}")
 
 fail() {
   printf 'App icon validation failed: %s\n' "$*" >&2
@@ -56,12 +58,31 @@ done
 if [[ -n "${BUILT_APP}" ]]; then
   plist="${BUILT_APP}/Info.plist"
   [[ -f "${plist}" ]] || fail "missing built Info.plist at ${plist}"
-  for icon_name in "${ICON_SETS[@]}"; do
+  for icon_name in "${ALTERNATE_ICON_SETS[@]}"; do
     /usr/libexec/PlistBuddy \
       -c "Print :CFBundleIcons:CFBundleAlternateIcons:${icon_name}" \
       "${plist}" >/dev/null 2>&1 \
       || fail "built app did not register ${icon_name}"
   done
+
+  ipad_pro_icon=""
+  while IFS= read -r icon_file; do
+    width="$(sips -g pixelWidth "${icon_file}" | awk '/pixelWidth/ {print $2}')"
+    height="$(sips -g pixelHeight "${icon_file}" | awk '/pixelHeight/ {print $2}')"
+    if [[ "${width}" == "167" && "${height}" == "167" ]]; then
+      ipad_pro_icon="${icon_file}"
+      break
+    fi
+  done < <(find "${BUILT_APP}" -maxdepth 1 -type f -name '*.png' -print)
+
+  [[ -n "${ipad_pro_icon}" ]] \
+    || fail "built app is missing the required 167x167 iPad Pro icon"
 fi
 
-printf 'Validated %d alternate app icon sets.\n' "${#ICON_SETS[@]}"
+if [[ -n "${BUILT_APP}" ]]; then
+  printf 'Validated primary icon, %d alternate icon sets, and built 167x167 iPad icon.\n' \
+    "${#ALTERNATE_ICON_SETS[@]}"
+else
+  printf 'Validated primary icon and %d alternate icon sets.\n' \
+    "${#ALTERNATE_ICON_SETS[@]}"
+fi

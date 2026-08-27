@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { copyFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
@@ -146,6 +146,7 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   const baseUrl = `http://127.0.0.1:${port}`;
   const tempDir = await mkdtemp(join(tmpdir(), "appbox-platform-"));
   const dataFile = join(tempDir, "store.json");
+  await copyFile(new URL("./fixtures/appbox-store.json", import.meta.url), dataFile);
   const child = spawn("npm", ["run", "dev:api"], {
     cwd: root,
     env: {
@@ -160,6 +161,9 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
       APPBOX_CLIENT_ENCRYPTION_REQUIRED: "true",
       APPBOX_ASSET_AES_KEY: assetKey.toString("base64"),
       APPBOX_ASSET_AES_IV: assetIV.toString("base64"),
+      APPBOX_INTERNAL_UNLOCK_ENABLED: "true",
+      APPBOX_INTERNAL_UNLOCK_SECRET: "test-internal-unlock-secret",
+      APPBOX_INTERNAL_UNLOCK_FIXED_CODE: "999999",
       APPBOX_ALLOWED_ORIGINS: "http://127.0.0.1:39111"
     },
     stdio: ["ignore", "pipe", "pipe"]
@@ -292,6 +296,91 @@ test("AppBox API, deeplink, events, and admin CRUD", async (t) => {
   });
   assert.equal(summary.enabled_apps, 1);
   assert.equal(summary.events.total_events, 2);
+
+  const fixedRedeemBody = {
+    code: "999999",
+    installId: "04361a53-ad9e-4936-98b6-91572d888bb2",
+    appVersion: "1.0.0",
+    appBuild: "2"
+  };
+  const firstFixedRedeem = await request(baseUrl, "/api/v1/appbox/internal-unlock/redeem", {
+    method: "POST",
+    body: JSON.stringify(fixedRedeemBody)
+  });
+  const secondFixedRedeem = await request(baseUrl, "/api/v1/appbox/internal-unlock/redeem", {
+    method: "POST",
+    body: JSON.stringify(fixedRedeemBody)
+  });
+  assert.equal(firstFixedRedeem.unlock, true);
+  assert.equal(firstFixedRedeem.fixed, true);
+  assert.equal(secondFixedRedeem.unlock, true);
+  assert.equal(secondFixedRedeem.fixed, true);
+
+  const issuedUnlock = await request(baseUrl, "/admin/internal-unlock/codes", {
+    method: "POST",
+    headers: authHeaders,
+    body: JSON.stringify({ ttlMinutes: 10 })
+  });
+  assert.equal(issuedUnlock.success, true);
+  assert.match(issuedUnlock.code, /^[2-9A-HJ-NP-Z]{5}-[2-9A-HJ-NP-Z]{5}$/);
+
+  const unlockList = await request(baseUrl, "/admin/internal-unlock/codes", {
+    headers: authHeaders
+  });
+  assert.equal(unlockList.data[0].status, "active");
+  assert.equal("code" in unlockList.data[0], false);
+  assert.equal("codeHash" in unlockList.data[0], false);
+
+  const redeemBody = {
+    code: issuedUnlock.code,
+    installId: "a7f73330-9acb-472d-9b65-c499d30ecb7d",
+    appVersion: "1.0.0",
+    appBuild: "2"
+  };
+  const simultaneousRedeems = await Promise.allSettled([
+    request(baseUrl, "/api/v1/appbox/internal-unlock/redeem", {
+      method: "POST",
+      body: JSON.stringify(redeemBody)
+    }),
+    request(baseUrl, "/api/v1/appbox/internal-unlock/redeem", {
+      method: "POST",
+      body: JSON.stringify(redeemBody)
+    })
+  ]);
+  assert.equal(simultaneousRedeems.filter((result) => result.status === "fulfilled").length, 1);
+  assert.equal(simultaneousRedeems.filter((result) => result.status === "rejected").length, 1);
+  const successfulRedeem = simultaneousRedeems.find((result) => result.status === "fulfilled");
+  assert.equal(successfulRedeem.value.unlock, true);
+
+  const consumedUnlockList = await request(baseUrl, "/admin/internal-unlock/codes", {
+    headers: authHeaders
+  });
+  assert.equal(consumedUnlockList.data[0].status, "consumed");
+
+  const customUnlock = await request(baseUrl, "/admin/internal-unlock/codes", {
+    method: "POST",
+    headers: authHeaders,
+    body: JSON.stringify({ ttlMinutes: 10, customCode: "888888" })
+  });
+  assert.equal(customUnlock.code, "888888");
+  const customRedeemBody = {
+    code: "888888",
+    installId: "c4ce7e2d-7dc6-48dd-a0f0-e93e55fbc4dd",
+    appVersion: "1.0.0",
+    appBuild: "2"
+  };
+  const customRedeem = await request(baseUrl, "/api/v1/appbox/internal-unlock/redeem", {
+    method: "POST",
+    body: JSON.stringify(customRedeemBody)
+  });
+  assert.equal(customRedeem.unlock, true);
+  await assert.rejects(
+    () => request(baseUrl, "/api/v1/appbox/internal-unlock/redeem", {
+      method: "POST",
+      body: JSON.stringify(customRedeemBody)
+    }),
+    /401 Unauthorized/
+  );
 
   const adminDeeplink = await request(baseUrl, "/admin/deeplink/resolve-test", {
     method: "POST",

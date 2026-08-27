@@ -11,6 +11,7 @@ export class FileDataStore {
     process.env.APPBOX_DATA_FILE || "data/appbox-store.json"
   );
   private initPromise?: Promise<void>;
+  private updateQueue: Promise<void> = Promise.resolve();
 
   async read(): Promise<AppBoxStoreData> {
     await this.ensureInitialized();
@@ -24,11 +25,20 @@ export class FileDataStore {
   }
 
   async update(mutator: (data: AppBoxStoreData) => void | Promise<void>): Promise<AppBoxStoreData> {
-    const data = await this.read();
-    await mutator(data);
-    data.version += 1;
-    await this.writeRaw(data);
-    return data;
+    let result: AppBoxStoreData | undefined;
+    const operation = this.updateQueue.then(async () => {
+      const data = await this.read();
+      await mutator(data);
+      data.version += 1;
+      await this.writeRaw(data);
+      result = data;
+    });
+    this.updateQueue = operation.then(
+      () => undefined,
+      () => undefined
+    );
+    await operation;
+    return result as AppBoxStoreData;
   }
 
   private async ensureInitialized(): Promise<void> {

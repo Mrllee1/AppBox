@@ -82,6 +82,15 @@ export interface AppBoxEventLog {
   createdAt: string;
 }
 
+export interface AppBoxInternalUnlockCode {
+  id: string;
+  codeHash: string;
+  createdAt: string;
+  expiresAt: string;
+  consumedAt?: string;
+  consumedByHash?: string;
+}
+
 export interface AppBoxApiEntrypoint {
   baseUrl: string;
   enabled: boolean;
@@ -124,6 +133,7 @@ export interface AppBoxStoreData {
   mappings: AppBoxExternalMapping[];
   channels: AppBoxChannel[];
   events: AppBoxEventLog[];
+  internalUnlockCodes?: AppBoxInternalUnlockCode[];
 }
 
 export interface CatalogAppDTO {

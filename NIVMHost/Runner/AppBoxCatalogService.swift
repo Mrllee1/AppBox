@@ -10,78 +10,38 @@ struct AppBoxRuntimeCatalogSection: Codable, Hashable {
 final class AppBoxCatalogService {
   private let session: URLSession
   private let decoder = JSONDecoder()
-  private let encoder = JSONEncoder()
 
   init(session: URLSession = .shared) {
     self.session = session
   }
 
-  func cachedSections() -> [AppBoxRuntimeCatalogSection] {
-    guard let cacheURL = catalogCacheURL(),
-          let data = try? Data(contentsOf: cacheURL),
-          let sections = try? decoder.decode([AppBoxRuntimeCatalogSection].self, from: data),
-          !sections.isEmpty else { return [] }
-    return sections
-  }
-
   func fetch() async throws -> [AppBoxRuntimeCatalogSection] {
-    var lastError: Error = CatalogError.unreachable
-    for baseURL in candidateBaseURLs() {
-      do {
-        let data = try await fetchCatalogData(baseURL: baseURL)
-        let envelope = try decoder.decode(EncryptedEnvelope.self, from: data)
-        let decrypted = try decrypt(envelope)
-        let catalog = try decoder.decode(RemoteCatalog.self, from: decrypted)
-        let sections = map(catalog)
-        guard !sections.isEmpty else { throw CatalogError.empty }
-        cache(sections)
-        return sections
-      } catch {
-        let details = error as NSError
-        print(
-          "APPBOX_CATALOG candidate_failed base=\(baseURL.absoluteString) " +
-          "domain=\(details.domain) code=\(details.code) error=\(details.localizedDescription)"
-        )
-        lastError = error
-      }
-    }
-    throw lastError
-  }
-
-  private func cache(_ sections: [AppBoxRuntimeCatalogSection]) {
-    guard let cacheURL = catalogCacheURL() else { return }
+    guard let baseURL = configuredBaseURL() else { throw CatalogError.invalidURL }
     do {
-      try FileManager.default.createDirectory(
-        at: cacheURL.deletingLastPathComponent(),
-        withIntermediateDirectories: true
-      )
-      let data = try encoder.encode(sections)
-      try data.write(to: cacheURL, options: .atomic)
-      print("APPBOX_CATALOG cache_saved sections=\(sections.count) bytes=\(data.count)")
+      let data = try await fetchCatalogData(baseURL: baseURL)
+      let envelope = try decoder.decode(EncryptedEnvelope.self, from: data)
+      let decrypted = try decrypt(envelope)
+      let catalog = try decoder.decode(RemoteCatalog.self, from: decrypted)
+      let sections = map(catalog)
+      guard !sections.isEmpty else { throw CatalogError.empty }
+      return sections
     } catch {
-      print("APPBOX_CATALOG cache_save_failed error=\(error.localizedDescription)")
+      let details = error as NSError
+      print(
+        "APPBOX_CATALOG request_failed base=\(baseURL.absoluteString) " +
+        "domain=\(details.domain) code=\(details.code) error=\(details.localizedDescription)"
+      )
+      throw error
     }
   }
 
-  private func catalogCacheURL() -> URL? {
-    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-      .first?
-      .appendingPathComponent("AppBox", isDirectory: true)
-      .appendingPathComponent("catalog-v1.json", isDirectory: false)
-  }
-
-  private func candidateBaseURLs() -> [URL] {
-    let configured = (Bundle.main.object(forInfoDictionaryKey: "AppBoxCatalogBaseURL") as? String)
-      .flatMap(URL.init(string:))
-    let values = [
-      configured,
-      URL(string: "https://3601.help"),
-      URL(string: "https://666999.lol"),
-    ].compactMap { $0 }
-    return values.reduce(into: [URL]()) { result, url in
-      guard !result.contains(url) else { return }
-      result.append(url)
+  private func configuredBaseURL() -> URL? {
+    guard let configured = Bundle.main.object(forInfoDictionaryKey: "AppBoxCatalogBaseURL") as? String else {
+      return nil
     }
+    let value = configured.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !value.isEmpty else { return nil }
+    return URL(string: value)
   }
 
   private func fetchCatalogData(baseURL: URL) async throws -> Data {
@@ -225,7 +185,6 @@ private struct RemoteApp: Decodable {
 }
 
 private enum CatalogError: LocalizedError {
-  case unreachable
   case invalidURL
   case invalidResponse
   case invalidEnvelope
@@ -233,7 +192,6 @@ private enum CatalogError: LocalizedError {
 
   var errorDescription: String? {
     switch self {
-    case .unreachable: return "目录服务器不可达"
     case .invalidURL: return "目录地址无效"
     case .invalidResponse: return "目录服务器响应无效"
     case .invalidEnvelope: return "目录签名信封无效"

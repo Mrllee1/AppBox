@@ -19,6 +19,8 @@ import { EventsService } from "./events/events.service";
 import { CredentialCryptoService } from "./platform-config/credential-crypto.service";
 import { PlatformConfigService } from "./platform-config/platform-config.service";
 import { R2StorageService } from "./platform-config/r2-storage.service";
+import { InternalUnlockController } from "./internal-unlock/internal-unlock.controller";
+import { InternalUnlockService } from "./internal-unlock/internal-unlock.service";
 
 @Module({
   controllers: [
@@ -28,7 +30,8 @@ import { R2StorageService } from "./platform-config/r2-storage.service";
     CatalogController,
     ConfigController,
     DeeplinkController,
-    EventsController
+    EventsController,
+    InternalUnlockController
   ],
   providers: [
     AdminAuthGuard,
@@ -43,7 +46,8 @@ import { R2StorageService } from "./platform-config/r2-storage.service";
     DeeplinkService,
     EventsService,
     PlatformConfigService,
-    R2StorageService
+    R2StorageService,
+    InternalUnlockService
   ]
 })
 export class AppModule {}

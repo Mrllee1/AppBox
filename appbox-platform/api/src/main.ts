@@ -19,8 +19,9 @@ async function bootstrap() {
   });
 
   const port = Number(process.env.APPBOX_API_PORT || process.env.PORT || 39110);
-  await app.listen(port, "127.0.0.1");
-  console.log(`AppBox API listening on http://127.0.0.1:${port}`);
+  const host = process.env.APPBOX_API_HOST || "127.0.0.1";
+  await app.listen(port, host);
+  console.log(`AppBox API listening on ${host}:${port}`);
 }
 
 void bootstrap();

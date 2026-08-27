@@ -28,16 +28,28 @@ import {
   CloudUploadOutlined,
   LinkOutlined,
   LogoutOutlined,
+  KeyOutlined,
   PlusOutlined,
   ReloadOutlined,
   SettingOutlined
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { AdminApp, AdminCategory, AdminGroup, AdminMapping, AdminSummary, AdminUser, PlatformConfig, api } from "../lib/api";
+import {
+  AdminApp,
+  AdminCategory,
+  AdminGroup,
+  AdminMapping,
+  AdminSummary,
+  AdminUser,
+  InternalUnlockCodeRecord,
+  IssuedInternalUnlockCode,
+  PlatformConfig,
+  api
+} from "../lib/api";
 
 const { Text } = Typography;
 
-type AdminSection = "overview" | "apps" | "taxonomy" | "deeplink" | "platform" | "diagnostics";
+type AdminSection = "overview" | "apps" | "taxonomy" | "deeplink" | "internal" | "platform" | "diagnostics";
 
 interface GeneratedDeepLink {
   description: string;
@@ -61,6 +73,10 @@ const sectionMeta: Record<AdminSection, { description: string; title: string }> 
   deeplink: {
     title: "深链接",
     description: "验证外部落地页参数是否能解析到指定 App"
+  },
+  internal: {
+    title: "内部授权",
+    description: "签发只能使用一次的内部测试指令"
   },
   platform: {
     title: "远程配置",
@@ -109,6 +125,11 @@ function DashboardContent() {
   const [configPreview, setConfigPreview] = useState<Record<string, unknown> | null>(null);
   const [entrypointResults, setEntrypointResults] = useState<Array<Record<string, unknown>>>([]);
   const [r2Result, setR2Result] = useState<Record<string, unknown> | null>(null);
+  const [internalUnlockCodes, setInternalUnlockCodes] = useState<InternalUnlockCodeRecord[]>([]);
+  const [issuedInternalUnlock, setIssuedInternalUnlock] = useState<IssuedInternalUnlockCode | null>(null);
+  const [internalUnlockTTL, setInternalUnlockTTL] = useState(10);
+  const [internalUnlockCustomCode, setInternalUnlockCustomCode] = useState("888888");
+  const [internalUnlockBusy, setInternalUnlockBusy] = useState(false);
   const [platformBusy, setPlatformBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -178,6 +199,8 @@ function DashboardContent() {
     setConfigPreview(null);
     setEntrypointResults([]);
     setR2Result(null);
+    setInternalUnlockCodes([]);
+    setIssuedInternalUnlock(null);
     loginForm.resetFields();
   }
 
@@ -185,13 +208,14 @@ function DashboardContent() {
     if (!user && !window.localStorage.getItem("appbox_admin_token")) return;
     setLoading(true);
     try {
-      const [summaryRes, appsRes, mappingsRes, categoriesRes, groupsRes, platformRes] = await Promise.all([
+      const [summaryRes, appsRes, mappingsRes, categoriesRes, groupsRes, platformRes, unlockRes] = await Promise.all([
         api.summary(),
         api.apps(),
         api.mappings(),
         api.categories(),
         api.groups(),
-        api.platformConfig()
+        api.platformConfig(),
+        api.internalUnlockCodes()
       ]);
       setSummary(summaryRes);
       setApps(appsRes.data);
@@ -200,6 +224,7 @@ function DashboardContent() {
       setGroups(groupsRes.data);
       setPlatformConfig(platformRes.data);
       setConfigCdnUrls(platformRes.cdnUrls);
+      setInternalUnlockCodes(unlockRes.data);
       platformForm.setFieldsValue(platformFormValues(platformRes.data));
     } catch (error) {
       if (error instanceof Error && error.message.startsWith("401 ")) {
@@ -776,11 +801,27 @@ function DashboardContent() {
     }
   }
 
+  async function issueInternalUnlockCode() {
+    setInternalUnlockBusy(true);
+    try {
+      const result = await api.issueInternalUnlockCode(internalUnlockTTL, internalUnlockCustomCode);
+      setIssuedInternalUnlock(result);
+      const list = await api.internalUnlockCodes();
+      setInternalUnlockCodes(list.data);
+      message.success("一次性指令已生成");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "指令生成失败");
+    } finally {
+      setInternalUnlockBusy(false);
+    }
+  }
+
   const menuItems = [
     { key: "overview", icon: <BarChartOutlined />, label: "概览" },
     { key: "apps", icon: <AppstoreOutlined />, label: "App 管理" },
     { key: "taxonomy", icon: <AppstoreOutlined />, label: "分类配置" },
     { key: "deeplink", icon: <LinkOutlined />, label: "深链接" },
+    { key: "internal", icon: <KeyOutlined />, label: "内部授权" },
     { key: "platform", icon: <SettingOutlined />, label: "远程配置" },
     { key: "diagnostics", icon: <CloudUploadOutlined />, label: "发布检测" }
   ];
@@ -1035,6 +1076,100 @@ function DashboardContent() {
     );
   }
 
+  function renderInternalUnlockPanel() {
+    return (
+      <div className="page-stack">
+        <section className="panel glass">
+          <div className="panel-title">
+            <div>
+              <h2>签发内部指令</h2>
+              <Text type="secondary">指令只显示一次、只能核销一次，过期后自动失效。</Text>
+            </div>
+            <Tag icon={<KeyOutlined />} color="purple">内部测试</Tag>
+          </div>
+
+          <Space wrap className="action-row">
+            <Text>自定义指令</Text>
+            <Input
+              value={internalUnlockCustomCode}
+              onChange={(event) => setInternalUnlockCustomCode(event.target.value)}
+              placeholder="留空则随机生成"
+              maxLength={32}
+              style={{ width: 180 }}
+            />
+            <Text>有效期</Text>
+            <InputNumber
+              min={1}
+              max={60}
+              value={internalUnlockTTL}
+              onChange={(value) => setInternalUnlockTTL(value ?? 10)}
+              addonAfter="分钟"
+            />
+            <Button
+              type="primary"
+              icon={<KeyOutlined />}
+              loading={internalUnlockBusy}
+              onClick={issueInternalUnlockCode}
+            >
+              生成一次性指令
+            </Button>
+          </Space>
+
+          {issuedInternalUnlock ? (
+            <div className="result-card" style={{ marginTop: 18 }}>
+              <Text type="secondary">请立即复制，刷新后不再显示</Text>
+              <div style={{ marginTop: 8 }}>
+                <Text code copyable={{ text: issuedInternalUnlock.code }} style={{ fontSize: 22 }}>
+                  {issuedInternalUnlock.code}
+                </Text>
+              </div>
+              <Text type="secondary">
+                失效时间：{new Date(issuedInternalUnlock.expiresAt).toLocaleString("zh-CN")}
+              </Text>
+            </div>
+          ) : null}
+        </section>
+
+        <section className="panel glass">
+          <div className="panel-title">
+            <div>
+              <h2>最近签发记录</h2>
+              <Text type="secondary">后台只保留状态和哈希，不保存可再次查看的明文指令。</Text>
+            </div>
+          </div>
+          <Table
+            rowKey="id"
+            size="small"
+            pagination={false}
+            dataSource={internalUnlockCodes}
+            columns={[
+              {
+                title: "签发时间",
+                dataIndex: "createdAt",
+                render: (value: string) => new Date(value).toLocaleString("zh-CN")
+              },
+              {
+                title: "失效时间",
+                dataIndex: "expiresAt",
+                render: (value: string) => new Date(value).toLocaleString("zh-CN")
+              },
+              {
+                title: "状态",
+                dataIndex: "status",
+                width: 110,
+                render: (value: InternalUnlockCodeRecord["status"]) => (
+                  <Tag color={value === "active" ? "green" : value === "consumed" ? "blue" : "default"}>
+                    {value === "active" ? "待使用" : value === "consumed" ? "已使用" : "已过期"}
+                  </Tag>
+                )
+              }
+            ]}
+          />
+        </section>
+      </div>
+    );
+  }
+
   function renderDiagnosticsPanel() {
     return (
       <section className="panel glass">
@@ -1085,6 +1220,7 @@ function DashboardContent() {
     if (activeSection === "apps") return renderAppsPanel();
     if (activeSection === "taxonomy") return renderTaxonomyPanel();
     if (activeSection === "deeplink") return renderDeeplinkPanel();
+    if (activeSection === "internal") return renderInternalUnlockPanel();
     if (activeSection === "platform") return renderPlatformPanel();
     return renderDiagnosticsPanel();
   }
