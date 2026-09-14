@@ -29,7 +29,7 @@ The A surface is a fast, content-first disposable inbox. The mailbox address and
 ## Components
 
 - Address home: show one mailbox address with only two actions—copy the address and replace it. Do not duplicate inbox navigation or hide repeated copy actions in an overflow menu.
-- Address artwork: use an original-drawn 328:398 asymmetric envelope silhouette, a separate 26pt-inset shadow plate, a large folded flap, and a one-shot 110pt mail-flag mark. Preserve the reference hierarchy without embedding third-party artwork.
+- Address artwork: use an original-drawn 328:398 envelope silhouette with a continuous rounded top edge, a separate 26pt-inset shadow plate, a large folded flap, and a one-shot 110pt mail-flag mark. Preserve the reference hierarchy without embedding third-party artwork.
 - The copy action stays inside the envelope with 25pt horizontal and 27pt bottom insets. Replace-address is a quiet icon-and-label command 20pt below the artwork, not a second filled primary button.
 - Inbox selector: a single 50pt mailbox picker above content.
 - Normal empty inbox is illustration-led: one original pale-paper animation centered in the remaining viewport, without permanent explanatory copy or a permanent retry button. Retry remains available through pull-to-refresh and the toolbar; a dedicated retry control appears only for an actual error state.

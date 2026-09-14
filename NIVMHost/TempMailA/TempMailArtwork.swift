@@ -365,22 +365,8 @@ private struct TempMailEnvelopeShellShape: Shape {
     var path = Path()
 
     path.move(to: CGPoint(x: r, y: 0))
-    path.addLine(to: CGPoint(x: w * 0.61, y: 0))
-    path.addCurve(
-      to: CGPoint(x: w * 0.76, y: h * 0.092),
-      control1: CGPoint(x: w * 0.66, y: 0),
-      control2: CGPoint(x: w * 0.67, y: h * 0.092)
-    )
-    path.addCurve(
-      to: CGPoint(x: w * 0.88, y: h * 0.018),
-      control1: CGPoint(x: w * 0.82, y: h * 0.092),
-      control2: CGPoint(x: w * 0.86, y: h * 0.065)
-    )
-    path.addCurve(
-      to: CGPoint(x: w, y: r),
-      control1: CGPoint(x: w * 0.92, y: 0),
-      control2: CGPoint(x: w, y: 0)
-    )
+    path.addLine(to: CGPoint(x: w - r, y: 0))
+    path.addQuadCurve(to: CGPoint(x: w, y: r), control: CGPoint(x: w, y: 0))
     path.addLine(to: CGPoint(x: w, y: h - r))
     path.addQuadCurve(to: CGPoint(x: w - r, y: h), control: CGPoint(x: w, y: h))
     path.addLine(to: CGPoint(x: r, y: h))
