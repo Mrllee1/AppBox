@@ -11,21 +11,15 @@ APPBOX_VERIFICATION_BASE_URL="${APPBOX_VERIFICATION_BASE_URL:-$APPBOX_CATALOG_BA
 APPBOX_CLIENT_AES_KEY="${APPBOX_CLIENT_AES_KEY:-}"
 APPBOX_ASSET_AES_KEY="${APPBOX_ASSET_AES_KEY:-}"
 APPBOX_ASSET_AES_IV="${APPBOX_ASSET_AES_IV:-}"
-APPBOX_GUEST_URL="${APPBOX_GUEST_URL:-}"
-APPBOX_PORNHUB_GUEST_URL="${APPBOX_PORNHUB_GUEST_URL:-}"
-APPBOX_PLAYBOX_GUEST_URL="${APPBOX_PLAYBOX_GUEST_URL:-}"
-APPBOX_DYZB_GQ_GUEST_URL="${APPBOX_DYZB_GQ_GUEST_URL:-}"
-APPBOX_DYZB_TF_GUEST_URL="${APPBOX_DYZB_TF_GUEST_URL:-}"
-APPBOX_CHUNGONG_GUEST_URL="${APPBOX_CHUNGONG_GUEST_URL:-}"
-APPBOX_IG_XIONGMAO_GUEST_URL="${APPBOX_IG_XIONGMAO_GUEST_URL:-}"
-APPBOX_TIANYA_348_GUEST_URL="${APPBOX_TIANYA_348_GUEST_URL:-}"
-PORNHUB_GUEST_IPA="${PORNHUB_GUEST_IPA:-/Users/king/Documents/GitHub/pornhub/pornhub_client/dist/ios/non_tf/天涯-非TF-20.0.0+357.ipa}"
+PORNHUB_GUEST_IPA="${PORNHUB_GUEST_IPA:-/Users/king/Documents/GitHub/pornhub/pornhub_client/dist/ios/non_tf/天涯-非TF.ipa}"
 # The stock release-mode engine currently crashes source-built Flutter guests
 # during DartVM::GetVMData. Keep the previously verified custom debug-unopt
 # engine and strip its debug/local symbols below for a safe size reduction.
 CUSTOM_FLUTTER_FRAMEWORK="${CUSTOM_FLUTTER_FRAMEWORK:-/Users/king/flutter/engine/src/out/ios_debug_unopt/Flutter.framework}"
 TEAM_ID="${TEAM_ID:-6TQJ3XWC45}"
 BUILD_STAMP="${BUILD_STAMP:-$(date '+%Y%m%d-%H%M%S')}"
+APP_VERSION="${APP_VERSION:-1.0.0}"
+APP_BUILD_NUMBER="${APP_BUILD_NUMBER:-$(date '+%Y%m%d%H%M')}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${PROJECT_ROOT}/dist/Quietform-appstore-optimized-${BUILD_STAMP}}"
 ARCHIVE_PATH="${OUTPUT_ROOT}/Quietform.xcarchive"
 EXPORT_PATH="${OUTPUT_ROOT}/export"
@@ -45,28 +39,164 @@ fail() {
   exit 1
 }
 
+validate_focus_monitor() {
+  local app_path="$1"
+  local require_distribution="${2:-1}"
+  local extension_path="${app_path}/PlugIns/FocusMonitor.appex"
+  local extension_info="${extension_path}/Info.plist"
+  local signed_entitlements value
+
+  [[ -d "${extension_path}" ]] || fail "FocusMonitor extension is missing"
+  codesign --verify --strict --verbose=2 "${extension_path}"
+  value="$(plutil -extract CFBundleIdentifier raw -o - "${extension_info}" 2>/dev/null || true)"
+  [[ "${value}" == "com.tianya.appbox.focusmonitor" ]] \
+    || fail "unexpected FocusMonitor bundle identifier: ${value}"
+  value="$(plutil -extract CFBundleShortVersionString raw -o - "${extension_info}" 2>/dev/null || true)"
+  [[ "${value}" == "${APP_VERSION}" ]] \
+    || fail "unexpected FocusMonitor marketing version: ${value}"
+  value="$(plutil -extract CFBundleVersion raw -o - "${extension_info}" 2>/dev/null || true)"
+  [[ "${value}" == "${APP_BUILD_NUMBER}" ]] \
+    || fail "unexpected FocusMonitor build number: ${value}"
+  value="$(plutil -extract NSExtension.NSExtensionPointIdentifier raw -o - \
+      "${extension_info}" 2>/dev/null || true)"
+  [[ "${value}" == "com.apple.deviceactivity.monitor-extension" ]] \
+    || fail "FocusMonitor has the wrong extension point: ${value}"
+
+  signed_entitlements="$(mktemp)"
+  codesign -d --entitlements :- "${extension_path}" > "${signed_entitlements}" 2>/dev/null
+  value="$(/usr/libexec/PlistBuddy -c 'Print :get-task-allow' \
+      "${signed_entitlements}" 2>/dev/null || true)"
+  [[ "${require_distribution}" != "1" || "${value}" != "true" ]] || {
+    rm -f "${signed_entitlements}"
+    fail "App Store FocusMonitor must not contain get-task-allow=true"
+  }
+  value="$(/usr/libexec/PlistBuddy -c 'Print :com.apple.developer.family-controls' \
+      "${signed_entitlements}" 2>/dev/null || true)"
+  [[ "${value}" == "true" ]] || {
+    rm -f "${signed_entitlements}"
+    fail "FocusMonitor Family Controls entitlement is missing"
+  }
+  /usr/libexec/PlistBuddy -c 'Print :com.apple.security.application-groups' \
+      "${signed_entitlements}" 2>/dev/null | grep -Fq 'group.com.tianya.appbox' || {
+    rm -f "${signed_entitlements}"
+    fail "FocusMonitor App Group entitlement is missing"
+  }
+  rm -f "${signed_entitlements}"
+}
+
 validate_appstore_bundle() {
   local app_path="$1"
+  local require_distribution="${2:-1}"
   local info_plist="${app_path}/Info.plist"
   local key value
 
   for key in \
+    NSCameraUsageDescription \
+    NSPhotoLibraryUsageDescription \
+    NSPhotoLibraryAddUsageDescription \
+    NSMicrophoneUsageDescription \
     NSContactsUsageDescription \
     NSSpeechRecognitionUsageDescription \
     NSCalendarsUsageDescription \
     NSCalendarsFullAccessUsageDescription \
-    NSCalendarsWriteOnlyAccessUsageDescription; do
+    NSLocationWhenInUseUsageDescription \
+    NSLocationAlwaysAndWhenInUseUsageDescription; do
     value="$(plutil -extract "${key}" raw -o - "${info_plist}" 2>/dev/null || true)"
     [[ -n "${value}" ]] || fail "missing or empty privacy purpose string: ${key}"
   done
+
+  for key in NSCalendarsWriteOnlyAccessUsageDescription NSLocalNetworkUsageDescription; do
+    if plutil -extract "${key}" raw -o - "${info_plist}" >/dev/null 2>&1; then
+      fail "unused privacy purpose string remains: ${key}"
+    fi
+  done
+
+  value="$(plutil -extract CFBundleDisplayName raw -o - "${info_plist}" 2>/dev/null || true)"
+  [[ "${value}" == "Quietform" ]] || fail "CFBundleDisplayName must be Quietform"
+  value="$(plutil -extract CFBundleName raw -o - "${info_plist}" 2>/dev/null || true)"
+  [[ "${value}" == "Quietform" ]] || fail "CFBundleName must be Quietform"
+  value="$(plutil -extract CFBundleShortVersionString raw -o - "${info_plist}" 2>/dev/null || true)"
+  [[ "${value}" == "${APP_VERSION}" ]] || fail "unexpected marketing version: ${value}"
+  value="$(plutil -extract CFBundleVersion raw -o - "${info_plist}" 2>/dev/null || true)"
+  [[ "${value}" == "${APP_BUILD_NUMBER}" ]] || fail "unexpected build number: ${value}"
+  value="$(plutil -extract CFBundleURLTypes.0.CFBundleURLSchemes.0 raw -o - \
+      "${info_plist}" 2>/dev/null || true)"
+  [[ "${value}" == "quietform" ]] || fail "primary URL scheme must be quietform"
+  if /usr/bin/strings -a "${app_path}/Runner" | grep -Fqx '天涯盒子'; then
+    fail "legacy user-facing brand remains in the host executable: 天涯盒子"
+  fi
 
   if rg -a -l -F '_cfBundle' "${app_path}" >/dev/null; then
     fail "non-public selector remains in the built application: _cfBundle"
   fi
 
-  if rg -a -l -F '/api/v1/appbox/internal-unlock/redeem' "${app_path}" >/dev/null; then
-    fail "internal unlock support leaked into the App Store application"
+  if /usr/bin/strings -a "${app_path}/Runner" | grep -Fqx 'suspend'; then
+    fail "non-public UIApplication suspend selector remains in the host executable"
   fi
+
+  [[ -f "${app_path}/PrivacyInfo.xcprivacy" ]] \
+    || fail "app privacy manifest is missing"
+  plutil -lint "${app_path}/PrivacyInfo.xcprivacy" >/dev/null \
+    || fail "app privacy manifest is invalid"
+
+  if plutil -extract NSAppTransportSecurity.NSAllowsArbitraryLoads raw -o - \
+      "${info_plist}" 2>/dev/null | grep -qx 'true'; then
+    fail "NSAllowsArbitraryLoads must not be enabled"
+  fi
+
+  if plutil -extract CFBundleIcons.CFBundleAlternateIcons xml1 -o - \
+      "${info_plist}" >/dev/null 2>&1 || \
+     plutil -extract 'CFBundleIcons~ipad.CFBundleAlternateIcons' xml1 -o - \
+      "${info_plist}" >/dev/null 2>&1; then
+    fail "alternate app icons remain in the application"
+  fi
+
+  if rg -a -l -e 'AppIcon(WeChat|QQ|Alipay|Toutiao|Douyin|Xiaohongshu|Telegram)' \
+      -e 'guest_(adult_douyin|chungong|dyzb_gq|dyzb_tf|ig_xiongmao|pornhub|tianya)' \
+      "${app_path}" >/dev/null; then
+    fail "retired third-party icon assets remain in the application"
+  fi
+
+  local signed_entitlements
+  signed_entitlements="$(mktemp)"
+  codesign -d --entitlements :- "${app_path}" > "${signed_entitlements}" 2>/dev/null
+  value="$(/usr/libexec/PlistBuddy -c 'Print :get-task-allow' \
+      "${signed_entitlements}" 2>/dev/null || true)"
+  [[ "${require_distribution}" != "1" || "${value}" != "true" ]] || {
+    rm -f "${signed_entitlements}"
+    fail "App Store application must not contain get-task-allow=true"
+  }
+  for key in \
+    com.apple.developer.networking.networkextension \
+    com.apple.developer.networking.wifi-info \
+    com.apple.developer.associated-domains \
+    com.apple.developer.healthkit \
+    com.apple.developer.icloud-services \
+    aps-environment \
+    keychain-access-groups; do
+    if /usr/libexec/PlistBuddy -c "Print :${key}" \
+        "${signed_entitlements}" >/dev/null 2>&1; then
+      rm -f "${signed_entitlements}"
+      fail "unexpected entitlement remains in App Store application: ${key}"
+    fi
+  done
+  /usr/libexec/PlistBuddy -c 'Print :com.apple.security.application-groups' \
+      "${signed_entitlements}" 2>/dev/null | grep -Fq 'group.com.tianya.appbox' || {
+    rm -f "${signed_entitlements}"
+    fail "required App Group entitlement is missing"
+  }
+  for key in \
+    com.apple.developer.family-controls \
+    com.apple.developer.kernel.increased-memory-limit; do
+    value="$(/usr/libexec/PlistBuddy -c "Print :${key}" \
+        "${signed_entitlements}" 2>/dev/null || true)"
+    if [[ "${value}" != "true" ]]; then
+      rm -f "${signed_entitlements}"
+      fail "required entitlement is missing: ${key}"
+    fi
+  done
+  rm -f "${signed_entitlements}"
+  validate_focus_monitor "${app_path}" "${require_distribution}"
 }
 
 [[ -d "${APPBOX_CLIENT_IOS_ROOT}/.symlinks/plugins" ]] \
@@ -144,14 +274,8 @@ xcodebuild \
   APPBOX_CLIENT_AES_KEY="${APPBOX_CLIENT_AES_KEY}" \
   APPBOX_ASSET_AES_KEY="${APPBOX_ASSET_AES_KEY}" \
   APPBOX_ASSET_AES_IV="${APPBOX_ASSET_AES_IV}" \
-  APPBOX_GUEST_URL="${APPBOX_GUEST_URL}" \
-  APPBOX_PORNHUB_GUEST_URL="${APPBOX_PORNHUB_GUEST_URL}" \
-  APPBOX_PLAYBOX_GUEST_URL="${APPBOX_PLAYBOX_GUEST_URL}" \
-  APPBOX_DYZB_GQ_GUEST_URL="${APPBOX_DYZB_GQ_GUEST_URL}" \
-  APPBOX_DYZB_TF_GUEST_URL="${APPBOX_DYZB_TF_GUEST_URL}" \
-  APPBOX_CHUNGONG_GUEST_URL="${APPBOX_CHUNGONG_GUEST_URL}" \
-  APPBOX_IG_XIONGMAO_GUEST_URL="${APPBOX_IG_XIONGMAO_GUEST_URL}" \
-  APPBOX_TIANYA_348_GUEST_URL="${APPBOX_TIANYA_348_GUEST_URL}" \
+  MARKETING_VERSION="${APP_VERSION}" \
+  CURRENT_PROJECT_VERSION="${APP_BUILD_NUMBER}" \
   archive
 
 HOST_APP="${ARCHIVE_PATH}/Products/Applications/Runner.app"
@@ -198,7 +322,10 @@ codesign --force --sign "${SIGNING_IDENTITY}" --timestamp=none \
   --entitlements "${ARCHIVE_ENTITLEMENTS}" "${HOST_APP}"
 codesign --verify --deep --strict --verbose=2 "${HOST_APP}"
 "${SCRIPT_DIR}/validate_app_icons.sh" "${HOST_APP}"
-validate_appstore_bundle "${HOST_APP}"
+# Xcode may use a development profile for the intermediate archive and replace
+# it with an App Store profile during export. All capability checks still run
+# here; get-task-allow=false is enforced on the exported IPA below.
+validate_appstore_bundle "${HOST_APP}" 0
 
 plutil -create xml1 "${EXPORT_OPTIONS}"
 plutil -insert destination -string export "${EXPORT_OPTIONS}"
@@ -228,9 +355,11 @@ VALIDATION_APP="$(find "${VALIDATION_ROOT}/Payload" -maxdepth 1 -type d -name '*
 [[ -n "${VALIDATION_APP}" ]] || fail "exported app bundle was not found"
 codesign --verify --deep --strict --verbose=2 "${VALIDATION_APP}"
 "${SCRIPT_DIR}/validate_app_icons.sh" "${VALIDATION_APP}"
-validate_appstore_bundle "${VALIDATION_APP}"
+validate_appstore_bundle "${VALIDATION_APP}" 1
 
 printf 'APPSTORE_IPA_OK\n'
 printf 'ipa=%s\n' "${IPA_PATH}"
 printf 'bytes=%s\n' "$(stat -f '%z' "${IPA_PATH}")"
 printf 'sha256=%s\n' "$(shasum -a 256 "${IPA_PATH}" | awk '{print $1}')"
+printf 'version=%s\n' "${APP_VERSION}"
+printf 'build=%s\n' "${APP_BUILD_NUMBER}"

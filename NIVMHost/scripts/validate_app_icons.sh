@@ -8,16 +8,7 @@ ASSET_DIR="${IOS_DIR}/Runner/Assets.xcassets"
 BUILT_APP="${1:-}"
 
 PRIMARY_ICON_SET="AppIcon"
-ALTERNATE_ICON_SETS=(
-  AppIconWeChat
-  AppIconQQ
-  AppIconAlipay
-  AppIconToutiao
-  AppIconDouyin
-  AppIconXiaohongshu
-  AppIconTelegram
-)
-ICON_SETS=("${PRIMARY_ICON_SET}" "${ALTERNATE_ICON_SETS[@]}")
+ICON_SETS=("${PRIMARY_ICON_SET}")
 
 fail() {
   printf 'App icon validation failed: %s\n' "$*" >&2
@@ -58,12 +49,12 @@ done
 if [[ -n "${BUILT_APP}" ]]; then
   plist="${BUILT_APP}/Info.plist"
   [[ -f "${plist}" ]] || fail "missing built Info.plist at ${plist}"
-  for icon_name in "${ALTERNATE_ICON_SETS[@]}"; do
-    /usr/libexec/PlistBuddy \
-      -c "Print :CFBundleIcons:CFBundleAlternateIcons:${icon_name}" \
-      "${plist}" >/dev/null 2>&1 \
-      || fail "built app did not register ${icon_name}"
-  done
+  if /usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundleAlternateIcons' \
+      "${plist}" >/dev/null 2>&1 || \
+     /usr/libexec/PlistBuddy -c 'Print :CFBundleIcons~ipad:CFBundleAlternateIcons' \
+      "${plist}" >/dev/null 2>&1; then
+    fail "built app must not register alternate app icons"
+  fi
 
   ipad_pro_icon=""
   while IFS= read -r icon_file; do
@@ -80,9 +71,7 @@ if [[ -n "${BUILT_APP}" ]]; then
 fi
 
 if [[ -n "${BUILT_APP}" ]]; then
-  printf 'Validated primary icon, %d alternate icon sets, and built 167x167 iPad icon.\n' \
-    "${#ALTERNATE_ICON_SETS[@]}"
+  printf 'Validated primary icon, no alternate icons, and built 167x167 iPad icon.\n'
 else
-  printf 'Validated primary icon and %d alternate icon sets.\n' \
-    "${#ALTERNATE_ICON_SETS[@]}"
+  printf 'Validated primary icon; alternate icons are disabled.\n'
 fi

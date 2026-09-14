@@ -1,43 +1,14 @@
-import Flutter
-import UIKit
 import XCTest
 @testable import Runner
 
 class RunnerTests: XCTestCase {
-  private final class FakeAppIconSystem: AppIconSystemClient {
-    var supportsAlternateIcons = true
-    var currentAlternateIconName: String?
-    var isForegroundReady = true
-    var applicationStateRawValue = UIApplication.State.active.rawValue
-    var registeredIconNames = [
-      "AppIconWeChat",
-      "AppIconQQ",
-      "AppIconAlipay",
-      "AppIconToutiao",
-      "AppIconDouyin",
-      "AppIconXiaohongshu",
-      "AppIconTelegram",
-    ]
-    var osVersion = "26.2"
-    var requestedNames: [String?] = []
-    var onSet: ((String?, @escaping (Error?) -> Void) -> Void)?
-
-    func setAlternateIconName(
-      _ name: String?,
-      completion: @escaping (Error?) -> Void
-    ) {
-      requestedNames.append(name)
-      onSet?(name, completion)
-    }
-  }
-
-  func testFreshAppBoxLaunchUsesPrivacySurface() {
+  func testFreshQuietformLaunchUsesPrivacySurface() {
     let suiteName = "AppBoxSurfaceTests.fresh.\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suiteName)!
     defer { defaults.removePersistentDomain(forName: suiteName) }
 
     XCTAssertEqual(
-      AppBoxSurfaceRoute.initialSurface(arguments: ["AppBox"], defaults: defaults),
+      AppBoxSurfaceRoute.initialSurface(arguments: ["Quietform"], defaults: defaults),
       .privacy
     )
   }
@@ -49,14 +20,14 @@ class RunnerTests: XCTestCase {
 
     XCTAssertEqual(
       AppBoxSurfaceRoute.initialSurface(
-        arguments: ["AppBox", "--appbox-force-surface"],
+        arguments: ["Quietform", "--appbox-force-surface"],
         defaults: defaults
       ),
       .box
     )
     XCTAssertTrue(defaults.bool(forKey: AppBoxSurfaceRoute.activatedKey))
     XCTAssertEqual(
-      AppBoxSurfaceRoute.initialSurface(arguments: ["AppBox"], defaults: defaults),
+      AppBoxSurfaceRoute.initialSurface(arguments: ["Quietform"], defaults: defaults),
       .box
     )
   }
@@ -69,7 +40,7 @@ class RunnerTests: XCTestCase {
 
     XCTAssertEqual(
       AppBoxSurfaceRoute.initialSurface(
-        arguments: ["AppBox", "--appbox-capture-privacy"],
+        arguments: ["Quietform", "--appbox-capture-privacy"],
         defaults: defaults
       ),
       .privacy
@@ -77,248 +48,78 @@ class RunnerTests: XCTestCase {
     XCTAssertFalse(defaults.bool(forKey: AppBoxSurfaceRoute.activatedKey))
   }
 
-  func testAppBoxURLsRouteABFacesWithoutHijackingGuestRelaunch() {
+  func testQuietformURLsRouteABFacesWithoutHijackingGuestRelaunch() {
+    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "quietform://box")!), .box)
+    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "quietform://open?id=tianya")!), .box)
+    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "quietform://privacy")!), .privacy)
+    XCTAssertNil(AppBoxSurfaceRoute.surface(for: URL(string: "quietform://sandbox.relaunch")!))
     XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://box")!), .box)
-    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://open?id=tianya")!), .box)
-    XCTAssertEqual(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://privacy")!), .privacy)
-    XCTAssertNil(AppBoxSurfaceRoute.surface(for: URL(string: "appbox://playbox.guestapp.relaunch")!))
+    XCTAssertFalse(AppBoxSurfaceRoute.supports(scheme: "https"))
     XCTAssertNil(AppBoxSurfaceRoute.surface(for: URL(string: "https://3601.help")!))
   }
 
-  func testAlternateIconUsesOneSystemRequest() {
-    let system = FakeAppIconSystem()
-    let manager = AppIconManager(system: system)
-    let completed = expectation(description: "icon changed")
-
-    system.onSet = { name, completion in
-      XCTAssertEqual(name, "AppIconQQ")
-      system.currentAlternateIconName = name
-      completion(nil)
-    }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "qq"]
-      )
-    ) { value in
-      XCTAssertNil(value)
-      completed.fulfill()
-    }
-
-    wait(for: [completed], timeout: 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
-  }
-
-  func testDefaultIconPassesNilToUIApplication() {
-    let system = FakeAppIconSystem()
-    system.currentAlternateIconName = "AppIconQQ"
-    let manager = AppIconManager(system: system)
-    let completed = expectation(description: "default restored")
-
-    system.onSet = { name, completion in
-      XCTAssertNil(name)
-      system.currentAlternateIconName = nil
-      completion(nil)
-    }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "default"]
-      )
-    ) { value in
-      XCTAssertNil(value)
-      completed.fulfill()
-    }
-
-    wait(for: [completed], timeout: 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
-  }
-
-  func testSystemBusyDoesNotRetry() {
-    let system = FakeAppIconSystem()
-    let manager = AppIconManager(
-      system: system,
-      systemBusyCooldown: 0
+  func testScheduleOnlyRunsOnSelectedWeekdays() throws {
+    let rule = AppBoxScheduleRule(
+      name: "工作时间",
+      startHour: 9,
+      startMinute: 0,
+      endHour: 18,
+      endMinute: 0,
+      weekdays: Set([AppBoxWeekday.monday.rawValue])
     )
-    let completed = expectation(description: "busy returned")
-
-    system.onSet = { _, completion in
-      completion(NSError(
-        domain: NSPOSIXErrorDomain,
-        code: 35,
-        userInfo: nil
-      ))
-    }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "douyin"]
-      )
-    ) { value in
-      let error = value as? FlutterError
-      XCTAssertEqual(error?.code, "ICON_SYSTEM_BUSY")
-      completed.fulfill()
-    }
-
-    wait(for: [completed], timeout: 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
+    let calendar = utcCalendar()
+    XCTAssertTrue(rule.contains(try date("2026-09-07 10:00"), calendar: calendar))
+    XCTAssertFalse(rule.contains(try date("2026-09-08 10:00"), calendar: calendar))
   }
 
-  func testNativeStateWinsWhenSystemCallbackReportsError() {
-    let system = FakeAppIconSystem()
-    let manager = AppIconManager(system: system)
-    let completed = expectation(description: "applied state accepted")
-
-    system.onSet = { name, completion in
-      system.currentAlternateIconName = name
-      completion(NSError(
-        domain: NSPOSIXErrorDomain,
-        code: 5,
-        userInfo: nil
-      ))
-    }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "wechat"]
-      )
-    ) { value in
-      XCTAssertNil(value)
-      completed.fulfill()
-    }
-
-    wait(for: [completed], timeout: 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
-  }
-
-  func testInactiveRequestWaitsForForeground() {
-    let system = FakeAppIconSystem()
-    system.isForegroundReady = false
-    system.applicationStateRawValue = UIApplication.State.inactive.rawValue
-    let center = NotificationCenter()
-    let manager = AppIconManager(
-      system: system,
-      notificationCenter: center
+  func testOvernightScheduleUsesThePreviousSelectedWeekdayAfterMidnight() throws {
+    let rule = AppBoxScheduleRule(
+      name: "夜间专注",
+      startHour: 22,
+      startMinute: 0,
+      endHour: 2,
+      endMinute: 0,
+      weekdays: Set([AppBoxWeekday.monday.rawValue])
     )
-    let completed = expectation(description: "request completed")
-    let foregrounded = expectation(description: "foreground requested")
-
-    system.onSet = { name, completion in
-      system.currentAlternateIconName = name
-      completion(nil)
-      foregrounded.fulfill()
-    }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "telegram"]
-      )
-    ) { value in
-      XCTAssertNil(value)
-      completed.fulfill()
-    }
-
-    DispatchQueue.main.async {
-      XCTAssertTrue(system.requestedNames.isEmpty)
-      system.isForegroundReady = true
-      system.applicationStateRawValue = UIApplication.State.active.rawValue
-      center.post(
-        name: UIApplication.didBecomeActiveNotification,
-        object: nil
-      )
-    }
-
-    wait(for: [foregrounded, completed], timeout: 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
+    let calendar = utcCalendar()
+    XCTAssertTrue(rule.contains(try date("2026-09-07 23:00"), calendar: calendar))
+    XCTAssertTrue(rule.contains(try date("2026-09-08 01:00"), calendar: calendar))
+    XCTAssertFalse(rule.contains(try date("2026-09-09 01:00"), calendar: calendar))
   }
 
-  func testConcurrentRequestIsRejected() {
-    let system = FakeAppIconSystem()
-    let manager = AppIconManager(system: system)
-    let firstStarted = expectation(description: "first request started")
-    let secondCompleted = expectation(description: "second rejected")
-    var firstCompletion: ((Error?) -> Void)?
-
-    system.onSet = { _, completion in
-      firstCompletion = completion
-      firstStarted.fulfill()
+  func testLegacyScheduleWithoutWeekdaysMigratesToEveryDay() throws {
+    let json = """
+    {
+      "id": "legacy",
+      "name": "旧日程",
+      "startHour": 9,
+      "startMinute": 0,
+      "endHour": 10,
+      "endMinute": 0,
+      "isEnabled": true,
+      "createdAt": 0
     }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "qq"]
-      )
-    ) { _ in }
-
-    wait(for: [firstStarted], timeout: 1)
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "wechat"]
-      )
-    ) { value in
-      let error = value as? FlutterError
-      XCTAssertEqual(error?.code, "ICON_CHANGE_IN_PROGRESS")
-      secondCompleted.fulfill()
-    }
-
-    wait(for: [secondCompleted], timeout: 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
-
-    system.currentAlternateIconName = "AppIconQQ"
-    firstCompletion?(nil)
+    """.data(using: .utf8)!
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .secondsSince1970
+    let rule = try decoder.decode(AppBoxScheduleRule.self, from: json)
+    XCTAssertEqual(rule.weekdays, Set(1...7))
   }
 
-  func testForegroundReturnWaitsForSystemCompletion() {
-    let system = FakeAppIconSystem()
-    let center = NotificationCenter()
-    let manager = AppIconManager(
-      system: system,
-      notificationCenter: center
-    )
-    let started = expectation(description: "request started")
-    let completed = expectation(description: "request completed")
-    var systemCompletion: ((Error?) -> Void)?
-    var flutterResultCount = 0
-
-    system.onSet = { _, completion in
-      systemCompletion = completion
-      started.fulfill()
-    }
-
-    manager.handle(
-      FlutterMethodCall(
-        methodName: "setIcon",
-        arguments: ["iconId": "alipay"]
-      )
-    ) { value in
-      flutterResultCount += 1
-      XCTAssertNil(value)
-      completed.fulfill()
-    }
-
-    wait(for: [started], timeout: 1)
-    center.post(
-      name: UIApplication.willResignActiveNotification,
-      object: nil
-    )
-    center.post(
-      name: UIApplication.didBecomeActiveNotification,
-      object: nil
-    )
-    XCTAssertEqual(flutterResultCount, 0)
-
-    system.currentAlternateIconName = "AppIconAlipay"
-    systemCompletion?(nil)
-    wait(for: [completed], timeout: 1)
-    XCTAssertEqual(flutterResultCount, 1)
-    XCTAssertEqual(system.requestedNames.count, 1)
+  private func utcCalendar() -> Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "en_US_POSIX")
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    return calendar
   }
+
+  private func date(_ value: String) throws -> Date {
+    let formatter = DateFormatter()
+    formatter.calendar = utcCalendar()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyy-MM-dd HH:mm"
+    return try XCTUnwrap(formatter.date(from: value))
+  }
+
 }

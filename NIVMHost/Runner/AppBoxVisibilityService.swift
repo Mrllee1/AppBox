@@ -1,3 +1,4 @@
+import Combine
 import FamilyControls
 import Foundation
 import ManagedSettings
@@ -9,33 +10,64 @@ final class AppBoxVisibilityService: ObservableObject {
     didSet {
       persistSelection()
       lastError = nil
-      if isHidden {
+      if isRestrictionActive {
         applySelection()
       }
     }
   }
-  @Published private(set) var isHidden: Bool
+  @Published private(set) var isRestrictionActive: Bool
+  @Published private(set) var quickSessionEnd: Date?
   @Published private(set) var lastError: String?
 
   private let authorizationCenter: AuthorizationCenter
   private let settingsStore: ManagedSettingsStore
   private let defaults: UserDefaults
-  private let selectionKey = "AppBox.visibility.selection.v2"
-  private let hiddenKey = "AppBox.visibility.isHidden"
+  private let selectionKey = AppBoxSharedStore.selectionKey
+  private let restrictionKey = AppBoxSharedStore.restrictionKey
+  private let legacyHiddenKey = "AppBox.visibility.isHidden"
+  private let namedStoreMigrationKey = "Quietform.managedStore.namedMigration.v1"
 
   init(
     authorizationCenter: AuthorizationCenter = .shared,
-    settingsStore: ManagedSettingsStore = ManagedSettingsStore(),
-    defaults: UserDefaults = .standard
+    settingsStore: ManagedSettingsStore = ManagedSettingsStore(
+      named: ManagedSettingsStore.Name(AppBoxSharedStore.managedStoreName)
+    ),
+    defaults: UserDefaults = AppBoxSharedStore.defaults
   ) {
+    AppBoxSharedStore.migrateStandardValuesIfNeeded(
+      keys: [
+        AppBoxSharedStore.selectionKey,
+        AppBoxSharedStore.restrictionKey,
+        AppBoxSharedStore.manualRestrictionKey,
+        AppBoxSharedStore.quickSessionEndKey,
+      ]
+    )
     self.authorizationCenter = authorizationCenter
     self.settingsStore = settingsStore
     self.defaults = defaults
     authorizationStatus = authorizationCenter.authorizationStatus
     selection = Self.loadSelection(from: defaults, key: selectionKey)
-    isHidden = defaults.bool(forKey: hiddenKey)
+    let hasLegacyState = defaults.object(forKey: legacyHiddenKey) != nil
+      || UserDefaults.standard.object(forKey: legacyHiddenKey) != nil
+    isRestrictionActive = defaults.object(forKey: restrictionKey) as? Bool
+      ?? defaults.bool(forKey: legacyHiddenKey)
+    quickSessionEnd = defaults.object(forKey: AppBoxSharedStore.quickSessionEndKey) as? Date
 
-    if isHidden {
+    if !defaults.bool(forKey: namedStoreMigrationKey) {
+      ManagedSettingsStore().clearAllSettings()
+      defaults.set(true, forKey: namedStoreMigrationKey)
+    }
+
+    // Clear the previous Home Screen hiding state once during migration, then
+    // reapply only the system shielding behavior accepted for focus controls.
+    if hasLegacyState {
+      settingsStore.clearAllSettings()
+      defaults.removeObject(forKey: legacyHiddenKey)
+      UserDefaults.standard.removeObject(forKey: legacyHiddenKey)
+      defaults.set(isRestrictionActive, forKey: restrictionKey)
+    }
+
+    if isRestrictionActive {
       applySelection()
     }
   }
@@ -51,7 +83,7 @@ final class AppBoxVisibilityService: ObservableObject {
   }
 
   var selectedApplicationCount: Int {
-    max(selection.applications.count, selection.applicationTokens.count)
+    selection.applicationTokens.count
   }
 
   var selectedCategoryCount: Int {
@@ -66,8 +98,28 @@ final class AppBoxVisibilityService: ObservableObject {
     selectedApplicationCount > 0 || selectedCategoryCount > 0 || selectedWebDomainCount > 0
   }
 
+  var isQuickSessionActive: Bool {
+    guard let quickSessionEnd else { return false }
+    return quickSessionEnd > Date()
+  }
+
+  var isManualRestrictionActive: Bool {
+    defaults.bool(forKey: AppBoxSharedStore.manualRestrictionKey)
+  }
+
   func refreshAuthorizationStatus() {
     authorizationStatus = authorizationCenter.authorizationStatus
+  }
+
+  func refreshSharedState(at date: Date = Date()) {
+    let storedEnd = defaults.object(forKey: AppBoxSharedStore.quickSessionEndKey) as? Date
+    if let storedEnd, storedEnd <= date {
+      defaults.removeObject(forKey: AppBoxSharedStore.quickSessionEndKey)
+      quickSessionEnd = nil
+    } else {
+      quickSessionEnd = storedEnd
+    }
+    isRestrictionActive = defaults.bool(forKey: restrictionKey)
   }
 
   @discardableResult
@@ -96,29 +148,74 @@ final class AppBoxVisibilityService: ObservableObject {
     return isAuthorized
   }
 
-  func hideSelection() async {
+  func activateRestrictions() async {
     guard await requestAuthorizationIfNeeded() else {
       return
     }
     guard hasSelection else {
-      lastError = "请先选择需要隐藏的 App"
+      lastError = "请先选择需要限制的 App"
       return
     }
 
+    defaults.set(true, forKey: AppBoxSharedStore.manualRestrictionKey)
+    defaults.removeObject(forKey: AppBoxSharedStore.quickSessionEndKey)
+    quickSessionEnd = nil
     applySelection()
-    isHidden = true
-    defaults.set(true, forKey: hiddenKey)
+    isRestrictionActive = true
+    defaults.set(true, forKey: restrictionKey)
+    lastError = nil
+  }
+
+  @discardableResult
+  func startQuickSession(minutes: Int, now: Date = Date()) async -> Date? {
+    guard await requestAuthorizationIfNeeded() else { return nil }
+    guard hasSelection else {
+      lastError = "请先选择需要限制的 App"
+      return nil
+    }
+
+    let duration = max(15, minutes)
+    guard let end = Calendar.current.date(byAdding: .minute, value: duration, to: now) else {
+      lastError = "无法创建专注时段"
+      return nil
+    }
+    defaults.set(false, forKey: AppBoxSharedStore.manualRestrictionKey)
+    defaults.set(end, forKey: AppBoxSharedStore.quickSessionEndKey)
+    quickSessionEnd = end
+    applySelection()
+    isRestrictionActive = true
+    defaults.set(true, forKey: restrictionKey)
+    lastError = nil
+    return end
+  }
+
+  func activateAutomatedRestrictions() async {
+    guard await requestAuthorizationIfNeeded(), hasSelection else { return }
+    applySelection()
+    isRestrictionActive = true
+    defaults.set(true, forKey: restrictionKey)
+    lastError = nil
+  }
+
+  func reconcileScheduleState(isActive: Bool) async {
+    if isActive {
+      await activateAutomatedRestrictions()
+      return
+    }
+    guard !isManualRestrictionActive, !isQuickSessionActive else { return }
+    settingsStore.clearAllSettings()
+    isRestrictionActive = false
+    defaults.set(false, forKey: restrictionKey)
     lastError = nil
   }
 
   func restoreAll() {
-    settingsStore.application.blockedApplications = nil
-    settingsStore.shield.applications = nil
-    settingsStore.shield.applicationCategories = nil
-    settingsStore.shield.webDomains = nil
-    settingsStore.shield.webDomainCategories = nil
-    isHidden = false
-    defaults.set(false, forKey: hiddenKey)
+    settingsStore.clearAllSettings()
+    defaults.set(false, forKey: AppBoxSharedStore.manualRestrictionKey)
+    defaults.removeObject(forKey: AppBoxSharedStore.quickSessionEndKey)
+    quickSessionEnd = nil
+    isRestrictionActive = false
+    defaults.set(false, forKey: restrictionKey)
     lastError = nil
   }
 
@@ -128,8 +225,8 @@ final class AppBoxVisibilityService: ObservableObject {
   }
 
   private func applySelection() {
-    let applications = selection.applications
-    settingsStore.application.blockedApplications = applications.isEmpty ? nil : applications
+    let applications = selection.applicationTokens
+    settingsStore.shield.applications = applications.isEmpty ? nil : applications
 
     let categories = selection.categoryTokens
     settingsStore.shield.applicationCategories = categories.isEmpty ? nil : .specific(categories)

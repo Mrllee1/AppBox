@@ -22,18 +22,15 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<!-- Development-only: the connected iPhone downloads the test IPA from this Mac. -->
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 		<key>NSExceptionDomains</key>
@@ -50,34 +47,16 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Quietform 需要访问本地网络，以连接同一网络中的资源服务。</string>
-	<key>AppBoxGuestURL</key>
-	<string>$(APPBOX_GUEST_URL)</string>
-	<key>AppBoxCatalogBaseURL</key>
+	<key>QuietformCatalogBaseURL</key>
 	<string>$(APPBOX_CATALOG_BASE_URL)</string>
-	<key>AppBoxVerificationBaseURL</key>
+	<key>QuietformVerificationBaseURL</key>
 	<string>$(APPBOX_VERIFICATION_BASE_URL)</string>
-	<key>AppBoxClientAESKey</key>
+	<key>QuietformClientAESKey</key>
 	<string>$(APPBOX_CLIENT_AES_KEY)</string>
-	<key>AppBoxAssetAESKey</key>
+	<key>QuietformAssetAESKey</key>
 	<string>$(APPBOX_ASSET_AES_KEY)</string>
-	<key>AppBoxAssetAESIV</key>
+	<key>QuietformAssetAESIV</key>
 	<string>$(APPBOX_ASSET_AES_IV)</string>
-	<key>AppBoxPornhubGuestURL</key>
-	<string>$(APPBOX_PORNHUB_GUEST_URL)</string>
-	<key>AppBoxPlayBoxGuestURL</key>
-	<string>$(APPBOX_PLAYBOX_GUEST_URL)</string>
-	<key>AppBoxDYZBGQGuestURL</key>
-	<string>$(APPBOX_DYZB_GQ_GUEST_URL)</string>
-	<key>AppBoxDYZBTFGuestURL</key>
-	<string>$(APPBOX_DYZB_TF_GUEST_URL)</string>
-	<key>AppBoxChungongGuestURL</key>
-	<string>$(APPBOX_CHUNGONG_GUEST_URL)</string>
-	<key>AppBoxIGXiongmaoGuestURL</key>
-	<string>$(APPBOX_IG_XIONGMAO_GUEST_URL)</string>
-	<key>AppBoxTianya348GuestURL</key>
-	<string>$(APPBOX_TIANYA_348_GUEST_URL)</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UISupportedInterfaceOrientations</key>
@@ -97,55 +76,43 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>audio</string>
-		<string>location</string>
-	</array>
-	
-	<!-- AppBox only owns its own relaunch scheme. The original Flutter app keeps tianya://. -->
+	<!-- Quietform uses its own callback scheme. appbox remains as a legacy
+	     deep-link alias until deployed links have migrated. -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>appbox.guest.relaunch</string>
+			<string>quietform.sandbox.callback</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>quietform</string>
 				<string>appbox</string>
 			</array>
 		</dict>
 	</array>
 
-	<key>NSNetworkExtensionUsageDescription</key>
-    <string>Quietform 需要 VPN 权限来保护您的网络安全和隐私，并加密网络连接。</string>
-    
-    <!-- 相册访问权限 -->
+    <!-- 仅保留已链接运行组件可能调用的系统隐私能力。所有权限均由用户操作触发。 -->
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>Quietform 需要访问您的相册，以选择和保存图片、发布内容及设置头像。</string>
+    <string>Quietform 仅在您主动选择图片或视频时访问相册。</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
-    <string>Quietform 需要写入您的相册，以保存图片和视频。</string>
+    <string>Quietform 仅在您主动保存图片或视频时写入相册。</string>
     
-    <!-- 相机权限（二维码扫描、头像拍摄等） -->
     <key>NSCameraUsageDescription</key>
-    <string>Quietform 需要访问您的相机，以扫描二维码、拍摄照片、发布内容及设置头像。</string>
+    <string>Quietform 仅在您主动扫描二维码或拍摄内容时使用相机。</string>
     
-    <!-- 麦克风权限（用于聊天室语音直播） -->
     <key>NSMicrophoneUsageDescription</key>
-    <string>Quietform 需要访问您的麦克风，以使用语音和录音功能。</string>
+    <string>Quietform 仅在您主动使用录音或语音功能时使用麦克风。</string>
 
-    <!-- 联系人 / 语音识别 / 日历权限仅在用户主动使用对应功能时申请。 -->
     <key>NSContactsUsageDescription</key>
-    <string>Quietform 仅在您主动使用联系人功能时访问通讯录，用于选择联系人并完成您发起的分享或互动。</string>
+    <string>Quietform 仅在您主动选择联系人时访问通讯录。</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>Quietform 仅在您主动使用语音输入时使用语音识别，将语音转换为文字以便填写或搜索内容。</string>
+    <string>Quietform 仅在您主动启用语音输入时使用语音识别，将语音转换为文字。</string>
     <key>NSCalendarsUsageDescription</key>
-    <string>Quietform 仅在您主动使用日程功能时访问日历，用于读取或添加您选择的日程。</string>
+    <string>Quietform 仅在您主动管理日程时访问您选择的日历内容。</string>
     <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>Quietform 仅在您主动管理日程时读取和更新您选择的日历内容。</string>
-    <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
-    <string>Quietform 仅在您主动添加日程时，将您确认的事件写入系统日历。</string>
+    <string>Quietform 仅在您主动管理日程时读取或更新您选择的日历内容。</string>
     
     <!-- 定位权限（用户主动创建的地点专注规则） -->
     <key>NSLocationWhenInUseUsageDescription</key>

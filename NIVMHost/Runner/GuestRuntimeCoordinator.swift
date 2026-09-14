@@ -89,10 +89,6 @@ final class GuestRuntimeCoordinator: NSObject, URLSessionDownloadDelegate {
     self.expectedIPASHA256 = expectedIPASHA256?.lowercased()
     self.expectedNIVMSHA256 = expectedNIVMSHA256?.lowercased()
 
-    if prepareInjectedArtifactsIfPresent() {
-      return
-    }
-
     downloadKind = .ipa(remoteURL)
 
     let configuration = URLSessionConfiguration.ephemeral
@@ -390,40 +386,6 @@ final class GuestRuntimeCoordinator: NSObject, URLSessionDownloadDelegate {
       throw RuntimeError("无法生成 NIVM 地址")
     }
     return result
-  }
-
-  private func prepareInjectedArtifactsIfPresent() -> Bool {
-    guard ProcessInfo.processInfo.arguments.contains("--use-injected-guest") ||
-            ProcessInfo.processInfo.arguments.contains("--appbox-install-pornhub-guest") else {
-      return false
-    }
-    guard let documents = FileManager.default.urls(
-      for: .documentDirectory,
-      in: .userDomainMask
-    ).first else {
-      return false
-    }
-    let testRoot = documents.appendingPathComponent("AppBoxTest", isDirectory: true)
-    let ipaURL = testRoot.appendingPathComponent("guest.ipa")
-    let nivmURL = testRoot.appendingPathComponent("guest.nivm.zip")
-    guard FileManager.default.fileExists(atPath: ipaURL.path),
-          FileManager.default.fileExists(atPath: nivmURL.path) else {
-      return false
-    }
-
-    emit(.status("检测到 USB 注入测试包，正在验证 IPA + NIVM…"))
-    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      guard let self else { return }
-      do {
-        let ipa = try self.validateAndPrepareIPA(downloadedFile: ipaURL)
-        let payload = try self.validateAndPrepareNIVM(downloadedFile: nivmURL, ipa: ipa)
-        self.terminalEventEmitted = true
-        self.emit(.ready(payload))
-      } catch {
-        self.fail(error.localizedDescription)
-      }
-    }
-    return true
   }
 
   private func resourceSize(of url: URL) throws -> Int64 {

@@ -3298,12 +3298,16 @@ static BOOL AppBoxConsumeFreshPlayBoxContinuationMarker(void) {
 
 @interface AppBoxGuestFloatingControl : UIControl
 @property(nonatomic, strong) UIImageView *iconView;
+@property(nonatomic) CGPoint dragStartCenter;
 - (void)showMenuAnimated:(BOOL)animated;
 @end
 
 static AppBoxGuestFloatingControl *AppBoxGuestFloatingView;
 static AppBoxFloatingMenuView *AppBoxGuestFloatingMenuView;
 static BOOL AppBoxFloatingReturnInFlight;
+static BOOL AppBoxFloatingHasStoredPosition;
+static BOOL AppBoxFloatingDockedToLeft;
+static CGFloat AppBoxFloatingStoredYRatio = 0.5;
 static const CGFloat AppBoxFloatingActionSize = 82;
 
 static NSBundle *AppBoxPlayBoxFloatingBundle(void) {
@@ -3347,7 +3351,7 @@ static void AppBoxReturnToSandbox(void) {
                 error:nil];
 
   NSURL *relaunchURL = [NSURL URLWithString:
-      @"appbox://playbox.guestapp.relaunch"];
+      @"quietform://sandbox.relaunch"];
   NSLog(@"APPBOX_FLOATING_RETURN requested url=%@", relaunchURL);
   void (^completion)(BOOL) = ^(BOOL accepted) {
     NSLog(@"APPBOX_FLOATING_RETURN accepted=%d", accepted);
@@ -3355,8 +3359,6 @@ static void AppBoxReturnToSandbox(void) {
       AppBoxFloatingReturnInFlight = NO;
       return;
     }
-    [UIApplication.sharedApplication performSelector:
-        NSSelectorFromString(@"suspend")];
     exit(0);
   };
   [UIApplication.sharedApplication openURL:relaunchURL
@@ -3539,12 +3541,17 @@ static void AppBoxReturnToSandbox(void) {
   _iconView.userInteractionEnabled = NO;
   [self addSubview:_iconView];
 
-  [self addTarget:self
-           action:@selector(handleTap)
- forControlEvents:UIControlEventTouchUpInside];
   UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]
       initWithTarget:self action:@selector(handlePan:)];
+  pan.minimumNumberOfTouches = 1;
+  pan.maximumNumberOfTouches = 1;
+  pan.cancelsTouchesInView = YES;
   [self addGestureRecognizer:pan];
+  UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
+      initWithTarget:self action:@selector(handleTap:)];
+  tap.cancelsTouchesInView = YES;
+  [tap requireGestureRecognizerToFail:pan];
+  [self addGestureRecognizer:tap];
   return self;
 }
 
@@ -3558,8 +3565,13 @@ static void AppBoxReturnToSandbox(void) {
   self.iconView.highlighted = highlighted;
 }
 
-- (void)handleTap {
+- (void)handleTap:(__unused UITapGestureRecognizer *)tap {
   [self showMenuAnimated:YES];
+}
+
+- (BOOL)accessibilityActivate {
+  [self showMenuAnimated:YES];
+  return YES;
 }
 
 - (void)showMenuAnimated:(BOOL)animated {
@@ -3578,25 +3590,65 @@ static void AppBoxReturnToSandbox(void) {
   if (container == nil) {
     return;
   }
-  CGPoint translation = [pan translationInView:container];
-  self.center = CGPointMake(self.center.x + translation.x,
-                            self.center.y + translation.y);
-  [pan setTranslation:CGPointZero inView:container];
-  if (pan.state != UIGestureRecognizerStateEnded &&
-      pan.state != UIGestureRecognizerStateCancelled) {
-    return;
-  }
+
   UIEdgeInsets safe = container.safeAreaInsets;
   CGFloat halfWidth = CGRectGetWidth(self.bounds) / 2.0;
   CGFloat halfHeight = CGRectGetHeight(self.bounds) / 2.0;
   CGFloat left = safe.left + 8 + halfWidth;
-  CGFloat right = CGRectGetWidth(container.bounds) - safe.right - 8 - halfWidth;
+  CGFloat right = MAX(left, CGRectGetWidth(container.bounds) - safe.right - 8 - halfWidth);
   CGFloat top = safe.top + 18 + halfHeight;
-  CGFloat bottom = CGRectGetHeight(container.bounds) - safe.bottom - 18 - halfHeight;
+  CGFloat bottom = MAX(top, CGRectGetHeight(container.bounds) - safe.bottom - 18 - halfHeight);
+
+  if (pan.state == UIGestureRecognizerStateBegan) {
+    self.dragStartCenter = self.center;
+    self.highlighted = YES;
+    [UIView animateWithDuration:0.12 animations:^{
+      self.transform = CGAffineTransformMakeScale(0.94, 0.94);
+    }];
+    return;
+  }
+
+  if (pan.state == UIGestureRecognizerStateChanged) {
+    CGPoint translation = [pan translationInView:container];
+    CGPoint center = CGPointMake(self.dragStartCenter.x + translation.x,
+                                 self.dragStartCenter.y + translation.y);
+    center.x = MIN(MAX(center.x, left), right);
+    center.y = MIN(MAX(center.y, top), bottom);
+    self.center = center;
+    return;
+  }
+
+  if (pan.state != UIGestureRecognizerStateEnded &&
+      pan.state != UIGestureRecognizerStateCancelled &&
+      pan.state != UIGestureRecognizerStateFailed) {
+    return;
+  }
+
+  CGPoint velocity = [pan velocityInView:container];
   CGPoint target = self.center;
-  target.x = target.x < CGRectGetMidX(container.bounds) ? left : right;
+  if (pan.state == UIGestureRecognizerStateEnded) {
+    target.x += velocity.x * 0.10;
+    target.y += velocity.y * 0.10;
+  }
+  AppBoxFloatingDockedToLeft = target.x < CGRectGetMidX(container.bounds);
+  target.x = AppBoxFloatingDockedToLeft ? left : right;
   target.y = MIN(MAX(target.y, top), bottom);
-  [UIView animateWithDuration:0.2 animations:^{ self.center = target; }];
+  AppBoxFloatingStoredYRatio = bottom > top
+      ? (target.y - top) / (bottom - top)
+      : 0.5;
+  AppBoxFloatingHasStoredPosition = YES;
+  self.highlighted = NO;
+  [UIView animateWithDuration:0.28
+                        delay:0
+       usingSpringWithDamping:0.82
+        initialSpringVelocity:0.25
+                      options:UIViewAnimationOptionBeginFromCurrentState |
+                              UIViewAnimationOptionAllowUserInteraction
+                   animations:^{
+    self.center = target;
+    self.transform = CGAffineTransformIdentity;
+  }
+                   completion:nil];
 }
 
 @end
@@ -3610,12 +3662,22 @@ static void AppBoxInstallGuestFloatingControl(UIWindow *window) {
   [AppBoxGuestFloatingView removeFromSuperview];
   CGFloat size = 60;
   UIEdgeInsets safe = window.safeAreaInsets;
-  CGFloat x = CGRectGetWidth(window.bounds) - safe.right - size - 8;
-  CGFloat y = MAX(safe.top + 82, CGRectGetHeight(window.bounds) * 0.48);
-  y = MIN(y, CGRectGetHeight(window.bounds) - safe.bottom - size - 24);
+  CGFloat halfSize = size / 2.0;
+  CGFloat left = safe.left + 8 + halfSize;
+  CGFloat right = MAX(left, CGRectGetWidth(window.bounds) - safe.right - 8 - halfSize);
+  CGFloat top = safe.top + 18 + halfSize;
+  CGFloat bottom = MAX(top, CGRectGetHeight(window.bounds) - safe.bottom - 18 - halfSize);
+  CGFloat x = AppBoxFloatingHasStoredPosition
+      ? (AppBoxFloatingDockedToLeft ? left : right)
+      : right;
+  CGFloat defaultY = MAX(safe.top + 82 + halfSize,
+                         CGRectGetHeight(window.bounds) * 0.48 + halfSize);
+  CGFloat y = AppBoxFloatingHasStoredPosition
+      ? top + AppBoxFloatingStoredYRatio * (bottom - top)
+      : MIN(defaultY, bottom);
   AppBoxGuestFloatingControl *control =
       [[AppBoxGuestFloatingControl alloc]
-          initWithFrame:CGRectMake(x, y, size, size)];
+          initWithFrame:CGRectMake(x - halfSize, y - halfSize, size, size)];
   control.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin |
       UIViewAutoresizingFlexibleTopMargin;
   [window addSubview:control];
@@ -5028,63 +5090,6 @@ int main(int argc, char *argv[]) {
                     error:nil];
       NSLog(@"APPBOX_RUNTIME launch_state_cleared reason=%@",
             installCommand ? @"install" : @"explicit");
-    }
-    // Deterministic real-device harness: bypass the launcher/relaunch hop so
-    // devicectl can keep stdout attached while a selected PlayBox guest boots.
-    // These arguments are test-only one-shot commands; normal UI launches keep
-    // using AppBoxLauncherViewController's relaunch flow.
-    NSDictionary<NSString *, NSDictionary<NSString *, NSString *> *>
-        *directPlayBoxGuests = @{
-      @"--appbox-run-tianya-348-direct": @{
-        @"bundle": @"com.laodeng.worldcupapp",
-        @"storage": @"tianya_348",
-      },
-      @"--appbox-run-adult-douyin-direct": @{
-        @"bundle": @"com.amk2ns2n9j.alan2is71",
-        @"storage": @"com.amk2ns2n9j.alan2is71",
-      },
-      @"--appbox-run-dyzb-gq-direct": @{
-        @"bundle": @"ady.DYZB168dyzb.app",
-        @"storage": @"dyzb_gq",
-      },
-      @"--appbox-run-dyzb-gq-loose": @{
-        @"bundle": @"ady.DYZB168dyzb.app",
-        @"storage": @"dyzb_gq",
-      },
-      @"--appbox-run-dyzb-tf-direct": @{
-        @"bundle": @"ady.DYZB168dyzb.app",
-        @"storage": @"dyzb_tf",
-      },
-      @"--appbox-run-chungong-direct": @{
-        @"bundle": @"com.cg.client.pro",
-        @"storage": @"chungong_3_9_1",
-      },
-      @"--appbox-run-chungong-loose": @{
-        @"bundle": @"com.cg.client.pro",
-        @"storage": @"chungong_3_9_1",
-      },
-      @"--appbox-run-ig-xiongmao-direct": @{
-        @"bundle": @"com.igvideo.jingdong",
-        @"storage": @"ig_xiongmao",
-      },
-    };
-    for (NSString *argument in directPlayBoxGuests) {
-      if (![NSProcessInfo.processInfo.arguments containsObject:argument]) {
-        continue;
-      }
-      NSDictionary<NSString *, NSString *> *guest =
-          directPlayBoxGuests[argument];
-      [defaults setObject:@"playbox" forKey:AppBoxRuntimeKindKey];
-      [defaults setObject:NSUUID.UUID.UUIDString
-                   forKey:AppBoxRuntimeLaunchTokenKey];
-      [defaults setObject:guest[@"bundle"]
-                   forKey:@"AppBoxPlayBoxGuestBundleIdentifier"];
-      [defaults setObject:guest[@"storage"]
-                   forKey:@"AppBoxPlayBoxGuestStorageIdentifier"];
-      [defaults synchronize];
-      NSLog(@"APPBOX_PLAYBOX_RUNTIME direct_harness guest=%@",
-            guest[@"storage"]);
-      break;
     }
     NSString *launchToken = [defaults stringForKey:AppBoxRuntimeLaunchTokenKey];
     NSString *runtimeKind = [defaults stringForKey:AppBoxRuntimeKindKey];

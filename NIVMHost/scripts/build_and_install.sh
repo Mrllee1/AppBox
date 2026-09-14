@@ -4,20 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOST_DIR="$PROJECT_ROOT"
-APPBOX_ARTIFACT_ROOT="${APPBOX_ARTIFACT_ROOT:-/Users/king/Documents/AppBox}"
 APPBOX_CLIENT_IOS_ROOT="${APPBOX_CLIENT_IOS_ROOT:-$PROJECT_ROOT/../../pornhub/pornhub_client/ios}"
 DEFAULT_DEVICE="003F06EE-CAF3-553A-8035-CDD0276F9ED1"
 DEVICE_ID="${1:-$DEFAULT_DEVICE}"
 DERIVED_DATA="$PROJECT_ROOT/Build/DerivedData"
 ZIPFOUNDATION_DERIVED_DATA="$PROJECT_ROOT/Build/ZIPFoundationDerivedData"
-APPBOX_GUEST_URL="${APPBOX_GUEST_URL:-}"
-APPBOX_PORNHUB_GUEST_URL="${APPBOX_PORNHUB_GUEST_URL:-}"
-APPBOX_PLAYBOX_GUEST_URL="${APPBOX_PLAYBOX_GUEST_URL:-}"
-APPBOX_DYZB_GQ_GUEST_URL="${APPBOX_DYZB_GQ_GUEST_URL:-}"
-APPBOX_DYZB_TF_GUEST_URL="${APPBOX_DYZB_TF_GUEST_URL:-}"
-APPBOX_CHUNGONG_GUEST_URL="${APPBOX_CHUNGONG_GUEST_URL:-}"
-APPBOX_IG_XIONGMAO_GUEST_URL="${APPBOX_IG_XIONGMAO_GUEST_URL:-}"
-APPBOX_TIANYA_348_GUEST_URL="${APPBOX_TIANYA_348_GUEST_URL:-}"
 APPBOX_CATALOG_BASE_URL="${APPBOX_CATALOG_BASE_URL:-https://3601.help}"
 APPBOX_VERIFICATION_BASE_URL="${APPBOX_VERIFICATION_BASE_URL:-$APPBOX_CATALOG_BASE_URL}"
 APPBOX_CLIENT_AES_KEY="${APPBOX_CLIENT_AES_KEY:-6btlrID18OytwUZ0s41atap+4WxlXr1xpebjrE04hnY=}"
@@ -25,9 +16,7 @@ APPBOX_ASSET_AES_KEY="${APPBOX_ASSET_AES_KEY:-}"
 APPBOX_ASSET_AES_IV="${APPBOX_ASSET_AES_IV:-}"
 PLAYBOX_RUNTIME_ROOT="$(mktemp -d /tmp/appbox-playbox-runtime.XXXXXX)"
 PLAYBOX_RUNTIME_FRAMEWORKS="$PLAYBOX_RUNTIME_ROOT/Frameworks"
-PLAYBOX_GUEST_IPA="${PLAYBOX_GUEST_IPA:-$APPBOX_ARTIFACT_ROOT/PlayBoxGuests/adult-douyin-3.1.5.ipa}"
-PORNHUB_GUEST_IPA="/Users/king/Documents/GitHub/pornhub/pornhub_client/dist/ios/non_tf/天涯-非TF-20.0.0+357.ipa"
-PORNHUB_GUEST_NIVM="${PORNHUB_GUEST_NIVM:-$APPBOX_ARTIFACT_ROOT/Artifacts/guest.nivm.zip}"
+PORNHUB_GUEST_IPA="${PORNHUB_GUEST_IPA:-/Users/king/Documents/GitHub/pornhub/pornhub_client/dist/ios/non_tf/天涯-非TF.ipa}"
 CUSTOM_FLUTTER_FRAMEWORK="/Users/king/flutter/engine/src/out/ios_debug_unopt/Flutter.framework"
 
 if [[ ! -d "$APPBOX_CLIENT_IOS_ROOT/.symlinks/plugins" ]]; then
@@ -36,38 +25,6 @@ if [[ ! -d "$APPBOX_CLIENT_IOS_ROOT/.symlinks/plugins" ]]; then
 fi
 mkdir -p "$HOST_DIR/.symlinks"
 ln -sfn "$APPBOX_CLIENT_IOS_ROOT/.symlinks/plugins" "$HOST_DIR/.symlinks/plugins"
-
-if [[ -z "$APPBOX_GUEST_URL" ]]; then
-  DEVICE_TUNNEL_IP="$(xcrun devicectl device info details --device "$DEVICE_ID" \
-    | sed -n 's/.*tunnelIPAddress: //p' \
-    | head -1)"
-  if [[ "$DEVICE_TUNNEL_IP" != *"::1" ]]; then
-    echo "Could not derive the CoreDevice host tunnel address." >&2
-    exit 10
-  fi
-  APPBOX_GUEST_URL="http://[${DEVICE_TUNNEL_IP%::1}::2]:8080/guest.ipa"
-fi
-if [[ -z "$APPBOX_PORNHUB_GUEST_URL" ]]; then
-  APPBOX_PORNHUB_GUEST_URL="$APPBOX_GUEST_URL"
-fi
-if [[ -z "$APPBOX_PLAYBOX_GUEST_URL" ]]; then
-  APPBOX_PLAYBOX_GUEST_URL="${APPBOX_GUEST_URL%guest.ipa}playbox-guest.ipa"
-fi
-if [[ -z "$APPBOX_DYZB_GQ_GUEST_URL" ]]; then
-  APPBOX_DYZB_GQ_GUEST_URL="${APPBOX_GUEST_URL%guest.ipa}dyzb-gq-playbox.ipa"
-fi
-if [[ -z "$APPBOX_DYZB_TF_GUEST_URL" ]]; then
-  APPBOX_DYZB_TF_GUEST_URL="${APPBOX_GUEST_URL%guest.ipa}dyzb-tf-playbox.ipa"
-fi
-if [[ -z "$APPBOX_CHUNGONG_GUEST_URL" ]]; then
-  APPBOX_CHUNGONG_GUEST_URL="${APPBOX_GUEST_URL%guest.ipa}chungong-playbox.ipa"
-fi
-if [[ -z "$APPBOX_IG_XIONGMAO_GUEST_URL" ]]; then
-  APPBOX_IG_XIONGMAO_GUEST_URL="${APPBOX_GUEST_URL%guest.ipa}ig-xiongmao-playbox.ipa"
-fi
-if [[ -z "$APPBOX_TIANYA_348_GUEST_URL" ]]; then
-  APPBOX_TIANYA_348_GUEST_URL="${APPBOX_GUEST_URL%guest.ipa}tianya-348-playbox.ipa"
-fi
 
 xcodebuild \
   -project "$HOST_DIR/Pods/Pods.xcodeproj" \
@@ -119,29 +76,33 @@ if [[ "${APPBOX_CLEAN_BUILD:-1}" == "1" ]]; then
   BUILD_ACTIONS=(clean build)
 fi
 
-xcodebuild \
-  -project "$HOST_DIR/Runner.xcodeproj" \
-  -scheme Runner \
-  -configuration Release \
-  -destination "id=$DEVICE_ID" \
-  -derivedDataPath "$DERIVED_DATA" \
-  "FRAMEWORK_SEARCH_PATHS=\$(inherited) $PLAYBOX_RUNTIME_FRAMEWORKS" \
-  'OTHER_LDFLAGS=$(inherited) -framework ZIPFoundation' \
-  APPBOX_GUEST_URL="$APPBOX_GUEST_URL" \
-  APPBOX_PORNHUB_GUEST_URL="$APPBOX_PORNHUB_GUEST_URL" \
-  APPBOX_PLAYBOX_GUEST_URL="$APPBOX_PLAYBOX_GUEST_URL" \
-  APPBOX_DYZB_GQ_GUEST_URL="$APPBOX_DYZB_GQ_GUEST_URL" \
-  APPBOX_DYZB_TF_GUEST_URL="$APPBOX_DYZB_TF_GUEST_URL" \
-  APPBOX_CHUNGONG_GUEST_URL="$APPBOX_CHUNGONG_GUEST_URL" \
-  APPBOX_IG_XIONGMAO_GUEST_URL="$APPBOX_IG_XIONGMAO_GUEST_URL" \
-  APPBOX_TIANYA_348_GUEST_URL="$APPBOX_TIANYA_348_GUEST_URL" \
-  APPBOX_CATALOG_BASE_URL="$APPBOX_CATALOG_BASE_URL" \
-  APPBOX_VERIFICATION_BASE_URL="$APPBOX_VERIFICATION_BASE_URL" \
-  APPBOX_CLIENT_AES_KEY="$APPBOX_CLIENT_AES_KEY" \
-  APPBOX_ASSET_AES_KEY="$APPBOX_ASSET_AES_KEY" \
-  APPBOX_ASSET_AES_IV="$APPBOX_ASSET_AES_IV" \
-  'SWIFT_ACTIVE_COMPILATION_CONDITIONS=APPBOX_INTERNAL_UNLOCK' \
+XCODEBUILD_ARGUMENTS=(
+  -project "$HOST_DIR/Runner.xcodeproj"
+  -scheme Runner
+  -configuration Release
+  -destination "id=$DEVICE_ID"
+  -derivedDataPath "$DERIVED_DATA"
+)
+if [[ "${APPBOX_ALLOW_PROVISIONING_UPDATES:-0}" == "1" ]]; then
+  XCODEBUILD_ARGUMENTS+=(
+    -allowProvisioningUpdates
+    -allowProvisioningDeviceRegistration
+  )
+fi
+
+XCODEBUILD_ARGUMENTS+=(
+  "FRAMEWORK_SEARCH_PATHS=\$(inherited) $PLAYBOX_RUNTIME_FRAMEWORKS"
+  'OTHER_LDFLAGS=$(inherited) -framework ZIPFoundation'
+  "APPBOX_CATALOG_BASE_URL=$APPBOX_CATALOG_BASE_URL"
+  "APPBOX_VERIFICATION_BASE_URL=$APPBOX_VERIFICATION_BASE_URL"
+  "APPBOX_CLIENT_AES_KEY=$APPBOX_CLIENT_AES_KEY"
+  "APPBOX_ASSET_AES_KEY=$APPBOX_ASSET_AES_KEY"
+  "APPBOX_ASSET_AES_IV=$APPBOX_ASSET_AES_IV"
+  'SWIFT_ACTIVE_COMPILATION_CONDITIONS=APPBOX_INTERNAL_UNLOCK'
   "${BUILD_ACTIONS[@]}"
+)
+
+xcodebuild "${XCODEBUILD_ARGUMENTS[@]}"
 
 HOST_APP="$DERIVED_DATA/Build/Products/Release-iphoneos/Runner.app"
 if [[ ! -d "$HOST_APP" ]]; then
@@ -183,36 +144,6 @@ LAUNCH_ARGUMENTS=()
 if [[ "${APPBOX_FORCE_SURFACE:-0}" == "1" ]]; then
   LAUNCH_ARGUMENTS+=(--appbox-force-surface)
 fi
-INJECTION_ROOT=""
-if [[ "${APPBOX_USE_INJECTED_GUEST:-0}" == "1" || "${APPBOX_USE_PLAYBOX_GUEST:-0}" == "1" ]]; then
-  INJECTION_ROOT="$(mktemp -d /tmp/appbox-guest-injection.XXXXXX)"
-  mkdir -p "$INJECTION_ROOT/AppBoxTest"
-fi
-if [[ "${APPBOX_USE_INJECTED_GUEST:-0}" == "1" ]]; then
-  if [[ ! -f "$PORNHUB_GUEST_IPA" || ! -f "$PORNHUB_GUEST_NIVM" ]]; then
-    echo "pornhub_client IPA or NIVM is missing." >&2
-    exit 22
-  fi
-  ditto "$PORNHUB_GUEST_IPA" "$INJECTION_ROOT/AppBoxTest/guest.ipa"
-  ditto "$PORNHUB_GUEST_NIVM" "$INJECTION_ROOT/AppBoxTest/guest.nivm.zip"
-  LAUNCH_ARGUMENTS+=(--appbox-install-pornhub-guest)
-fi
-if [[ "${APPBOX_USE_PLAYBOX_GUEST:-0}" == "1" ]]; then
-  if [[ ! -f "$PLAYBOX_GUEST_IPA" ]]; then
-    echo "PlayBox guest IPA is missing: $PLAYBOX_GUEST_IPA" >&2
-    exit 23
-  fi
-  ditto "$PLAYBOX_GUEST_IPA" "$INJECTION_ROOT/AppBoxTest/playbox-guest.ipa"
-  LAUNCH_ARGUMENTS+=(--appbox-install-playbox-guest)
-fi
-if [[ -n "$INJECTION_ROOT" ]]; then
-  xcrun devicectl device copy to --device "$DEVICE_ID" \
-    --source "$INJECTION_ROOT/AppBoxTest" \
-    --destination Documents/AppBoxTest \
-    --remove-existing-content true \
-    --domain-type appDataContainer \
-    --domain-identifier com.tianya.appbox
-fi
 if (( ${#LAUNCH_ARGUMENTS[@]} )); then
   xcrun devicectl device process launch --device "$DEVICE_ID" \
     --terminate-existing com.tianya.appbox "${LAUNCH_ARGUMENTS[@]}"
@@ -225,4 +156,3 @@ echo "APPBOX_HOST_OK"
 echo "device=$DEVICE_ID"
 echo "bundle=com.tianya.appbox"
 echo "host_app=$HOST_APP"
-echo "guest_url=$APPBOX_GUEST_URL"

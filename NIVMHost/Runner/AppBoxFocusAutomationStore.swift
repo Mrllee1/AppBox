@@ -1,5 +1,71 @@
+import Combine
 import CoreLocation
 import Foundation
+
+enum AppBoxSharedStore {
+  static let groupIdentifier = "group.com.tianya.appbox"
+  static let selectionKey = "AppBox.visibility.selection.v2"
+  static let restrictionKey = "Quietform.restrictions.isActive"
+  static let manualRestrictionKey = "Quietform.restrictions.manual"
+  static let quickSessionEndKey = "Quietform.restrictions.quickSessionEnd"
+  static let scheduleRulesKey = "AppBox.focus.scheduleRules.v2"
+  static let placeRulesKey = "AppBox.focus.placeRules.v2"
+  static let managedStoreName = "quietform.focus"
+  static let scheduleActivityPrefix = "quietform.schedule."
+  static let quickSessionActivityName = "quietform.quick-session"
+
+  static var defaults: UserDefaults {
+    UserDefaults(suiteName: groupIdentifier) ?? .standard
+  }
+
+  static func migrateStandardValuesIfNeeded(keys: [String]) {
+    guard let shared = UserDefaults(suiteName: groupIdentifier) else { return }
+    for key in keys where shared.object(forKey: key) == nil {
+      guard let value = UserDefaults.standard.object(forKey: key) else { continue }
+      shared.set(value, forKey: key)
+    }
+  }
+}
+
+enum AppBoxWeekday: Int, CaseIterable, Codable, Identifiable {
+  case sunday = 1
+  case monday
+  case tuesday
+  case wednesday
+  case thursday
+  case friday
+  case saturday
+
+  var id: Int { rawValue }
+
+  var shortChinese: String {
+    switch self {
+    case .monday: return "一"
+    case .tuesday: return "二"
+    case .wednesday: return "三"
+    case .thursday: return "四"
+    case .friday: return "五"
+    case .saturday: return "六"
+    case .sunday: return "日"
+    }
+  }
+
+  var shortEnglish: String {
+    switch self {
+    case .monday: return "M"
+    case .tuesday: return "T"
+    case .wednesday: return "W"
+    case .thursday: return "T"
+    case .friday: return "F"
+    case .saturday: return "S"
+    case .sunday: return "S"
+    }
+  }
+
+  static var ordered: [AppBoxWeekday] {
+    [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+  }
+}
 
 struct AppBoxPlaceRule: Identifiable, Codable, Equatable {
   enum Trigger: String, Codable, CaseIterable, Identifiable {
@@ -52,6 +118,7 @@ struct AppBoxScheduleRule: Identifiable, Codable, Equatable {
   var startMinute: Int
   var endHour: Int
   var endMinute: Int
+  var weekdays: Set<Int>
   var isEnabled: Bool
   var createdAt: Date
 
@@ -62,6 +129,7 @@ struct AppBoxScheduleRule: Identifiable, Codable, Equatable {
     startMinute: Int,
     endHour: Int,
     endMinute: Int,
+    weekdays: Set<Int> = Set(1...7),
     isEnabled: Bool = true,
     createdAt: Date = Date()
   ) {
@@ -71,24 +139,58 @@ struct AppBoxScheduleRule: Identifiable, Codable, Equatable {
     self.startMinute = min(max(startMinute, 0), 59)
     self.endHour = min(max(endHour, 0), 23)
     self.endMinute = min(max(endMinute, 0), 59)
+    self.weekdays = weekdays.isEmpty ? Set(1...7) : weekdays
     self.isEnabled = isEnabled
     self.createdAt = createdAt
   }
 
+  private enum CodingKeys: String, CodingKey {
+    case id
+    case name
+    case startHour
+    case startMinute
+    case endHour
+    case endMinute
+    case weekdays
+    case isEnabled
+    case createdAt
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(String.self, forKey: .id)
+    name = try container.decode(String.self, forKey: .name)
+    startHour = min(max(try container.decode(Int.self, forKey: .startHour), 0), 23)
+    startMinute = min(max(try container.decode(Int.self, forKey: .startMinute), 0), 59)
+    endHour = min(max(try container.decode(Int.self, forKey: .endHour), 0), 23)
+    endMinute = min(max(try container.decode(Int.self, forKey: .endMinute), 0), 59)
+    weekdays = try container.decodeIfPresent(Set<Int>.self, forKey: .weekdays) ?? Set(1...7)
+    if weekdays.isEmpty { weekdays = Set(1...7) }
+    isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
+    createdAt = try container.decode(Date.self, forKey: .createdAt)
+  }
+
   func contains(_ date: Date, calendar: Calendar = .current) -> Bool {
-    let components = calendar.dateComponents([.hour, .minute], from: date)
+    let components = calendar.dateComponents([.weekday, .hour, .minute], from: date)
     let now = (components.hour ?? 0) * 60 + (components.minute ?? 0)
     let start = startHour * 60 + startMinute
     let end = endHour * 60 + endMinute
+    let weekday = components.weekday ?? AppBoxWeekday.monday.rawValue
 
-    if start == end { return true }
-    if start < end { return now >= start && now < end }
-    return now >= start || now < end
+    if start == end { return weekdays.contains(weekday) }
+    if start < end {
+      return weekdays.contains(weekday) && now >= start && now < end
+    }
+    if now >= start { return weekdays.contains(weekday) }
+    let previousWeekday = weekday == 1 ? 7 : weekday - 1
+    return now < end && weekdays.contains(previousWeekday)
   }
 }
 
 @MainActor
 final class AppBoxFocusAutomationStore: ObservableObject {
+  static let maximumScheduleRules = 8
+
   @Published private(set) var placeRules: [AppBoxPlaceRule] {
     didSet { persist(placeRules, key: placeRulesKey) }
   }
@@ -97,10 +199,17 @@ final class AppBoxFocusAutomationStore: ObservableObject {
   }
 
   private let defaults: UserDefaults
-  private let placeRulesKey = "AppBox.focus.placeRules.v2"
-  private let scheduleRulesKey = "AppBox.focus.scheduleRules.v2"
+  private let placeRulesKey = AppBoxSharedStore.placeRulesKey
+  private let scheduleRulesKey = AppBoxSharedStore.scheduleRulesKey
 
-  init(defaults: UserDefaults = .standard) {
+  convenience init() {
+    AppBoxSharedStore.migrateStandardValuesIfNeeded(
+      keys: [AppBoxSharedStore.placeRulesKey, AppBoxSharedStore.scheduleRulesKey]
+    )
+    self.init(defaults: AppBoxSharedStore.defaults)
+  }
+
+  init(defaults: UserDefaults) {
     self.defaults = defaults
     placeRules = Self.load([AppBoxPlaceRule].self, from: defaults, key: placeRulesKey) ?? []
     scheduleRules = Self.load([AppBoxScheduleRule].self, from: defaults, key: scheduleRulesKey) ?? []
@@ -143,8 +252,10 @@ final class AppBoxFocusAutomationStore: ObservableObject {
     startHour: Int,
     startMinute: Int,
     endHour: Int,
-    endMinute: Int
+    endMinute: Int,
+    weekdays: Set<Int> = Set(1...7)
   ) {
+    guard scheduleRules.count < Self.maximumScheduleRules else { return }
     let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
     scheduleRules.insert(
       AppBoxScheduleRule(
@@ -152,7 +263,8 @@ final class AppBoxFocusAutomationStore: ObservableObject {
         startHour: startHour,
         startMinute: startMinute,
         endHour: endHour,
-        endMinute: endMinute
+        endMinute: endMinute,
+        weekdays: weekdays
       ),
       at: 0
     )

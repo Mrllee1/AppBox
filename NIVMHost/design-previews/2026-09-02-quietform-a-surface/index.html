@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Quietform A 面 · 设计方向样机</title>
+  <style>
+    :root {
+      --shell-bg: #efefec;
+      --shell-surface: #fafaf8;
+      --shell-text: #232321;
+      --shell-muted: #6d6b66;
+      --shell-line: #d8d7d2;
+      --shell-focus: #2f67d8;
+      --ease-out: cubic-bezier(.23, 1, .32, 1);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--shell-bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--shell-text);
+      background: var(--shell-bg);
+      line-height: 1.6;
+      letter-spacing: 0;
+    }
+
+    button, input, textarea { font: inherit; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgb(47 103 216 / 32%);
+      outline-offset: 3px;
+    }
+
+    .page {
+      width: min(1460px, 100%);
+      margin: 0 auto;
+      padding: 52px 28px 80px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, .6fr);
+      gap: 36px;
+      align-items: end;
+      padding: 24px 8px 28px;
+    }
+
+    .intro h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(34px, 4.5vw, 62px);
+      line-height: 1.08;
+      font-weight: 600;
+      text-wrap: balance;
+    }
+
+    .intro p {
+      max-width: 36em;
+      margin: 14px 0 0;
+      color: var(--shell-muted);
+      font-size: 16px;
+      line-height: 1.7;
+      text-wrap: pretty;
+    }
+
+    .product-read {
+      padding: 18px 20px;
+      border: 1px solid var(--shell-line);
+      border-radius: 18px;
+      background: rgb(250 250 248 / 76%);
+    }
+
+    .product-read strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .product-read span {
+      display: block;
+      color: var(--shell-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .dials {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 0 8px 24px;
+      padding: 14px;
+      border: 1px solid var(--shell-line);
+      border-radius: 18px;
+      background: var(--shell-surface);
+    }
+
+    .dial {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 7px 12px;
+      align-items: center;
+      padding: 7px 10px;
+      color: var(--shell-muted);
+      font-size: 13px;
+    }
+
+    .dial strong { color: var(--shell-text); font-weight: 600; }
+    .dial output { color: var(--shell-text); font-variant-numeric: tabular-nums; }
+    .dial input { grid-column: 1 / -1; width: 100%; accent-color: var(--shell-focus); }
+
+    .directions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .direction-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--shell-line);
+      border-radius: 24px;
+      background: var(--shell-surface);
+      transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+    }
+
+    .direction-card.qmdp-selected {
+      border-color: #2f67d8;
+      box-shadow: 0 0 0 3px rgb(47 103 216 / 13%);
+    }
+
+    .mock-stage {
+      position: relative;
+      display: grid;
+      min-height: 520px;
+      place-items: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .phone {
+      position: relative;
+      width: 320px;
+      height: 620px;
+      overflow: hidden;
+      border-radius: 46px;
+      box-shadow: 0 24px 70px rgb(27 31 38 / 22%);
+      transform: scale(.76);
+      transform-origin: center;
+    }
+
+    .phone::after {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      border: 7px solid rgb(27 28 31 / 92%);
+      border-radius: inherit;
+      pointer-events: none;
+      content: "";
+    }
+
+    .island {
+      position: absolute;
+      z-index: 18;
+      top: 12px;
+      left: 50%;
+      width: 92px;
+      height: 25px;
+      border-radius: 999px;
+      background: #1e2024;
+      transform: translateX(-50%);
+    }
+
+    .mock-label {
+      position: absolute;
+      z-index: 4;
+      top: 20px;
+      left: 22px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: rgb(255 255 255 / 88%);
+      background: rgb(25 26 28 / 62%);
+      backdrop-filter: blur(14px);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .recommended {
+      position: absolute;
+      z-index: 5;
+      top: 20px;
+      right: 22px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: #163f79;
+      background: #dbeaff;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .direction-meta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 18px;
+      align-items: center;
+      width: 100%;
+      padding: 18px 20px 14px;
+      border-top: 1px solid var(--shell-line);
+    }
+
+    .direction-meta h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .direction-meta p {
+      grid-column: 1 / -1;
+      margin: 2px 0 0;
+      color: var(--shell-muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .direction-code {
+      color: var(--shell-muted);
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qmdp-pick-button {
+      position: relative;
+      width: calc(100% - 40px);
+      min-height: 46px;
+      margin: 0 20px 20px;
+      border: 0;
+      border-radius: 14px;
+      color: #f7f8fa;
+      background: #26272a;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 120ms var(--ease-out), background-color 160ms var(--ease-out);
+    }
+
+    .qmdp-pick-button:active { transform: scale(.98); }
+
+    .explanations {
+      margin: 34px 8px 0;
+      padding: 28px;
+      border: 1px solid var(--shell-line);
+      border-radius: 24px;
+      background: var(--shell-surface);
+    }
+
+    .explanations h2 {
+      margin: 0 0 20px;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .explanation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 30px;
+    }
+
+    .explanation {
+      padding: 18px 0;
+      border-top: 1px solid var(--shell-line);
+    }
+
+    .explanation h3 {
+      margin: 0 0 7px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .explanation p {
+      margin: 0;
+      color: var(--shell-muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .explanation b { color: var(--shell-text); font-weight: 600; }
+
+    /* A · 此刻：Apple 原生、冷静明亮、状态优先 */
+    .dir-a .mock-stage { background: #dce5f2; }
+    .dir-a .phone {
+      color: #17191d;
+      background: #f4f5f8;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    }
+
+    .a-screen { height: 100%; padding: 52px 20px 18px; }
+    .a-top { display: flex; align-items: center; justify-content: space-between; }
+    .a-brand { font-size: 15px; font-weight: 600; }
+    .a-day { color: #6d727c; font-size: 11px; }
+    .a-avatar {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: 50%;
+      color: #2d65c7;
+      background: #e2ecfb;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .a-hero { margin-top: 32px; }
+    .a-kicker { color: #5c6470; font-size: 12px; }
+    .a-hero h3 { margin: 3px 0 4px; font-size: 34px; line-height: 1.12; font-weight: 600; }
+    .a-hero p { margin: 0; color: #6b717c; font-size: 12px; }
+    .a-orbit {
+      position: relative;
+      display: grid;
+      width: 166px;
+      height: 166px;
+      margin: 24px auto 22px;
+      place-items: center;
+      border-radius: 50%;
+      background: conic-gradient(#3478e5 0 66%, #dde3ec 66% 100%);
+    }
+    .a-orbit::before {
+      position: absolute;
+      width: 138px;
+      height: 138px;
+      border-radius: 50%;
+      background: #f4f5f8;
+      content: "";
+    }
+    .a-orbit-content { position: relative; z-index: 1; text-align: center; }
+    .a-orbit-content strong { display: block; font-size: 30px; line-height: 1; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .a-orbit-content span { color: #6d727c; font-size: 11px; }
+    .a-primary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 18px;
+      color: #fff;
+      background: #2869d5;
+    }
+    .a-primary strong { display: block; font-size: 14px; font-weight: 600; }
+    .a-primary span { display: block; margin-top: 1px; color: rgb(255 255 255 / 72%); font-size: 10px; }
+    .a-play {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 50%;
+      color: #2869d5;
+      background: #fff;
+      font-size: 13px;
+    }
+    .a-next { display: flex; justify-content: space-between; margin-top: 16px; padding: 13px 2px 6px; border-bottom: 1px solid #dfe2e7; }
+    .a-next strong { font-size: 12px; font-weight: 600; }
+    .a-next small { display: block; color: #737985; font-size: 10px; }
+    .a-next time { color: #2869d5; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .a-tabbar {
+      position: absolute;
+      right: 20px;
+      bottom: 18px;
+      left: 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 7px;
+      border: 1px solid rgb(255 255 255 / 68%);
+      border-radius: 23px;
+      background: rgb(244 245 248 / 72%);
+      box-shadow: 0 12px 30px rgb(41 50 68 / 12%);
+      backdrop-filter: blur(22px) saturate(150%);
+    }
+    .a-tab { display: grid; gap: 2px; place-items: center; color: #8a8f98; font-size: 9px; }
+    .a-tab i { display: block; width: 16px; height: 16px; border: 2px solid currentColor; border-radius: 5px; }
+    .a-tab.active { color: #2869d5; font-weight: 600; }
+
+    /* B · 纸上日程：暖色编辑、时间线优先 */
+    .dir-b .mock-stage { background: #d7cdbb; }
+    .dir-b .phone {
+      color: #28251f;
+      background: #f4efe5;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    }
+
+    .b-screen { height: 100%; padding: 50px 22px 22px; }
+    .b-date { display: flex; align-items: end; justify-content: space-between; padding-bottom: 17px; border-bottom: 1px solid #c7bda9; }
+    .b-date strong { font-family: Georgia, "Times New Roman", serif; font-size: 52px; line-height: .9; font-weight: 400; }
+    .b-date span { display: block; color: #6f685b; font-size: 11px; text-align: right; }
+    .b-title { margin: 23px 0 6px; font-size: 25px; line-height: 1.2; font-weight: 600; }
+    .b-subtitle { margin: 0; color: #70695d; font-size: 11px; }
+    .b-timeline { margin-top: 26px; }
+    .b-event { display: grid; grid-template-columns: 48px 1fr; gap: 15px; padding: 13px 0; border-top: 1px solid #d8cfbf; }
+    .b-event time { padding-top: 3px; color: #776e60; font-family: Georgia, "Times New Roman", serif; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .b-event-main { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+    .b-event-main strong { font-size: 13px; font-weight: 600; }
+    .b-event-main span { grid-column: 1 / -1; color: #756d61; font-size: 10px; }
+    .b-switch { width: 32px; height: 18px; padding: 2px; border-radius: 999px; background: #b6aa96; }
+    .b-switch::after { display: block; width: 14px; height: 14px; border-radius: 50%; background: #f9f5ed; content: ""; }
+    .b-switch.on { background: #456e5b; }
+    .b-switch.on::after { margin-left: 14px; }
+    .b-focus-note {
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 2px solid #2f2d28;
+      border-bottom: 1px solid #c7bda9;
+    }
+    .b-focus-note strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 21px; font-weight: 400; }
+    .b-focus-note span { color: #756d61; font-size: 10px; }
+    .b-actions { display: grid; grid-template-columns: 1fr auto; gap: 9px; margin-top: 18px; }
+    .b-start { padding: 12px 14px; border-radius: 4px; color: #f7f2e9; background: #2f3f37; font-size: 12px; font-weight: 600; }
+    .b-add { display: grid; width: 39px; place-items: center; border: 1px solid #aaa08e; border-radius: 4px; font-size: 18px; }
+    .b-nav { position: absolute; right: 22px; bottom: 20px; left: 22px; display: flex; justify-content: space-between; color: #7c7466; font-size: 10px; }
+    .b-nav b { color: #2f3f37; font-weight: 600; }
+
+    /* C · 专注舱：深色仪表、单任务优先 */
+    .dir-c .mock-stage { background: #39423e; }
+    .dir-c .phone {
+      color: rgb(255 255 255 / 88%);
+      background: #121815;
+      font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    }
+
+    .c-screen { height: 100%; padding: 50px 20px 20px; }
+    .c-top { display: flex; align-items: center; justify-content: space-between; }
+    .c-top strong { font-size: 14px; font-weight: 600; }
+    .c-status { display: flex; align-items: center; gap: 6px; color: rgb(255 255 255 / 64%); font-size: 10px; }
+    .c-status::before { width: 7px; height: 7px; border-radius: 50%; background: #95c8a0; content: ""; }
+    .c-headline { margin-top: 34px; }
+    .c-headline span { color: rgb(255 255 255 / 58%); font-size: 10px; letter-spacing: .08em; }
+    .c-headline h3 { max-width: 250px; margin: 6px 0 0; font-size: 30px; line-height: 1.12; font-weight: 500; }
+    .c-dial {
+      position: relative;
+      display: grid;
+      width: 196px;
+      height: 196px;
+      margin: 30px auto 24px;
+      place-items: center;
+      border: 1px solid #4e5e55;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 12px #18221d;
+    }
+    .c-dial::before {
+      position: absolute;
+      inset: 12px;
+      border: 4px solid #8ebc98;
+      border-bottom-color: #26352d;
+      border-radius: 50%;
+      transform: rotate(34deg);
+      content: "";
+    }
+    .c-dial div { position: relative; z-index: 1; text-align: center; }
+    .c-dial strong { display: block; font-family: Menlo, "SFMono-Regular", monospace; font-size: 36px; line-height: 1; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .c-dial span { color: rgb(255 255 255 / 55%); font-size: 10px; }
+    .c-command { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .c-button { padding: 13px 10px; border: 1px solid #35443c; border-radius: 12px; color: rgb(255 255 255 / 74%); background: #19231e; text-align: center; font-size: 11px; }
+    .c-button.primary { border-color: #94c59e; color: #152019; background: #a4d1ad; font-weight: 600; }
+    .c-readout { margin-top: 20px; }
+    .c-row { display: grid; grid-template-columns: 1fr auto; padding: 12px 1px; border-top: 1px solid #2d3a33; }
+    .c-row strong { font-size: 11px; font-weight: 500; }
+    .c-row span { color: rgb(255 255 255 / 52%); font-family: Menlo, monospace; font-size: 10px; font-variant-numeric: tabular-nums; }
+    .c-nav { position: absolute; right: 20px; bottom: 20px; left: 20px; display: grid; grid-template-columns: repeat(3, 1fr); padding: 9px; border-radius: 17px; background: #1b2620; }
+    .c-nav span { color: rgb(255 255 255 / 47%); text-align: center; font-size: 9px; }
+    .c-nav b { color: #a4d1ad; font-weight: 600; }
+
+    /* D · 引导式：任务步骤、完成闭环优先 */
+    .dir-d .mock-stage { background: #eedfd6; }
+    .dir-d .phone {
+      color: #252321;
+      background: #fffdf9;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    }
+
+    .d-screen { height: 100%; padding: 52px 20px 22px; }
+    .d-top { display: flex; align-items: center; justify-content: space-between; }
+    .d-top strong { font-size: 14px; font-weight: 600; }
+    .d-top span { color: #7d7770; font-size: 10px; }
+    .d-progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 22px; }
+    .d-progress i { height: 5px; border-radius: 999px; background: #e6e1d9; }
+    .d-progress i.done { background: #e06441; }
+    .d-step { margin-top: 28px; }
+    .d-step small { color: #e06441; font-size: 10px; font-weight: 600; }
+    .d-step h3 { margin: 5px 0 6px; font-size: 28px; line-height: 1.15; font-weight: 600; }
+    .d-step p { margin: 0; color: #79736c; font-size: 11px; }
+    .d-selection { margin-top: 25px; border-top: 1px solid #e3ddd4; }
+    .d-selection-row { display: grid; grid-template-columns: 34px 1fr auto; gap: 11px; align-items: center; padding: 13px 0; border-bottom: 1px solid #e3ddd4; }
+    .d-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; color: #b8482d; background: #fae8df; font-size: 13px; }
+    .d-selection-row strong { display: block; font-size: 12px; font-weight: 600; }
+    .d-selection-row span { display: block; color: #827b73; font-size: 9px; }
+    .d-check { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: #fff; background: #e06441; font-size: 10px; }
+    .d-time { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin-top: 21px; padding: 15px; border-radius: 15px; background: #f6f1e9; }
+    .d-time strong { display: block; font-size: 12px; font-weight: 600; }
+    .d-time span { color: #817a72; font-size: 9px; }
+    .d-time time { color: #b8482d; font-family: "SFMono-Regular", Menlo, monospace; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .d-cta { position: absolute; right: 20px; bottom: 28px; left: 20px; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 15px; color: #fff; background: #d75c3b; }
+    .d-cta strong { font-size: 13px; font-weight: 600; }
+    .d-cta span { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; color: #d75c3b; background: #fff; }
+
+    @media (hover: hover) and (pointer: fine) {
+      .direction-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgb(30 30 28 / 9%);
+      }
+      .qmdp-pick-button:hover { background: #383a3e; }
+    }
+
+    @media (max-width: 900px) {
+      .intro { grid-template-columns: 1fr; gap: 18px; }
+      .directions-grid, .explanation-grid { grid-template-columns: 1fr; }
+      .dials { grid-template-columns: 1fr; }
+      .mock-stage { min-height: 470px; }
+      .phone { transform: scale(.68); }
+    }
+
+    @media (max-width: 520px) {
+      .page { padding: 38px 14px 70px; }
+      .intro { padding: 16px 2px 22px; }
+      .intro h1 { font-size: 34px; }
+      .dials { margin: 0 0 18px; padding: 10px; }
+      .directions-grid { gap: 16px; }
+      .direction-card { border-radius: 19px; }
+      .mock-stage { min-height: 430px; }
+      .phone { transform: scale(.61); }
+      .direction-meta { padding: 16px 16px 12px; }
+      .qmdp-pick-button { width: calc(100% - 32px); margin: 0 16px 16px; }
+      .explanations { margin: 24px 0 0; padding: 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      .a-tabbar { background: #f4f5f8; backdrop-filter: none; }
+      .mock-label { background: #33363b; backdrop-filter: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <div>
+        <h1>Quietform A 面，重新定义为个人专注边界 App</h1>
+        <p>方向样机，不是最终 App 或最终页面；选定视觉与交互气质后，才进入正式开发。</p>
+      </div>
+      <div class="product-read">
+        <strong>产品读取</strong>
+        <span>面向希望减少数字干扰的个人用户，以可信、原生、克制的语言呈现“现在是否专注、为何生效、何时结束”。</span>
+      </div>
+    </header>
+
+    <section class="dials" data-qmdp-dials aria-label="设计拨盘">
+      <label class="dial">
+        <strong>视觉冒险度</strong><output data-qmdp-output="variance">5</output>
+        <input data-qmdp-dial="variance" type="range" min="1" max="10" value="5">
+      </label>
+      <label class="dial">
+        <strong>动效强度</strong><output data-qmdp-output="motion">4</output>
+        <input data-qmdp-dial="motion" type="range" min="1" max="10" value="4">
+      </label>
+      <label class="dial">
+        <strong>信息密度</strong><output data-qmdp-output="density">5</output>
+        <input data-qmdp-dial="density" type="range" min="1" max="10" value="5">
+      </label>
+    </section>
+
+    <section class="directions-grid" aria-label="四个设计方向">
+      <article class="direction-card option dir-a" data-direction="A" data-name="此刻" data-design-option="A">
+        <div class="mock-stage">
+          <span class="mock-label">方向样机</span>
+          <span class="recommended">推荐</span>
+          <div class="phone" aria-label="此刻方向的 Quietform 首页样机">
+            <span class="island"></span>
+            <div class="a-screen">
+              <div class="a-top">
+                <div><div class="a-brand">Quietform</div><div class="a-day">9 月 2 日，星期三</div></div>
+                <div class="a-avatar">Q</div>
+              </div>
+              <div class="a-hero">
+                <div class="a-kicker">今天</div>
+                <h3>留一点安静<br>给重要的事</h3>
+                <p>当前没有运行中的专注计划</p>
+              </div>
+              <div class="a-orbit">
+                <div class="a-orbit-content"><strong>50</strong><span>分钟深度专注</span></div>
+              </div>
+              <div class="a-primary">
+                <div><strong>开始深度工作</strong><span>限制 6 个高干扰项目</span></div>
+                <div class="a-play">▶</div>
+              </div>
+              <div class="a-next">
+                <div><strong>下一条计划</strong><small>睡前安静 · 每天</small></div>
+                <time>22:30</time>
+              </div>
+              <div class="a-tabbar">
+                <span class="a-tab active"><i></i>今天</span>
+                <span class="a-tab"><i></i>计划</span>
+                <span class="a-tab"><i></i>记录</span>
+                <span class="a-tab"><i></i>设置</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="direction-meta">
+          <h2 data-direction-name>此刻</h2><span class="direction-code">A</span>
+          <p>Apple 原生状态仪表：首页只回答“现在”和“下一步”。</p>
+        </div>
+        <button class="qmdp-pick-button" type="button">选择 A · 此刻</button>
+      </article>
+
+      <article class="direction-card option dir-b" data-direction="B" data-name="纸上日程" data-design-option="B">
+        <div class="mock-stage">
+          <span class="mock-label">方向样机</span>
+          <div class="phone" aria-label="纸上日程方向的 Quietform 首页样机">
+            <span class="island"></span>
+            <div class="b-screen">
+              <div class="b-date"><strong>02</strong><span>九月<br>星期三</span></div>
+              <h3 class="b-title">今天的边界</h3>
+              <p class="b-subtitle">把一天分成清醒工作与自由浏览的时段。</p>
+              <div class="b-timeline">
+                <div class="b-event"><time>09:00</time><div class="b-event-main"><strong>深度工作</strong><div class="b-switch on"></div><span>邮件、社交与视频 · 120 分钟</span></div></div>
+                <div class="b-event"><time>14:30</time><div class="b-event-main"><strong>轻专注</strong><div class="b-switch on"></div><span>社交分类 · 50 分钟</span></div></div>
+                <div class="b-event"><time>22:30</time><div class="b-event-main"><strong>睡前安静</strong><div class="b-switch"></div><span>娱乐分类 · 到次日 07:00</span></div></div>
+              </div>
+              <div class="b-focus-note"><strong>下一段安静，从 14:30 开始。</strong><span>Quietform 会在计划开始和结束时自动调整限制。</span></div>
+              <div class="b-actions"><div class="b-start">现在开始 50 分钟</div><div class="b-add">＋</div></div>
+              <div class="b-nav"><b>今日</b><span>计划</span><span>记录</span><span>设置</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="direction-meta">
+          <h2 data-direction-name>纸上日程</h2><span class="direction-code">B</span>
+          <p>暖色编辑式计划本：时间线是首页，适合规律型用户。</p>
+        </div>
+        <button class="qmdp-pick-button" type="button">选择 B · 纸上日程</button>
+      </article>
+
+      <article class="direction-card option dir-c" data-direction="C" data-name="专注舱" data-design-option="C">
+        <div class="mock-stage">
+          <span class="mock-label">方向样机</span>
+          <div class="phone" aria-label="专注舱方向的 Quietform 首页样机">
+            <span class="island"></span>
+            <div class="c-screen">
+              <div class="c-top"><strong>QUIETFORM</strong><span class="c-status">系统已就绪</span></div>
+              <div class="c-headline"><span>FOCUS SESSION</span><h3>只运行一个明确的任务。</h3></div>
+              <div class="c-dial"><div><strong>38:42</strong><span>剩余时间</span></div></div>
+              <div class="c-command"><div class="c-button primary">继续专注</div><div class="c-button">提前结束</div></div>
+              <div class="c-readout">
+                <div class="c-row"><strong>当前计划</strong><span>DEEP WORK</span></div>
+                <div class="c-row"><strong>限制项目</strong><span>06 ITEMS</span></div>
+                <div class="c-row"><strong>结束时间</strong><span>15:20</span></div>
+              </div>
+              <div class="c-nav"><b>控制</b><span>计划</span><span>记录</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="direction-meta">
+          <h2 data-direction-name>专注舱</h2><span class="direction-code">C</span>
+          <p>暗色专业仪表：强调正在运行的唯一任务与剩余时间。</p>
+        </div>
+        <button class="qmdp-pick-button" type="button">选择 C · 专注舱</button>
+      </article>
+
+      <article class="direction-card option dir-d" data-direction="D" data-name="三步建立边界" data-design-option="D">
+        <div class="mock-stage">
+          <span class="mock-label">方向样机</span>
+          <div class="phone" aria-label="三步建立边界方向的 Quietform 引导样机">
+            <span class="island"></span>
+            <div class="d-screen">
+              <div class="d-top"><strong>新建专注计划</strong><span>2 / 3</span></div>
+              <div class="d-progress"><i class="done"></i><i class="done"></i><i></i></div>
+              <div class="d-step"><small>设置触发方式</small><h3>什么时候需要安静？</h3><p>选择时间后，系统会自动开始和结束限制。</p></div>
+              <div class="d-selection">
+                <div class="d-selection-row"><div class="d-icon">▦</div><div><strong>已选择 6 个项目</strong><span>社交、视频与 2 个网站</span></div><div class="d-check">✓</div></div>
+                <div class="d-selection-row"><div class="d-icon">◷</div><div><strong>工作日重复</strong><span>星期一至星期五</span></div><div class="d-check">✓</div></div>
+              </div>
+              <div class="d-time"><div><strong>专注时段</strong><span>跨午夜也会自动处理</span></div><time>09:00–11:00</time></div>
+              <div class="d-cta"><strong>继续确认计划</strong><span>›</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="direction-meta">
+          <h2 data-direction-name>三步建立边界</h2><span class="direction-code">D</span>
+          <p>任务式引导：每屏只做一个决定，首次使用最清楚。</p>
+        </div>
+        <button class="qmdp-pick-button" type="button">选择 D · 三步建立边界</button>
+      </article>
+    </section>
+
+    <section class="explanations" aria-labelledby="explanation-title">
+      <h2 id="explanation-title">方向说明</h2>
+      <div class="explanation-grid">
+        <div class="explanation"><h3>A · 此刻（推荐）</h3><p><b>气质：</b>可信、安静、原生。<b>布局：</b>当前状态 → 快速会话 → 下一计划。<b>记忆点：</b>专注时间环与悬浮液态导航。最适合成为完整产品的日常首页。</p></div>
+        <div class="explanation"><h3>B · 纸上日程</h3><p><b>气质：</b>温暖、规律、像一本每日计划册。<b>布局：</b>日期与纵向时间线。<b>记忆点：</b>纸张色与衬线数字。代价是即时状态不如 A 醒目。</p></div>
+        <div class="explanation"><h3>C · 专注舱</h3><p><b>气质：</b>深色、专业、像精密计时工具。<b>布局：</b>单任务仪表。<b>记忆点：</b>大尺寸剩余时间。适合重度专注用户，但大众亲和力较弱。</p></div>
+        <div class="explanation"><h3>D · 三步建立边界</h3><p><b>气质：</b>明确、友好、零学习成本。<b>布局：</b>选择对象 → 设置触发 → 确认计划。<b>记忆点：</b>持续可见的任务进度。适合作为 A 的首次引导。</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.querySelectorAll('[data-qmdp-dial]').forEach((input) => {
+      input.addEventListener('input', () => {
+        document.querySelectorAll(`[data-qmdp-output="${input.dataset.qmdpDial}"]`).forEach((output) => {
+          output.value = input.value;
+          output.textContent = input.value;
+        });
+      });
+    });
+  </script>
+</body>
+</html>

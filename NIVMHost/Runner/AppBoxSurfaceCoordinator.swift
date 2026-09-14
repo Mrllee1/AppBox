@@ -8,6 +8,11 @@ enum AppBoxSurface: Equatable {
 
 enum AppBoxSurfaceRoute {
   static let activatedKey = "appbox.appCenterActivatedFromExternalIntent"
+  private static let supportedSchemes: Set<String> = ["quietform", "appbox"]
+
+  static func supports(scheme: String) -> Bool {
+    supportedSchemes.contains(scheme.lowercased())
+  }
 
   static func initialSurface(
     arguments: [String] = ProcessInfo.processInfo.arguments,
@@ -39,7 +44,7 @@ enum AppBoxSurfaceRoute {
   }
 
   static func surface(for url: URL) -> AppBoxSurface? {
-    guard url.scheme?.lowercased() == "appbox" else {
+    guard let scheme = url.scheme?.lowercased(), supports(scheme: scheme) else {
       return nil
     }
     let host = (url.host ?? "").lowercased()
@@ -57,7 +62,7 @@ enum AppBoxSurfaceRoute {
 #endif
     case "privacy", "focus":
       return .privacy
-    case "playbox.guestapp.relaunch":
+    case "sandbox.relaunch", "playbox.guestapp.relaunch":
       return nil
     default:
       return nil
@@ -92,7 +97,7 @@ final class AppBoxSurfaceCoordinatorViewController: UIViewController {
     print("APPBOX_SURFACE initial=\(initialSurface == .privacy ? "privacy" : "box")")
 
     if ProcessInfo.processInfo.arguments.contains("--appbox-capture-privacy") {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+      DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
         self?.captureScreenshot(fileName: "privacy-screen.png")
       }
     }
@@ -121,12 +126,14 @@ final class AppBoxSurfaceCoordinatorViewController: UIViewController {
 
   @discardableResult
   func handle(url: URL) -> Bool {
-    guard url.scheme?.lowercased() == "appbox" else {
+    guard let scheme = url.scheme?.lowercased(),
+          AppBoxSurfaceRoute.supports(scheme: scheme) else {
       return false
     }
     guard let surface = AppBoxSurfaceRoute.surface(for: url) else {
       // The relaunch URL intentionally preserves the currently activated face.
-      return url.host?.lowercased() == "playbox.guestapp.relaunch"
+      let host = url.host?.lowercased()
+      return host == "sandbox.relaunch" || host == "playbox.guestapp.relaunch"
     }
     show(surface, animated: view.window != nil, persist: true)
     print("APPBOX_SURFACE url=\(url.absoluteString) selected=\(surface == .privacy ? "privacy" : "box")")

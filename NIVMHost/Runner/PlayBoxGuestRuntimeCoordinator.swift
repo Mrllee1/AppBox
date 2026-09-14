@@ -9,9 +9,6 @@ struct PlayBoxGuestDescriptor: Codable, Hashable {
   let expectedBundleIdentifier: String
   let expectedVersion: String
   let expectedBuild: String
-  let infoURLKey: String
-  let injectedFileName: String
-  let installArgument: String
   let categoryID: String
   let categoryName: String
   let groupID: String
@@ -38,9 +35,6 @@ struct PlayBoxGuestDescriptor: Codable, Hashable {
     expectedVersion: String,
     expectedBuild: String,
     localIconName: String? = nil,
-    infoURLKey: String = "",
-    injectedFileName: String = "",
-    installArgument: String = "",
     categoryID: String = "supported",
     categoryName: String = "已支持",
     groupID: String = "apps",
@@ -57,9 +51,6 @@ struct PlayBoxGuestDescriptor: Codable, Hashable {
     self.expectedBundleIdentifier = expectedBundleIdentifier
     self.expectedVersion = expectedVersion
     self.expectedBuild = expectedBuild
-    self.infoURLKey = infoURLKey
-    self.injectedFileName = injectedFileName
-    self.installArgument = installArgument
     self.categoryID = categoryID
     self.categoryName = categoryName
     self.groupID = groupID
@@ -72,92 +63,6 @@ struct PlayBoxGuestDescriptor: Codable, Hashable {
     self.expectedNIVMSHA256 = expectedNIVMSHA256?.lowercased()
   }
 
-  static let tianya348 = PlayBoxGuestDescriptor(
-    id: "tianya-348",
-    storageIdentifier: "tianya_348",
-    displayName: "天涯 20.0.0+348",
-    expectedBundleIdentifier: "com.laodeng.worldcupapp",
-    expectedVersion: "20.0.0",
-    expectedBuild: "348",
-    localIconName: "guest_tianya",
-    infoURLKey: "AppBoxTianya348GuestURL",
-    injectedFileName: "tianya-348-playbox.ipa",
-    installArgument: "--appbox-install-tianya-348"
-  )
-
-  static let adultDouyin = PlayBoxGuestDescriptor(
-    id: "adult-douyin",
-    storageIdentifier: "com.amk2ns2n9j.alan2is71",
-    displayName: "成人抖音",
-    expectedBundleIdentifier: "com.amk2ns2n9j.alan2is71",
-    expectedVersion: "3.1.5",
-    expectedBuild: "315",
-    localIconName: "guest_adult_douyin",
-    infoURLKey: "AppBoxPlayBoxGuestURL",
-    injectedFileName: "playbox-guest.ipa",
-    installArgument: "--appbox-install-playbox-guest"
-  )
-
-  static let dyzbOfficial = PlayBoxGuestDescriptor(
-    id: "dyzb-gq",
-    storageIdentifier: "dyzb_gq",
-    displayName: "DYZB 官签",
-    expectedBundleIdentifier: "ady.DYZB168dyzb.app",
-    expectedVersion: "8.5.5",
-    expectedBuild: "8.5.5",
-    localIconName: "guest_dyzb_gq",
-    infoURLKey: "AppBoxDYZBGQGuestURL",
-    injectedFileName: "dyzb-gq-playbox.ipa",
-    installArgument: "--appbox-install-dyzb-gq"
-  )
-
-  static let dyzbTestFlight = PlayBoxGuestDescriptor(
-    id: "dyzb-tf",
-    storageIdentifier: "dyzb_tf",
-    displayName: "DYZB TF",
-    expectedBundleIdentifier: "ady.DYZB168dyzb.app",
-    expectedVersion: "8.5.5",
-    expectedBuild: "8.5.5",
-    localIconName: "guest_dyzb_tf",
-    infoURLKey: "AppBoxDYZBTFGuestURL",
-    injectedFileName: "dyzb-tf-playbox.ipa",
-    installArgument: "--appbox-install-dyzb-tf"
-  )
-
-  static let chungong = PlayBoxGuestDescriptor(
-    id: "chungong-3-9-1",
-    storageIdentifier: "chungong_3_9_1",
-    displayName: "春宫",
-    expectedBundleIdentifier: "com.cg.client.pro",
-    expectedVersion: "3.9.1",
-    expectedBuild: "104",
-    localIconName: "guest_chungong",
-    infoURLKey: "AppBoxChungongGuestURL",
-    injectedFileName: "chungong-playbox.ipa",
-    installArgument: "--appbox-install-chungong"
-  )
-
-  static let igXiongmao = PlayBoxGuestDescriptor(
-    id: "ig-xiongmao",
-    storageIdentifier: "ig_xiongmao",
-    displayName: "成人抖音 3188.tv",
-    expectedBundleIdentifier: "com.igvideo.jingdong",
-    expectedVersion: "3.1.3",
-    expectedBuild: "313",
-    localIconName: "guest_ig_xiongmao",
-    infoURLKey: "AppBoxIGXiongmaoGuestURL",
-    injectedFileName: "ig-xiongmao-playbox.ipa",
-    installArgument: "--appbox-install-ig-xiongmao"
-  )
-
-  static let catalog: [PlayBoxGuestDescriptor] = [
-    .tianya348,
-    .adultDouyin,
-    .dyzbOfficial,
-    .dyzbTestFlight,
-    .chungong,
-    .igXiongmao,
-  ]
 }
 
 struct PreparedPlayBoxGuest {
@@ -197,16 +102,12 @@ final class PlayBoxGuestRuntimeCoordinator: NSObject, URLSessionDownloadDelegate
     terminalEventEmitted = false
     session?.invalidateAndCancel()
 
-    if prepareInjectedArtifactIfRequested() {
-      return
-    }
-
     let configuration = URLSessionConfiguration.ephemeral
     configuration.timeoutIntervalForRequest = 60
     configuration.timeoutIntervalForResource = 900
     let session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
     self.session = session
-    emit(.status("正在下载 \(descriptor.displayName) 的 PlayBox 运行包…"))
+    emit(.status("正在下载 \(descriptor.displayName) 的运行包…"))
     session.downloadTask(with: remoteURL).resume()
   }
 
@@ -241,31 +142,6 @@ final class PlayBoxGuestRuntimeCoordinator: NSObject, URLSessionDownloadDelegate
   ) {
     guard let error, (error as NSError).code != NSURLErrorCancelled else { return }
     fail(error.localizedDescription)
-  }
-
-  private func prepareInjectedArtifactIfRequested() -> Bool {
-    guard !descriptor.installArgument.isEmpty,
-          ProcessInfo.processInfo.arguments.contains(descriptor.installArgument),
-          let documents = FileManager.default.urls(
-            for: .documentDirectory,
-            in: .userDomainMask
-          ).first else {
-      return false
-    }
-
-    let injectedIPA = documents
-      .appendingPathComponent("AppBoxTest", isDirectory: true)
-      .appendingPathComponent(descriptor.injectedFileName)
-    guard FileManager.default.fileExists(atPath: injectedIPA.path) else {
-      fail("测试 IPA 未注入：\(descriptor.injectedFileName)")
-      return true
-    }
-
-    emit(.status("检测到 USB 注入的 \(descriptor.displayName) PlayBox 包，正在验证并安装…"))
-    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      self?.prepareDownloadedIPA(at: injectedIPA)
-    }
-    return true
   }
 
   private func prepareDownloadedIPA(at sourceURL: URL) {
@@ -352,7 +228,7 @@ final class PlayBoxGuestRuntimeCoordinator: NSObject, URLSessionDownloadDelegate
       throw RuntimeError("guest 缺少可执行文件：\(executableName)")
     }
     guard fileManager.fileExists(atPath: nivmURL.path) else {
-      throw RuntimeError("guest 缺少 PlayBox rocketship.nivm")
+      throw RuntimeError("应用缺少必要的运行组件")
     }
     let nivmHeader = try Data(contentsOf: nivmURL, options: [.mappedIfSafe]).prefix(4)
     guard nivmHeader == Data([0x4e, 0x49, 0x56, 0x4d]) else {
@@ -365,7 +241,7 @@ final class PlayBoxGuestRuntimeCoordinator: NSObject, URLSessionDownloadDelegate
       }
     }
 
-    emit(.status("身份与 NIVM 已验证，正在写入 AppBox 独立 guest 沙盒…"))
+    emit(.status("身份与运行组件已验证，正在写入独立应用空间…"))
     let documents = try fileManager.url(
       for: .documentDirectory,
       in: .userDomainMask,

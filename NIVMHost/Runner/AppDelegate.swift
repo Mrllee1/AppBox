@@ -3,12 +3,6 @@ import PBPlayerKit
 
 @objc(AppBoxHostDelegate)
 final class AppBoxHostDelegate: UIResponder, UIApplicationDelegate, UIKitCompatible {
-  private static let allowedPlayBoxImports: Set<String> = [
-    "dyzb_gq.ipa",
-    "dyzb_tf.ipa",
-    "cg_3.9.1_104_20260609100813.ipa",
-  ]
-
   var window: UIWindow?
   private var surfaceCoordinator: AppBoxSurfaceCoordinatorViewController?
 
@@ -105,59 +99,6 @@ final class AppBoxHostDelegate: UIResponder, UIApplicationDelegate, UIKitCompati
         print("APPBOX_PLAYBOX_DEVELOPER row section=\(section) row=\(row) text=\(viewText(in: cell).joined(separator: " | "))")
       }
     }
-    let importFileName = playBoxImportFileName()
-    if ProcessInfo.processInfo.arguments.contains("--appbox-playbox-open-local-picker") ||
-        importFileName != nil {
-      table.delegate?.tableView?(table, didSelectRowAt: IndexPath(row: 2, section: 0))
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-        let presented = navigation.presentedViewController ?? controller.presentedViewController
-        let picker = presented as? UIDocumentPickerViewController
-        print("APPBOX_PLAYBOX_DEVELOPER local_picker presented=\(String(describing: type(of: presented))) delegate=\(String(describing: type(of: picker?.delegate)))")
-        guard let importFileName else { return }
-        self.submitPlayBoxImport(fileName: importFileName, picker: picker)
-      }
-    }
-  }
-
-  private func playBoxImportFileName() -> String? {
-    let arguments = ProcessInfo.processInfo.arguments
-    guard let flagIndex = arguments.firstIndex(of: "--appbox-playbox-import"),
-          arguments.indices.contains(flagIndex + 1) else {
-      return nil
-    }
-    let fileName = arguments[flagIndex + 1]
-    guard fileName == URL(fileURLWithPath: fileName).lastPathComponent,
-          Self.allowedPlayBoxImports.contains(fileName) else {
-      print("APPBOX_PLAYBOX_DEVELOPER import_rejected file=\(fileName)")
-      return nil
-    }
-    return fileName
-  }
-
-  private func submitPlayBoxImport(
-    fileName: String,
-    picker: UIDocumentPickerViewController?
-  ) {
-    guard let picker, let delegate = picker.delegate else {
-      print("APPBOX_PLAYBOX_DEVELOPER import_failed file=\(fileName) reason=picker_missing")
-      return
-    }
-    guard let documents = FileManager.default.urls(
-      for: .documentDirectory,
-      in: .userDomainMask
-    ).first else {
-      print("APPBOX_PLAYBOX_DEVELOPER import_failed file=\(fileName) reason=documents_missing")
-      return
-    }
-    let source = documents
-      .appendingPathComponent("AppBoxImports", isDirectory: true)
-      .appendingPathComponent(fileName)
-    guard FileManager.default.fileExists(atPath: source.path) else {
-      print("APPBOX_PLAYBOX_DEVELOPER import_failed file=\(fileName) reason=file_missing")
-      return
-    }
-    print("APPBOX_PLAYBOX_DEVELOPER import_submitting file=\(fileName)")
-    delegate.documentPicker?(picker, didPickDocumentsAt: [source])
   }
 
   private func findTableView(in view: UIView) -> UITableView? {

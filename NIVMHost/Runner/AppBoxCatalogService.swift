@@ -36,7 +36,7 @@ final class AppBoxCatalogService {
   }
 
   private func configuredBaseURL() -> URL? {
-    guard let configured = Bundle.main.object(forInfoDictionaryKey: "AppBoxCatalogBaseURL") as? String else {
+    guard let configured = Bundle.main.object(forInfoDictionaryKey: "QuietformCatalogBaseURL") as? String else {
       return nil
     }
     let value = configured.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -138,7 +138,7 @@ private enum ClientCrypto {
   private static let fallbackKeyBase64 = "6btlrID18OytwUZ0s41atap+4WxlXr1xpebjrE04hnY="
 
   static func key() -> Data? {
-    let configured = Bundle.main.object(forInfoDictionaryKey: "AppBoxClientAESKey") as? String
+    let configured = Bundle.main.object(forInfoDictionaryKey: "QuietformClientAESKey") as? String
     let value = configured.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackKeyBase64
     guard let key = Data(base64Encoded: value), key.count == 32 else {
       return Data(base64Encoded: fallbackKeyBase64)

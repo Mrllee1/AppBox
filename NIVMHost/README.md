@@ -10,27 +10,40 @@ catalog as its B face:
 
 - A face (`Quietform`) uses Apple's `FamilyControls`, `ManagedSettings`, and
   the system `FamilyActivityPicker`. The user grants Screen Time access,
-  chooses apps/categories in the iOS-owned picker, and can hide or restore the
-  selected items. Only Apple's opaque selection tokens are persisted.
-- B face (`天涯盒子`) is the existing encrypted catalog, download,
+  chooses apps/categories in the iOS-owned picker, and applies Apple's system
+  shield during a focus period. Only Apple's opaque selection tokens are persisted.
+- B face (`Quietform 应用空间`) is the existing encrypted catalog, download,
   installation, NIVM/QEMU runtime, and guest-return flow described below.
-- A fresh install starts on A. Opening `appbox://box` (or the existing
-  `appbox://open`, `appbox://install`, and `appbox://native` entry commands)
+- A fresh install starts on A. Opening `quietform://box` (or the existing
+  `quietform://open`, `quietform://install`, and `quietform://native` entry commands)
   activates B and persists it across normal launches.
-- Opening `appbox://privacy` returns to A and persists that choice. The internal
-  `appbox://playbox.guestapp.relaunch` callback deliberately preserves B so the
+- Opening `quietform://privacy` returns to A and persists that choice. The internal
+  `quietform://sandbox.relaunch` callback deliberately preserves B so the
   guest floating menu continues to return to the box instead of exposing A.
 
-The host target and its provisioning profile must both contain
-`com.apple.developer.family-controls`. App Store distribution also requires the
-corresponding Apple-approved Family Controls distribution entitlement; a local
-development profile alone is not sufficient for release submission.
+The A surface is a complete focus workflow rather than a static review shell:
+
+- Home shows the current focus state, real selected-item/rule counts, a 15/30/60
+  minute quick session, a continuous session, and the next scheduled rule.
+- Rules supports recurring weekdays, overnight time ranges, and arrival/departure
+  geofences.
+- Apps exposes the private Apple-owned picker and renders selected tokens through
+  Apple-provided labels.
+- A `DeviceActivityMonitor` extension applies and restores shields at schedule
+  boundaries and when a timed session ends, including while the host is closed.
+
+The host and `FocusMonitor` targets both require
+`com.apple.developer.family-controls` and the `group.com.tianya.appbox` App Group.
+For App Store distribution, request Family Controls distribution permission for
+both bundle identifiers (`com.tianya.appbox` and
+`com.tianya.appbox.focusmonitor`) and regenerate both provisioning profiles. A
+development-only capability or approval for the host alone is not sufficient.
 
 ## User flow
 
 1. The activated B face restores its last verified catalog from Application Support so a
    return/relaunch can render immediately, then refreshes the encrypted catalog
-   from `AppBoxCatalogBaseURL` in the background.
+   from `QuietformCatalogBaseURL` in the background.
 2. The launcher renders server categories as five-column cards with real app
    icons and per-app `安装` / `启动` state.
 3. `安装` downloads the converted IPA, verifies its SHA-256, bundle ID,
@@ -130,11 +143,13 @@ cd /Users/king/Documents/GitHub/AppBox/NIVMHost
 ./scripts/build_appstore_ipa.sh
 ```
 
-The script creates a `generic/platform=iOS` archive, stages and signs the NIVM
+The script creates a `generic/platform=iOS` archive, embeds and validates the
+`FocusMonitor` extension, stages and signs the NIVM
 runtime, preserves the required standalone 167x167 iPad Pro icon and its
 `Info.plist` references, exports with App Store Connect signing, and then
-verifies the ZIP, nested code signatures, source icon sets, and exported app
-icon bundle. A successful run ends with `APPSTORE_IPA_OK` and prints the final
+verifies the ZIP, host/extension entitlements, nested code signatures, source
+icon sets, and exported app icon bundle. A successful run ends with
+`APPSTORE_IPA_OK` and prints the final
 IPA path, byte size, and SHA-256.
 
 The final bundle validation also rejects the non-public `-[NSBundle _cfBundle]`

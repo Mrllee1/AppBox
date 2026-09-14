@@ -99,17 +99,7 @@ final class AppBoxLauncherViewController: UIViewController {
       pendingCatalogStartID = String(argument.dropFirst(startPrefix.count))
     }
 
-    if arguments.contains("--appbox-install-pornhub-guest") {
-      downloadPornhub()
-    } else if let descriptor = playBoxCatalogApps.first(where: {
-      arguments.contains($0.installArgument)
-    }) {
-      installInjectedPlayBoxGuest(descriptor)
-    } else if arguments.contains("--appbox-start-pornhub-guest") {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
-        self?.startPornhub()
-      }
-    } else if let descriptor = playBoxCatalogApps.first(where: {
+    if let descriptor = playBoxCatalogApps.first(where: {
       arguments.contains("--appbox-start-\($0.id)")
     }) {
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
@@ -197,7 +187,7 @@ final class AppBoxLauncherViewController: UIViewController {
 
   private func makeHeader() -> UIView {
     let titleLabel = UILabel()
-    titleLabel.text = "天涯盒子"
+    titleLabel.text = "Quietform"
     titleLabel.textColor = .white
     titleLabel.font = .systemFont(ofSize: 25, weight: .bold)
 
@@ -482,10 +472,10 @@ final class AppBoxLauncherViewController: UIViewController {
   }
 
   private func makeInstalledTile(_ descriptor: PlayBoxGuestDescriptor) -> UIView {
-    let icon = descriptor.usesFlutterSidecar
-      ? UIImage(named: "guest_pornhub") ?? UIImage(systemName: "play.rectangle.fill")
-      : descriptor.localIconName.flatMap(UIImage.init(named:))
-        ?? UIImage(systemName: "play.square.stack.fill")
+    let icon = descriptor.localIconName.flatMap(UIImage.init(named:))
+      ?? UIImage(systemName: descriptor.usesFlutterSidecar
+        ? "play.rectangle.fill"
+        : "play.square.stack.fill")
     let iconView = UIImageView(image: icon)
     iconView.translatesAutoresizingMaskIntoConstraints = false
     iconView.contentMode = .scaleAspectFill
@@ -579,7 +569,7 @@ final class AppBoxLauncherViewController: UIViewController {
   private func makePornhubTile(_ descriptor: PlayBoxGuestDescriptor, index: Int) -> UIView {
     return makeTile(
       name: descriptor.displayName,
-      image: UIImage(named: "guest_pornhub") ?? UIImage(systemName: "play.rectangle.fill"),
+      image: UIImage(systemName: "play.rectangle.fill"),
       remoteIconURL: descriptor.iconURL,
       button: pornhubButton
     )
@@ -796,29 +786,24 @@ final class AppBoxLauncherViewController: UIViewController {
     }
   }
 
-  private func downloadPornhub(_ descriptor: PlayBoxGuestDescriptor? = nil) {
-    let configured = configuredURL(key: "AppBoxPornhubGuestURL", fallbackKey: "AppBoxGuestURL")
-    guard let url = descriptor?.packageURL ?? configured else {
-      showFailure("天涯下载地址无效")
+  private func downloadPornhub(_ descriptor: PlayBoxGuestDescriptor) {
+    guard let url = descriptor.packageURL else {
+      showFailure("\(descriptor.displayName) 下载地址无效")
       return
     }
-    activeCatalogID = descriptor?.id ?? flutterCatalogApp?.id
+    activeCatalogID = descriptor.id
     setButtonPresentation(pornhubButton, title: "下载中", loading: true)
     setBusy(true, message: "正在下载天涯…")
     pornhubCoordinator.prepare(
       from: url,
-      nivmURL: descriptor?.nivmURL,
-      expectedIPASHA256: descriptor?.expectedIPASHA256,
-      expectedNIVMSHA256: descriptor?.expectedNIVMSHA256
+      nivmURL: descriptor.nivmURL,
+      expectedIPASHA256: descriptor.expectedIPASHA256,
+      expectedNIVMSHA256: descriptor.expectedNIVMSHA256
     )
   }
 
   private func downloadPlayBox(_ descriptor: PlayBoxGuestDescriptor) {
-    let configured = configuredURL(
-      key: descriptor.infoURLKey,
-      fallbackKey: descriptor.id == PlayBoxGuestDescriptor.adultDouyin.id ? "AppBoxGuestURL" : nil
-    )
-    guard let url = descriptor.packageURL ?? configured else {
+    guard let url = descriptor.packageURL else {
       showFailure("\(descriptor.displayName) 下载地址无效")
       return
     }
@@ -828,28 +813,6 @@ final class AppBoxLauncherViewController: UIViewController {
     }
     setBusy(true, message: "正在下载 \(descriptor.displayName)…")
     playBoxCoordinators[descriptor.id]?.prepare(from: url)
-  }
-
-  private func installInjectedPlayBoxGuest(_ descriptor: PlayBoxGuestDescriptor) {
-    activeCatalogID = descriptor.id
-    if let button = playBoxButtons[descriptor.id] {
-      setButtonPresentation(button, title: "安装中", loading: true)
-    }
-    setBusy(true, message: "正在验证 USB 注入的 \(descriptor.displayName)…")
-    playBoxCoordinators[descriptor.id]?.prepare(from: URL(string: "http://127.0.0.1/")!)
-  }
-
-  private func configuredURL(key: String, fallbackKey: String?) -> URL? {
-    let primary = (Bundle.main.object(forInfoDictionaryKey: key) as? String)
-      .flatMap { $0.isEmpty ? nil : $0 }
-    let fallback = fallbackKey.flatMap {
-      (Bundle.main.object(forInfoDictionaryKey: $0) as? String)
-        .flatMap { $0.isEmpty ? nil : $0 }
-    }
-    guard let configured = primary ?? fallback,
-          let url = URL(string: configured),
-          ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return nil }
-    return url
   }
 
   private func handlePornhub(_ event: GuestRuntimeCoordinator.Event) {
@@ -977,10 +940,10 @@ final class AppBoxLauncherViewController: UIViewController {
   }
 
   private func showLaunchOverlay(for descriptor: PlayBoxGuestDescriptor?) {
-    let fallbackImage = descriptor?.usesFlutterSidecar == true
-      ? UIImage(named: "guest_pornhub") ?? UIImage(systemName: "play.rectangle.fill")
-      : descriptor?.localIconName.flatMap(UIImage.init(named:))
-        ?? UIImage(systemName: "play.square.stack.fill")
+    let fallbackImage = descriptor?.localIconName.flatMap(UIImage.init(named:))
+      ?? UIImage(systemName: descriptor?.usesFlutterSidecar == true
+        ? "play.rectangle.fill"
+        : "play.square.stack.fill")
     launchIconView.image = fallbackImage
     if let iconURL = descriptor?.iconURL {
       loadIcon(iconURL, into: launchIconView)
@@ -1179,7 +1142,7 @@ final class AppBoxLauncherViewController: UIViewController {
   ) {
     guard !launchInProgress else { return }
     guard preparePlayBoxContinuationMarker(playBox: descriptor != nil) else {
-      showFailure("无法准备 AppBox 自动续启标记")
+      showFailure("无法准备应用自动续启，请重试")
       return
     }
     let defaults = UserDefaults.standard
@@ -1241,11 +1204,11 @@ final class AppBoxLauncherViewController: UIViewController {
         return
       }
       finishLaunchFeedback()
-      showFailure("PlayBox guest 启动失败；请重新打开 AppBox 后重试")
+      showFailure("应用启动失败；请重新打开 Quietform 后重试")
       return
     }
 
-    let relaunchURL = URL(string: "appbox://playbox.guestapp.relaunch")!
+    let relaunchURL = URL(string: "quietform://sandbox.relaunch")!
     var completionCount = 0
     let completion: (Bool) -> Void = { [weak self] accepted in
       print("APPBOX_RUNTIME relaunch_requested runtime=\(runtimeKind) accepted=\(accepted)")
@@ -1254,7 +1217,6 @@ final class AppBoxLauncherViewController: UIViewController {
       if accepted, !self.relaunchExitScheduled {
         self.markInstalledAppLaunched(descriptor)
         self.relaunchExitScheduled = true
-        UIApplication.shared.perform(NSSelectorFromString("suspend"))
         exit(0)
       } else if completionCount >= 2, !self.relaunchExitScheduled {
         self.showFailure("无法自动进入应用，请重试")

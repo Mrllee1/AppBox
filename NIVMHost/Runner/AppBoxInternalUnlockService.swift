@@ -83,7 +83,7 @@ struct AppBoxInternalUnlockService {
   }
 
   private func baseURL() -> URL? {
-    let configured = (Bundle.main.object(forInfoDictionaryKey: "AppBoxVerificationBaseURL") as? String)?
+    let configured = (Bundle.main.object(forInfoDictionaryKey: "QuietformVerificationBaseURL") as? String)?
       .trimmingCharacters(in: .whitespacesAndNewlines)
     if let configured, !configured.isEmpty, let url = URL(string: configured) {
       return url

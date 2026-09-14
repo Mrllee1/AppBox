@@ -31,6 +31,16 @@
 		AB0A00302F00000000000030 /* AppBoxInternalUnlockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00312F00000000000031 /* AppBoxInternalUnlockService.swift */; };
 		AB0A00322F00000000000032 /* AppBoxFocusAutomationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00332F00000000000033 /* AppBoxFocusAutomationStore.swift */; };
 		AB0A00342F00000000000034 /* AppBoxGeofenceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A00352F00000000000035 /* AppBoxGeofenceMonitor.swift */; };
+		AB0A00362F00000000000036 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AB0A00372F00000000000037 /* PrivacyInfo.xcprivacy */; };
+		AB0A00382F00000000000038 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00392F00000000000039 /* DeviceActivity.framework */; };
+		AB0A003A2F0000000000003A /* AppBoxDeviceActivityScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0A003B2F0000000000003B /* AppBoxDeviceActivityScheduler.swift */; };
+		A10F000C2F1000000000000C /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00392F00000000000039 /* DeviceActivity.framework */; };
+		A10F000D2F1000000000000D /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00292F00000000000029 /* ManagedSettings.framework */; };
+		A10F000E2F1000000000000E /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB0A00272F00000000000027 /* FamilyControls.framework */; };
+		A10F000F2F1000000000000F /* FocusMonitor.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A10F00012F10000000000001 /* FocusMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B20F00012F20000000000001 /* OpenAppLockShieldConfig.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B20F00112F20000000000011 /* OpenAppLockShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B20F00022F20000000000002 /* OpenAppLockShieldAction.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B20F00122F20000000000012 /* OpenAppLockShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B20F00032F20000000000003 /* OpenAppLockReport.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = B20F00132F20000000000013 /* OpenAppLockReport.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F584CB7B2E796FBE00E25C34 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F584CB7A2E796FBE00E25C34 /* NetworkExtension.framework */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +51,34 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		A10F00122F10000000000012 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10F00042F10000000000004;
+			remoteInfo = FocusMonitor;
+		};
+		B20F00212F20000000000021 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B20F00912F20000000000091;
+			remoteInfo = OpenAppLockShieldConfig;
+		};
+		B20F00222F20000000000022 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B20F00922F20000000000092;
+			remoteInfo = OpenAppLockShieldAction;
+		};
+		B20F00232F20000000000023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B20F00932F20000000000093;
+			remoteInfo = OpenAppLockReport;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -67,7 +105,6 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A11C0A012F00000000000002 /* AppIconManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppIconManager.swift; sourceTree = "<group>"; };
 		A37D6AF6E9AC7F9C7CDF3A08 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		AB0A00022F00000000000002 /* AppBoxLauncherViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxLauncherViewController.swift; sourceTree = "<group>"; };
 		AB0A00042F00000000000004 /* GuestMachO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GuestMachO.swift; sourceTree = "<group>"; };
@@ -87,6 +124,13 @@
 		AB0A00312F00000000000031 /* AppBoxInternalUnlockService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxInternalUnlockService.swift; sourceTree = "<group>"; };
 		AB0A00332F00000000000033 /* AppBoxFocusAutomationStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxFocusAutomationStore.swift; sourceTree = "<group>"; };
 		AB0A00352F00000000000035 /* AppBoxGeofenceMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxGeofenceMonitor.swift; sourceTree = "<group>"; };
+		AB0A00372F00000000000037 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AB0A00392F00000000000039 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
+		AB0A003B2F0000000000003B /* AppBoxDeviceActivityScheduler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppBoxDeviceActivityScheduler.swift; sourceTree = "<group>"; };
+		A10F00012F10000000000001 /* FocusMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FocusMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20F00112F20000000000011 /* OpenAppLockShieldConfig.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OpenAppLockShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20F00122F20000000000012 /* OpenAppLockShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OpenAppLockShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20F00132F20000000000013 /* OpenAppLockReport.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = OpenAppLockReport.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED8FB9BFD546D34300C73DB /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF02A11BB7AD9779878AA02F /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		D8162EAD23E375935A770639 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
@@ -97,6 +141,35 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A10F00032F10000000000003 /* Exceptions for "FocusMonitor" folder in "FocusMonitor" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				QuietformFocusMonitor.swift,
+			);
+			target = A10F00042F10000000000004 /* FocusMonitor */;
+		};
+		B20F00312F20000000000031 /* Exceptions for "OpenAppLockShieldConfig" folder in "OpenAppLockShieldConfig" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B20F00912F20000000000091 /* OpenAppLockShieldConfig */;
+		};
+		B20F00322F20000000000032 /* Exceptions for "OpenAppLockShieldAction" folder in "OpenAppLockShieldAction" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B20F00922F20000000000092 /* OpenAppLockShieldAction */;
+		};
+		B20F00332F20000000000033 /* Exceptions for "OpenAppLockReport" folder in "OpenAppLockReport" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B20F00932F20000000000093 /* OpenAppLockReport */;
+		};
 		F584CB842E796FBE00E25C34 /* Exceptions for "VPNExtension" folder in "VPNExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -107,6 +180,72 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		AB0A00402F00000000000040 /* OpenAppLockA */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = OpenAppLockA;
+			sourceTree = "<group>";
+		};
+		AB0A00412F00000000000041 /* TempMailA */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = TempMailA;
+			sourceTree = "<group>";
+		};
+		A10F00022F10000000000002 /* FocusMonitor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A10F00032F10000000000003 /* Exceptions for "FocusMonitor" folder in "FocusMonitor" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = FocusMonitor;
+			sourceTree = "<group>";
+		};
+		B20F00412F20000000000041 /* OpenAppLockShieldConfig */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B20F00312F20000000000031 /* Exceptions for "OpenAppLockShieldConfig" folder in "OpenAppLockShieldConfig" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = OpenAppLockShieldConfig;
+			sourceTree = "<group>";
+		};
+		B20F00422F20000000000042 /* OpenAppLockShieldAction */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B20F00322F20000000000032 /* Exceptions for "OpenAppLockShieldAction" folder in "OpenAppLockShieldAction" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = OpenAppLockShieldAction;
+			sourceTree = "<group>";
+		};
+		B20F00432F20000000000043 /* OpenAppLockReport */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B20F00332F20000000000033 /* Exceptions for "OpenAppLockReport" folder in "OpenAppLockReport" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = OpenAppLockReport;
+			sourceTree = "<group>";
+		};
 		F584CB7C2E796FBE00E25C34 /* VPNExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -121,6 +260,33 @@
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A10F00102F10000000000010 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A10F000F2F1000000000000F /* FocusMonitor.appex in Embed App Extensions */,
+				B20F00012F20000000000001 /* OpenAppLockShieldConfig.appex in Embed App Extensions */,
+				B20F00022F20000000000002 /* OpenAppLockShieldAction.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00532F20000000000053 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				B20F00032F20000000000003 /* OpenAppLockReport.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		5044602CC2F241F3B6EFF795 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -134,8 +300,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AB0A00262F00000000000026 /* FamilyControls.framework in Frameworks */,
-				AB0A00282F00000000000028 /* ManagedSettings.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10F00062F10000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10F000C2F1000000000000C /* DeviceActivity.framework in Frameworks */,
+				A10F000D2F1000000000000D /* ManagedSettings.framework in Frameworks */,
+				A10F000E2F1000000000000E /* FamilyControls.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00612F20000000000061 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00622F20000000000062 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00632F20000000000063 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,6 +351,7 @@
 			children = (
 				AB0A00272F00000000000027 /* FamilyControls.framework */,
 				AB0A00292F00000000000029 /* ManagedSettings.framework */,
+				AB0A00392F00000000000039 /* DeviceActivity.framework */,
 				3C7D85D02F94F68C00FAFF26 /* Libbox.xcframework */,
 				F584CB7A2E796FBE00E25C34 /* NetworkExtension.framework */,
 				591BC9A37FFC72957CA28C90 /* Pods_Runner.framework */,
@@ -202,6 +398,12 @@
 			children = (
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
+				AB0A00402F00000000000040 /* OpenAppLockA */,
+				AB0A00412F00000000000041 /* TempMailA */,
+				A10F00022F10000000000002 /* FocusMonitor */,
+				B20F00412F20000000000041 /* OpenAppLockShieldConfig */,
+				B20F00422F20000000000042 /* OpenAppLockShieldAction */,
+				B20F00432F20000000000043 /* OpenAppLockReport */,
 				F584CB7C2E796FBE00E25C34 /* VPNExtension */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
@@ -215,6 +417,10 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				A10F00012F10000000000001 /* FocusMonitor.appex */,
+				B20F00112F20000000000011 /* OpenAppLockShieldConfig.appex */,
+				B20F00122F20000000000012 /* OpenAppLockShieldAction.appex */,
+				B20F00132F20000000000013 /* OpenAppLockReport.appex */,
 				F584CB792E796FBE00E25C34 /* VPNExtension.appex */,
 			);
 			name = Products;
@@ -233,7 +439,6 @@
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
-				A11C0A012F00000000000002 /* AppIconManager.swift */,
 				AB0A00022F00000000000002 /* AppBoxLauncherViewController.swift */,
 				AB0A00042F00000000000004 /* GuestMachO.swift */,
 				AB0A00062F00000000000006 /* GuestRuntimeCoordinator.swift */,
@@ -249,6 +454,8 @@
 				AB0A00312F00000000000031 /* AppBoxInternalUnlockService.swift */,
 				AB0A00332F00000000000033 /* AppBoxFocusAutomationStore.swift */,
 				AB0A00352F00000000000035 /* AppBoxGeofenceMonitor.swift */,
+				AB0A003B2F0000000000003B /* AppBoxDeviceActivityScheduler.swift */,
+				AB0A00372F00000000000037 /* PrivacyInfo.xcprivacy */,
 				7B4B7C2A2D7E4A0A9F6C0012 /* KeyboardInsetsStreamHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
@@ -289,10 +496,93 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				AB0A00412F00000000000041 /* TempMailA */,
+			);
 			name = Runner;
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A10F00042F10000000000004 /* FocusMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10F000B2F1000000000000B /* Build configuration list for PBXNativeTarget "FocusMonitor" */;
+			buildPhases = (
+				A10F00052F10000000000005 /* Sources */,
+				A10F00062F10000000000006 /* Frameworks */,
+				A10F00072F10000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A10F00022F10000000000002 /* FocusMonitor */,
+			);
+			name = FocusMonitor;
+			productName = FocusMonitor;
+			productReference = A10F00012F10000000000001 /* FocusMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		B20F00912F20000000000091 /* OpenAppLockShieldConfig */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20F00C12F200000000000C1 /* Build configuration list for PBXNativeTarget "OpenAppLockShieldConfig" */;
+			buildPhases = (
+				B20F00712F20000000000071 /* Sources */,
+				B20F00612F20000000000061 /* Frameworks */,
+				B20F00812F20000000000081 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B20F00412F20000000000041 /* OpenAppLockShieldConfig */,
+			);
+			name = OpenAppLockShieldConfig;
+			productName = OpenAppLockShieldConfig;
+			productReference = B20F00112F20000000000011 /* OpenAppLockShieldConfig.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		B20F00922F20000000000092 /* OpenAppLockShieldAction */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20F00C22F200000000000C2 /* Build configuration list for PBXNativeTarget "OpenAppLockShieldAction" */;
+			buildPhases = (
+				B20F00722F20000000000072 /* Sources */,
+				B20F00622F20000000000062 /* Frameworks */,
+				B20F00822F20000000000082 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B20F00422F20000000000042 /* OpenAppLockShieldAction */,
+			);
+			name = OpenAppLockShieldAction;
+			productName = OpenAppLockShieldAction;
+			productReference = B20F00122F20000000000012 /* OpenAppLockShieldAction.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		B20F00932F20000000000093 /* OpenAppLockReport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20F00C32F200000000000C3 /* Build configuration list for PBXNativeTarget "OpenAppLockReport" */;
+			buildPhases = (
+				B20F00732F20000000000073 /* Sources */,
+				B20F00632F20000000000063 /* Frameworks */,
+				B20F00832F20000000000083 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B20F00432F20000000000043 /* OpenAppLockReport */,
+			);
+			name = OpenAppLockReport;
+			productName = OpenAppLockReport;
+			productReference = B20F00132F20000000000013 /* OpenAppLockReport.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
 		};
 		F584CB782E796FBE00E25C34 /* VPNExtension */ = {
 			isa = PBXNativeTarget;
@@ -333,6 +623,18 @@
 						CreatedOnToolsVersion = 7.3.1;
 						LastSwiftMigration = 1100;
 					};
+					A10F00042F10000000000004 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					B20F00912F20000000000091 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					B20F00922F20000000000092 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					B20F00932F20000000000093 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 					F584CB782E796FBE00E25C34 = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -354,6 +656,10 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				A10F00042F10000000000004 /* FocusMonitor */,
+				B20F00912F20000000000091 /* OpenAppLockShieldConfig */,
+				B20F00922F20000000000092 /* OpenAppLockShieldAction */,
+				B20F00932F20000000000093 /* OpenAppLockReport */,
 				F584CB782E796FBE00E25C34 /* VPNExtension */,
 			);
 		};
@@ -375,6 +681,35 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				AB0A00362F00000000000036 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10F00072F10000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00812F20000000000081 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00822F20000000000082 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00832F20000000000083 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,12 +825,37 @@
 				AB0A00102F00000000000010 /* LNKiwiDecryptProbe.swift in Sources */,
 				AB0A00122F00000000000012 /* AppBoxCatalogService.swift in Sources */,
 				AB0A00142F00000000000014 /* AppBoxAssetCrypto.m in Sources */,
-				AB0A00202F00000000000020 /* AppBoxVisibilityService.swift in Sources */,
 				AB0A00222F00000000000022 /* AppBoxPrivacySurfaceView.swift in Sources */,
 				AB0A00242F00000000000024 /* AppBoxSurfaceCoordinator.swift in Sources */,
 				AB0A00302F00000000000030 /* AppBoxInternalUnlockService.swift in Sources */,
-				AB0A00322F00000000000032 /* AppBoxFocusAutomationStore.swift in Sources */,
-				AB0A00342F00000000000034 /* AppBoxGeofenceMonitor.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10F00052F10000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00712F20000000000071 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00722F20000000000072 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20F00732F20000000000073 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,6 +873,26 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		A10F00112F10000000000011 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10F00042F10000000000004 /* FocusMonitor */;
+			targetProxy = A10F00122F10000000000012 /* PBXContainerItemProxy */;
+		};
+		B20F00A12F200000000000A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B20F00912F20000000000091 /* OpenAppLockShieldConfig */;
+			targetProxy = B20F00212F20000000000021 /* PBXContainerItemProxy */;
+		};
+		B20F00A22F200000000000A2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B20F00922F20000000000092 /* OpenAppLockShieldAction */;
+			targetProxy = B20F00222F20000000000022 /* PBXContainerItemProxy */;
+		};
+		B20F00A32F200000000000A3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B20F00932F20000000000093 /* OpenAppLockReport */;
+			targetProxy = B20F00232F20000000000023 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -593,9 +973,8 @@
 		249021D4217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconWeChat AppIconQQ AppIconAlipay AppIconToutiao AppIconDouyin AppIconXiaohongshu AppIconTelegram";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/AppBox.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -631,6 +1010,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPBOX_INTERNAL_UNLOCK $(inherited)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -804,9 +1185,8 @@
 		97C147061CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconWeChat AppIconQQ AppIconAlipay AppIconToutiao AppIconDouyin AppIconXiaohongshu AppIconTelegram";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/AppBox.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -845,6 +1225,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG APPBOX_INTERNAL_UNLOCK $(inherited)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -853,9 +1234,8 @@
 		97C147071CF9000F007C117D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconWeChat AppIconQQ AppIconAlipay AppIconToutiao AppIconDouyin AppIconXiaohongshu AppIconTelegram";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/AppBox.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -891,11 +1271,368 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APPBOX_INTERNAL_UNLOCK $(inherited)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		A10F00082F10000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = FocusMonitor/FocusMonitor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FocusMonitor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.focusmonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10F00092F10000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = FocusMonitor/FocusMonitor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 10;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FocusMonitor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 500.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.focusmonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A10F000A2F1000000000000A /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = FocusMonitor/FocusMonitor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FocusMonitor/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.focusmonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
+		B20F00B12F200000000000B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockShieldConfig/OpenAppLockShieldConfig.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockShieldConfig/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformShieldConfig;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.shieldconfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B20F00B22F200000000000B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockShieldConfig/OpenAppLockShieldConfig.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 10;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockShieldConfig/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformShieldConfig;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 500.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.shieldconfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B20F00B32F200000000000B3 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockShieldConfig/OpenAppLockShieldConfig.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockShieldConfig/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformShieldConfig;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.shieldconfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
+		B20F00B42F200000000000B4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockShieldAction/OpenAppLockShieldAction.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockShieldAction/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformShieldAction;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.shieldaction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B20F00B52F200000000000B5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockShieldAction/OpenAppLockShieldAction.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 10;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockShieldAction/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformShieldAction;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 500.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.shieldaction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B20F00B62F200000000000B6 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockShieldAction/OpenAppLockShieldAction.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockShieldAction/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformShieldAction;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.shieldaction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
+		B20F00B72F200000000000B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockReport/OpenAppLockReport.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockReport/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformReport;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.report;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B20F00B82F200000000000B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockReport/OpenAppLockReport.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 10;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockReport/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformReport;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 500.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.report;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B20F00B92F200000000000B9 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OpenAppLockReport/OpenAppLockReport.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 6TQJ3XWC45;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenAppLockReport/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietformReport;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tianya.appbox.report;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
 		};
 		F584CB862E796FBE00E25C34 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1073,6 +1810,46 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10F000B2F1000000000000B /* Build configuration list for PBXNativeTarget "FocusMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10F00082F10000000000008 /* Debug */,
+				A10F00092F10000000000009 /* Release */,
+				A10F000A2F1000000000000A /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20F00C12F200000000000C1 /* Build configuration list for PBXNativeTarget "OpenAppLockShieldConfig" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20F00B12F200000000000B1 /* Debug */,
+				B20F00B22F200000000000B2 /* Release */,
+				B20F00B32F200000000000B3 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20F00C22F200000000000C2 /* Build configuration list for PBXNativeTarget "OpenAppLockShieldAction" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20F00B42F200000000000B4 /* Debug */,
+				B20F00B52F200000000000B5 /* Release */,
+				B20F00B62F200000000000B6 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20F00C32F200000000000C3 /* Build configuration list for PBXNativeTarget "OpenAppLockReport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B20F00B72F200000000000B7 /* Debug */,
+				B20F00B82F200000000000B8 /* Release */,
+				B20F00B92F200000000000B9 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

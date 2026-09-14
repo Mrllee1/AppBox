@@ -1,0 +1,2536 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "appLists.appsCountFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个应用"
+          }
+        }
+      }
+    },
+    "appLists.appsSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用"
+          }
+        }
+      }
+    },
+    "appLists.closeButtonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "appLists.deleteConfirmationMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此应用列表将被永久删除。"
+          }
+        }
+      }
+    },
+    "appLists.deleteConfirmationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除此列表？"
+          }
+        }
+      }
+    },
+    "appLists.detailEmptyMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此列表中还没有应用。"
+          }
+        }
+      }
+    },
+    "appLists.detailReadOnlyFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止期间已锁定更改。阻止结束前，此应用列表仅可查看。"
+          }
+        }
+      }
+    },
+    "appLists.discardChangesAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃更改"
+          }
+        }
+      }
+    },
+    "appLists.discardChangesConfirmationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃更改？"
+          }
+        }
+      }
+    },
+    "appLists.editAppsLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑应用"
+          }
+        }
+      }
+    },
+    "appLists.editListLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑列表"
+          }
+        }
+      }
+    },
+    "appLists.editorNameFieldPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表名称"
+          }
+        }
+      }
+    },
+    "appLists.editorNameSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "appLists.editorNoAppsYetMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未添加应用。"
+          }
+        }
+      }
+    },
+    "appLists.keepEditingAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "appLists.libraryDeleteButtonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "appLists.libraryDeletionBlockedAlertMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先从正在使用此列表的规则中移除它，然后再删除。"
+          }
+        }
+      }
+    },
+    "appLists.libraryDeletionBlockedAlertTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此列表正在使用中"
+          }
+        }
+      }
+    },
+    "appLists.libraryEditButtonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        }
+      }
+    },
+    "appLists.libraryEmptyStateDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建应用列表，以指定规则要作用的应用。"
+          }
+        }
+      }
+    },
+    "appLists.libraryEmptyStateTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无应用列表"
+          }
+        }
+      }
+    },
+    "appLists.libraryLockedFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则阻止期间已锁定更改。阻止结束前，现有应用列表仅可查看。"
+          }
+        }
+      }
+    },
+    "appLists.libraryViewButtonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看"
+          }
+        }
+      }
+    },
+    "appLists.libraryYourAppListsSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的应用列表"
+          }
+        }
+      }
+    },
+    "appLists.listActionsLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表操作"
+          }
+        }
+      }
+    },
+    "appLists.manageNavigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用列表"
+          }
+        }
+      }
+    },
+    "appLists.newListLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建列表"
+          }
+        }
+      }
+    },
+    "appLists.okButtonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定"
+          }
+        }
+      }
+    },
+    "appLists.oneAppCountLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 个应用"
+          }
+        }
+      }
+    },
+    "appLists.saveListAccessibilityLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存列表"
+          }
+        }
+      }
+    },
+    "appLists.unsavedEditsMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对此列表的更改尚未保存。"
+          }
+        }
+      }
+    },
+    "appLists.untitledListDefaultName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名列表"
+          }
+        }
+      }
+    },
+    "dayPicker.previewSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在这些日期"
+          }
+        }
+      }
+    },
+    "diagnostics.cancelButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "diagnostics.clearAllLogsButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除所有日志"
+          }
+        }
+      }
+    },
+    "diagnostics.clearLogsConfirmationMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作将永久删除设备上记录的所有诊断日志。"
+          }
+        }
+      }
+    },
+    "diagnostics.clearLogsConfirmationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除所有日志？"
+          }
+        }
+      }
+    },
+    "diagnostics.daysSectionFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志仅保存在本机，不包含具体被阻止应用的信息。"
+          }
+        }
+      }
+    },
+    "diagnostics.daysSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期"
+          }
+        }
+      }
+    },
+    "diagnostics.navigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志"
+          }
+        }
+      }
+    },
+    "diagnostics.noEntriesPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无记录。"
+          }
+        }
+      }
+    },
+    "diagnostics.noLogsMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无日志。规则执行时会自动记录诊断信息。"
+          }
+        }
+      }
+    },
+    "home.activeRulesSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生效中的规则"
+          }
+        }
+      }
+    },
+    "home.currentlyBlockingSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前正在阻止"
+          }
+        }
+      }
+    },
+    "home.navigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首页"
+          }
+        }
+      }
+    },
+    "home.nothingBlockingMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前没有正在阻止的内容。"
+          }
+        }
+      }
+    },
+    "nav.appTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quietform"
+          }
+        }
+      }
+    },
+    "nav.homeSectionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首页"
+          }
+        }
+      }
+    },
+    "nav.rulesSectionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则"
+          }
+        }
+      }
+    },
+    "nav.settingsSectionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "newRule.closeButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "newRule.navigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建规则"
+          }
+        }
+      }
+    },
+    "newRule.presetSummaryFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "newRule.ruleTypeSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则类型"
+          }
+        }
+      }
+    },
+    "notification.timeLimitWarningBodyFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”的使用限额还剩 %lld 分钟。"
+          }
+        }
+      }
+    },
+    "notification.timeLimitWarningTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用时长即将用完"
+          }
+        }
+      }
+    },
+    "notifications.allowButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许通知"
+          }
+        }
+      }
+    },
+    "notifications.allowedStatusLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已允许通知"
+          }
+        }
+      }
+    },
+    "notifications.deniedFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quietform 的通知已关闭。请在系统设置中开启，以接收这些提醒。"
+          }
+        }
+      }
+    },
+    "notifications.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“计划即将开始”会在计划规则生效前 5 分钟提醒；“使用时长即将用完”会在限额剩余 5 分钟时提醒。"
+          }
+        }
+      }
+    },
+    "notifications.navigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
+          }
+        }
+      }
+    },
+    "notifications.notifyMeSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提醒我"
+          }
+        }
+      }
+    },
+    "notifications.openSettingsButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统设置"
+          }
+        }
+      }
+    },
+    "notifications.permissionSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限"
+          }
+        }
+      }
+    },
+    "notifications.scheduleStartToggleLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计划即将开始"
+          }
+        }
+      }
+    },
+    "notifications.timeLimitToggleLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用时长即将用完"
+          }
+        }
+      }
+    },
+    "onboarding.accessDeclinedMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏幕使用时间权限未获允许。没有此权限，Quietform 无法阻止应用。"
+          }
+        }
+      }
+    },
+    "onboarding.activityStaysPrivateBullet": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的应用活动仅保留在本机，不会被收集。"
+          }
+        }
+      }
+    },
+    "onboarding.allowScreenTime": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许屏幕使用时间权限"
+          }
+        }
+      }
+    },
+    "onboarding.changeAnytimeBullet": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你可以随时在设置中更改。"
+          }
+        }
+      }
+    },
+    "onboarding.continueButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        }
+      }
+    },
+    "onboarding.openSettingsButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统设置"
+          }
+        }
+      }
+    },
+    "onboarding.requesting": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在请求…"
+          }
+        }
+      }
+    },
+    "onboarding.screenTimeFrameworkBullet": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quietform 使用 Apple 的屏幕使用时间框架阻止你选择的应用。"
+          }
+        }
+      }
+    },
+    "onboarding.welcomeDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助你减少分心，专注当下。"
+          }
+        }
+      }
+    },
+    "onboarding.welcomeTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quietform"
+          }
+        }
+      }
+    },
+    "preset.balanceSectionSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把时间留给真正重要的事情。"
+          }
+        }
+      }
+    },
+    "preset.balanceSectionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "健康平衡"
+          }
+        }
+      }
+    },
+    "preset.deepWorkName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深度工作"
+          }
+        }
+      }
+    },
+    "preset.eveningResetName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "晚间重置"
+          }
+        }
+      }
+    },
+    "preset.familyDinnerName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "家庭晚餐"
+          }
+        }
+      }
+    },
+    "preset.focusSectionSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "守护你的深度工作时间。"
+          }
+        }
+      }
+    },
+    "preset.focusSectionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "专注时间"
+          }
+        }
+      }
+    },
+    "preset.lightsOutName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准时入睡"
+          }
+        }
+      }
+    },
+    "preset.morningFocusName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "晨间专注"
+          }
+        }
+      }
+    },
+    "preset.restSectionSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按计划放松身心。"
+          }
+        }
+      }
+    },
+    "preset.restSectionTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "休息充电"
+          }
+        }
+      }
+    },
+    "preset.screenFreeSundayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无屏星期日"
+          }
+        }
+      }
+    },
+    "ruleDetail.appListSummaryFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "ruleDetail.closeButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "ruleDetail.dailyMinutesSummaryFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天 %lld 分钟"
+          }
+        }
+      }
+    },
+    "ruleDetail.deleteAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "ruleDetail.deleteConfirmationMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此规则将被永久删除。"
+          }
+        }
+      }
+    },
+    "ruleDetail.deleteConfirmationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除此规则？"
+          }
+        }
+      }
+    },
+    "ruleDetail.detailsSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详细信息"
+          }
+        }
+      }
+    },
+    "ruleDetail.disableAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停用"
+          }
+        }
+      }
+    },
+    "ruleDetail.disableConfirmationMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此规则将保持停用，直到你再次启用。"
+          }
+        }
+      }
+    },
+    "ruleDetail.disableConfirmationTitleFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停用“%@”？"
+          }
+        }
+      }
+    },
+    "ruleDetail.discardChangesAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃更改"
+          }
+        }
+      }
+    },
+    "ruleDetail.discardChangesTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃更改？"
+          }
+        }
+      }
+    },
+    "ruleDetail.doneLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "ruleDetail.duringThisTimeRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间段"
+          }
+        }
+      }
+    },
+    "ruleDetail.editButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        }
+      }
+    },
+    "ruleDetail.enableAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用"
+          }
+        }
+      }
+    },
+    "ruleDetail.forThisLongRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用时长"
+          }
+        }
+      }
+    },
+    "ruleDetail.generalSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常规"
+          }
+        }
+      }
+    },
+    "ruleDetail.hardModeLockedNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止期间已锁定更改。阻止结束前，此规则仅可查看。"
+          }
+        }
+      }
+    },
+    "ruleDetail.keepEditingAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "ruleDetail.kindRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类型"
+          }
+        }
+      }
+    },
+    "ruleDetail.moreThanRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开次数"
+          }
+        }
+      }
+    },
+    "ruleDetail.noAppsPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择应用"
+          }
+        }
+      }
+    },
+    "ruleDetail.noValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "否"
+          }
+        }
+      }
+    },
+    "ruleDetail.onTheseDaysRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期"
+          }
+        }
+      }
+    },
+    "ruleDetail.opensCountSummaryFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天 %lld 次"
+          }
+        }
+      }
+    },
+    "ruleDetail.pauseConfirmationMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此规则将暂停 15 分钟。"
+          }
+        }
+      }
+    },
+    "ruleDetail.pauseConfirmationTitleFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停“%@”？"
+          }
+        }
+      }
+    },
+    "ruleDetail.pauseFor15MinutesAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停 15 分钟"
+          }
+        }
+      }
+    },
+    "ruleDetail.pausingAllowedRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许暂停"
+          }
+        }
+      }
+    },
+    "ruleDetail.resumeBlockingAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复阻止"
+          }
+        }
+      }
+    },
+    "ruleDetail.ruleActionsLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则操作"
+          }
+        }
+      }
+    },
+    "ruleDetail.statusRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态"
+          }
+        }
+      }
+    },
+    "ruleDetail.thenBlockUntilRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止至"
+          }
+        }
+      }
+    },
+    "ruleDetail.todaysUsageLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日使用情况"
+          }
+        }
+      }
+    },
+    "ruleDetail.tomorrowValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天"
+          }
+        }
+      }
+    },
+    "ruleDetail.unsavedEditsMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对此规则的更改尚未保存。"
+          }
+        }
+      }
+    },
+    "ruleDetail.usageReportNavigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用情况"
+          }
+        }
+      }
+    },
+    "ruleDetail.whenIOpenRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用"
+          }
+        }
+      }
+    },
+    "ruleDetail.whenIUseRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用"
+          }
+        }
+      }
+    },
+    "ruleDetail.yesValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是"
+          }
+        }
+      }
+    },
+    "ruleEditor.addRuleLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加规则"
+          }
+        }
+      }
+    },
+    "ruleEditor.appListSummaryFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "ruleEditor.appListTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用列表"
+          }
+        }
+      }
+    },
+    "ruleEditor.appsAreBlockedHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止这些应用"
+          }
+        }
+      }
+    },
+    "ruleEditor.cantPauseWhileActive": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此规则生效时无法暂停。"
+          }
+        }
+      }
+    },
+    "ruleEditor.chooseAppListPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择"
+          }
+        }
+      }
+    },
+    "ruleEditor.dailyLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天"
+          }
+        }
+      }
+    },
+    "ruleEditor.dailyMinutesAbbreviatedFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 分钟"
+          }
+        }
+      }
+    },
+    "ruleEditor.dailyMinutesAccessibilityFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 分钟"
+          }
+        }
+      }
+    },
+    "ruleEditor.dailyOpenLimitAccessibilityLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日打开次数限制"
+          }
+        }
+      }
+    },
+    "ruleEditor.dailyTimeLimitAccessibilityLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每日使用时长限制"
+          }
+        }
+      }
+    },
+    "ruleEditor.duringThisTimeHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此时间段内"
+          }
+        }
+      }
+    },
+    "ruleEditor.forThisLongHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用超过"
+          }
+        }
+      }
+    },
+    "ruleEditor.fromLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
+          }
+        }
+      }
+    },
+    "ruleEditor.hardModeToggle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止期间锁定更改"
+          }
+        }
+      }
+    },
+    "ruleEditor.modeLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式"
+          }
+        }
+      }
+    },
+    "ruleEditor.moreThanHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超过"
+          }
+        }
+      }
+    },
+    "ruleEditor.nameSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "ruleEditor.onlyTheseAppsAllowedHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅允许这些应用"
+          }
+        }
+      }
+    },
+    "ruleEditor.onTheseDaysHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在这些日期"
+          }
+        }
+      }
+    },
+    "ruleEditor.opensCountFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 次"
+          }
+        }
+      }
+    },
+    "ruleEditor.ruleNamePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则名称"
+          }
+        }
+      }
+    },
+    "ruleEditor.thenBlockAppHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随后阻止应用"
+          }
+        }
+      }
+    },
+    "ruleEditor.toLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束"
+          }
+        }
+      }
+    },
+    "ruleEditor.tomorrowValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天"
+          }
+        }
+      }
+    },
+    "ruleEditor.untilLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直到"
+          }
+        }
+      }
+    },
+    "ruleEditor.whenIOpenHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当我打开"
+          }
+        }
+      }
+    },
+    "ruleEditor.whenIUseHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当我使用"
+          }
+        }
+      }
+    },
+    "ruleKind.defaultNameOpenLimit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开守门员"
+          }
+        }
+      }
+    },
+    "ruleKind.defaultNameSchedule": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "专注时段"
+          }
+        }
+      }
+    },
+    "ruleKind.defaultNameTimeLimit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间守门员"
+          }
+        }
+      }
+    },
+    "ruleKind.openLimitDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开次数限制"
+          }
+        }
+      }
+    },
+    "ruleKind.openLimitExampleText": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：每天 5 次"
+          }
+        }
+      }
+    },
+    "ruleKind.scheduleDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定时计划"
+          }
+        }
+      }
+    },
+    "ruleKind.scheduleExampleText": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：每天 9:00–17:00"
+          }
+        }
+      }
+    },
+    "ruleKind.timeLimitDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用时长限制"
+          }
+        }
+      }
+    },
+    "ruleKind.timeLimitExampleText": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：每天 45 分钟"
+          }
+        }
+      }
+    },
+    "rulesList.emptyStateDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建规则，按计划阻止容易分心的应用。"
+          }
+        }
+      }
+    },
+    "rulesList.navigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则"
+          }
+        }
+      }
+    },
+    "rulesList.newRuleButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建规则"
+          }
+        }
+      }
+    },
+    "rulesList.noRulesYetTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无规则"
+          }
+        }
+      }
+    },
+    "rulesList.ruleLimitAlertMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多可创建 %lld 条规则。请删除一条后再添加。"
+          }
+        }
+      }
+    },
+    "rulesList.ruleLimitAlertTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到规则数量上限"
+          }
+        }
+      }
+    },
+    "screenTimeAccess.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有屏幕使用时间权限，Quietform 无法执行阻止。请在系统设置中重新开启，以确保规则正常工作。"
+          }
+        }
+      }
+    },
+    "screenTimeAccess.openSettingsButton": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统设置"
+          }
+        }
+      }
+    },
+    "screenTimeAccess.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要屏幕使用时间权限"
+          }
+        }
+      }
+    },
+    "selectionMode.allowOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅允许"
+          }
+        }
+      }
+    },
+    "selectionMode.block": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止"
+          }
+        }
+      }
+    },
+    "settings.aboutSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于"
+          }
+        }
+      }
+    },
+    "settings.appListsRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用列表"
+          }
+        }
+      }
+    },
+    "settings.githubLinkLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub"
+          }
+        }
+      }
+    },
+    "settings.logsRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志"
+          }
+        }
+      }
+    },
+    "settings.moreSettingsSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多设置"
+          }
+        }
+      }
+    },
+    "settings.navigationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "settings.notificationsRowLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
+          }
+        }
+      }
+    },
+    "settings.protectionSectionHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保护"
+          }
+        }
+      }
+    },
+    "settings.uninstallProtectionLockedFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定规则正在阻止时，无法更改此项。"
+          }
+        }
+      }
+    },
+    "settings.uninstallProtectionToggleLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定规则生效时禁止卸载应用"
+          }
+        }
+      }
+    },
+    "settings.uninstallProtectionUnlockedFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用“阻止期间锁定更改”的规则生效时，任何应用都无法被删除。"
+          }
+        }
+      }
+    },
+    "settings.websiteLinkLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方网站"
+          }
+        }
+      }
+    },
+    "shield.blockedSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此应用已被 Quietform 阻止。"
+          }
+        }
+      }
+    },
+    "shield.blockedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用已阻止"
+          }
+        }
+      }
+    },
+    "shield.noOpensLeft": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天的打开次数已用完，阻止将在明天解除。"
+          }
+        }
+      }
+    },
+    "shield.openButtonMany": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开（剩余 %lld 次）"
+          }
+        }
+      }
+    },
+    "shield.openButtonOne": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开（剩余 1 次）"
+          }
+        }
+      }
+    },
+    "shield.openLimit.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天已打开 %lld/%lld 次。每次可使用 %lld 分钟。"
+          }
+        }
+      }
+    },
+    "shield.openLimitJustBlocked.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你刚刚使用了一次打开机会，稍后仍可再次打开。"
+          }
+        }
+      }
+    },
+    "shield.primaryButtonLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定"
+          }
+        }
+      }
+    },
+    "status.activeLeft": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@后结束"
+          }
+        }
+      }
+    },
+    "status.countdownDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld天"
+          }
+        }
+      }
+    },
+    "status.countdownHours": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld小时"
+          }
+        }
+      }
+    },
+    "status.countdownMinutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld分钟"
+          }
+        }
+      }
+    },
+    "status.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停用"
+          }
+        }
+      }
+    },
+    "status.noDaysSelected": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择日期"
+          }
+        }
+      }
+    },
+    "status.resetsIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@后重置"
+          }
+        }
+      }
+    },
+    "status.resumesIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@后恢复"
+          }
+        }
+      }
+    },
+    "status.startsIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@后开始"
+          }
+        }
+      }
+    },
+    "usage.subtitleSeparator": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "usageReport.durationHoursFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld小时"
+          }
+        }
+      }
+    },
+    "usageReport.durationHoursMinutesFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld小时%lld分钟"
+          }
+        }
+      }
+    },
+    "usageReport.durationMinutesFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld分钟"
+          }
+        }
+      }
+    },
+    "usageReport.noUsageToday": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天暂无使用记录"
+          }
+        }
+      }
+    },
+    "usageReport.todayTotalFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日共 %@"
+          }
+        }
+      }
+    },
+    "usageReport.underAMinute": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不足 1 分钟"
+          }
+        }
+      }
+    },
+    "usageReport.unknownAppName": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知应用"
+          }
+        }
+      }
+    },
+    "weekday.everyDaySummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天"
+          }
+        }
+      }
+    },
+    "weekday.fridayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周五"
+          }
+        }
+      }
+    },
+    "weekday.mondayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周一"
+          }
+        }
+      }
+    },
+    "weekday.neverSummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从不"
+          }
+        }
+      }
+    },
+    "weekday.saturdayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周六"
+          }
+        }
+      }
+    },
+    "weekday.shortLabelF": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "五"
+          }
+        }
+      }
+    },
+    "weekday.shortLabelM": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一"
+          }
+        }
+      }
+    },
+    "weekday.shortLabelS": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日"
+          }
+        }
+      }
+    },
+    "weekday.shortLabelT": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二"
+          }
+        }
+      }
+    },
+    "weekday.shortLabelW": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三"
+          }
+        }
+      }
+    },
+    "weekday.sundayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周日"
+          }
+        }
+      }
+    },
+    "weekday.thursdayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周四"
+          }
+        }
+      }
+    },
+    "weekday.tuesdayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周二"
+          }
+        }
+      }
+    },
+    "weekday.wednesdayAbbreviation": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周三"
+          }
+        }
+      }
+    },
+    "weekday.weekdaysSummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作日"
+          }
+        }
+      }
+    },
+    "weekday.weekendsSummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周末"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
